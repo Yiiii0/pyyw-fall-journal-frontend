@@ -1,4 +1,4 @@
-# Progress and Goals here[ProgressAndGoals.md]
+# Progress and Goals [here](ProgressAndGoals.md)
 
 
 # Requirements
