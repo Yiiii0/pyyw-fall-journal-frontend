@@ -20,6 +20,8 @@ export const createPerson = async (personData) => {
     const response = await axios.put(PEOPLE_ENDPOINTS.CREATE, personData);
     return response.data;
   } catch (error) {
-    throw new Error(`Failed to create person: ${error.message}`);
+    // Extract the error message from the backend response
+    const errorMessage = error.response?.data?.message || error.message;
+    throw new Error(errorMessage);
   }
 }; 

@@ -14,6 +14,8 @@ function AddPersonForm({
   const [affiliation, setAffiliation] = useState('NYU');
   const [role, setRole] = useState('ED');
 
+  const VALID_ROLES = ['ED', 'AU', 'RE']; // Add all valid roles here
+
   const changeName = (event) => { setName(event.target.value); };
   const changeEmail = (event) => { setEmail(event.target.value); };
   const changeAffiliation = (event) => { setAffiliation(event.target.value); };
@@ -21,6 +23,8 @@ function AddPersonForm({
 
   const addPerson = async (event) => {
     event.preventDefault();
+    setError(''); // Clear any previous errors
+    
     const newPerson = {
       name,
       email,
@@ -33,7 +37,7 @@ function AddPersonForm({
       fetchPeople();
       cancel(); // Hide form after successful creation
     } catch (error) {
-      setError(`There was a problem adding the person: ${error.message}`);
+      setError(error.message); // Display the error message from the backend
     }
   };
 
@@ -68,13 +72,18 @@ function AddPersonForm({
       />
 
       <label htmlFor="role">Role</label>
-      <input 
-        required 
-        type="text" 
-        id="role" 
+      <select
+        required
+        id="role"
         value={role}
-        onChange={changeRole} 
-      />
+        onChange={changeRole}
+      >
+        {VALID_ROLES.map(role => (
+          <option key={role} value={role}>
+            {role}
+          </option>
+        ))}
+      </select>
 
       <button type="button" onClick={cancel}>Cancel</button>
       <button type="submit" onClick={addPerson}>Submit</button>
