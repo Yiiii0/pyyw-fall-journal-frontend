@@ -1,12 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import propTypes from 'prop-types';
-import axios from 'axios';
 import { Link } from 'react-router-dom';
- 
-import { BACKEND_URL } from '../../constants';
-
-const PEOPLE_READ_ENDPOINT = `${BACKEND_URL}/people`;
-const PEOPLE_CREATE_ENDPOINT = `${BACKEND_URL}/people/create`;
+import { getPeople, createPerson } from '../../services/peopleAPI';
 
 function AddPersonForm({
   visible,
@@ -16,34 +11,71 @@ function AddPersonForm({
 }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [affiliation, setAffiliation] = useState('NYU');
+  const [role, setRole] = useState('ED');
 
   const changeName = (event) => { setName(event.target.value); };
   const changeEmail = (event) => { setEmail(event.target.value); };
+  const changeAffiliation = (event) => { setAffiliation(event.target.value); };
+  const changeRole = (event) => { setRole(event.target.value); };
 
-  const addPerson = (event) => {
+  const addPerson = async (event) => {
     event.preventDefault();
     const newPerson = {
-      name: name,
-      email: email,
-      roles: 'ED',
-      affiliation: 'NYU',
+      name,
+      email,
+      role,
+      affiliation,
+    };
+
+    try {
+      await createPerson(newPerson);
+      fetchPeople();
+      cancel(); // Hide form after successful creation
+    } catch (error) {
+      setError(`There was a problem adding the person: ${error.message}`);
     }
-    axios.put(PEOPLE_CREATE_ENDPOINT, newPerson)
-      .then(fetchPeople)
-      .catch((error) => { setError(`There was a problem adding the person. ${error}`); });
   };
 
   if (!visible) return null;
   return (
     <form>
-      <label htmlFor="name">
-        Name
-      </label>
-      <input required type="text" id="name" value={name} onChange={changeName} />
-      <label htmlFor="email">
-        Email
-      </label>
-      <input required type="text" id="email" onChange={changeEmail} />
+      <label htmlFor="name">Name</label>
+      <input 
+        required 
+        type="text" 
+        id="name" 
+        value={name} 
+        onChange={changeName} 
+      />
+      
+      <label htmlFor="email">Email</label>
+      <input 
+        required 
+        type="email" 
+        id="email" 
+        value={email}
+        onChange={changeEmail} 
+      />
+
+      <label htmlFor="affiliation">Affiliation</label>
+      <input 
+        required 
+        type="text" 
+        id="affiliation" 
+        value={affiliation}
+        onChange={changeAffiliation} 
+      />
+
+      <label htmlFor="role">Role</label>
+      <input 
+        required 
+        type="text" 
+        id="role" 
+        value={role}
+        onChange={changeRole} 
+      />
+
       <button type="button" onClick={cancel}>Cancel</button>
       <button type="submit" onClick={addPerson}>Submit</button>
     </form>
@@ -68,14 +100,16 @@ ErrorMessage.propTypes = {
 };
 
 function Person({ person }) {
-  const { name, email } = person;
+  const { name, email, roles, affiliation } = person;
   return (
     <Link to={name}>
       <div className="person-container">
-        <h2>{name}</h2>
-        <p>
-          Email: {email}
-        </p>
+        <div className="person-info">
+          <h2>{name}</h2>
+          <p>Email: {email}</p>
+          <p>Affiliation: {affiliation}</p>
+          <p>Roles: {Array.isArray(roles) ? roles.join(', ') : roles}</p>
+        </div>
       </div>
     </Link>
   );
@@ -84,6 +118,11 @@ Person.propTypes = {
   person: propTypes.shape({
     name: propTypes.string.isRequired,
     email: propTypes.string.isRequired,
+    roles: propTypes.oneOfType([
+      propTypes.string,
+      propTypes.arrayOf(propTypes.string)
+    ]).isRequired,
+    affiliation: propTypes.string.isRequired,
   }).isRequired,
 };
 
@@ -98,16 +137,21 @@ function People() {
   const [people, setPeople] = useState([]);
   const [addingPerson, setAddingPerson] = useState(false);
 
-  const fetchPeople = () => {
-    axios.get(PEOPLE_READ_ENDPOINT)
-      .then(({ data }) => { setPeople(peopleObjectToArray(data)) })
-      .catch((error) => setError(`There was a problem retrieving the list of people. ${error}`));
+  const fetchPeople = async () => {
+    try {
+      const data = await getPeople();
+      setPeople(peopleObjectToArray(data));
+    } catch (error) {
+      setError(`There was a problem retrieving the list of people: ${error.message}`);
+    }
   };
 
   const showAddPersonForm = () => { setAddingPerson(true); };
   const hideAddPersonForm = () => { setAddingPerson(false); };
 
-  useEffect(fetchPeople, []);
+  useEffect(() => {
+    fetchPeople();
+  }, []);
 
   return (
     <div className="wrapper">

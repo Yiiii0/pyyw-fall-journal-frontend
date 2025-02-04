@@ -52,13 +52,22 @@ button:hover {
   border-radius: 5px;
 }
 
-form input {
-  display: block;
-  margin: .5rem 0 1rem 0;
-  padding: 1rem 0.5rem 0.5rem 0.5rem;
-  border-radius: 5px;
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 400px;
+  margin: 2rem auto;
+  padding: 2rem;
   border: 2px solid var(--accent-color);
-  font-size: 1rem;
+  border-radius: 5px;
+}
+
+form input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--accent-color);
+  border-radius: 4px;
 }
 
 form label {
@@ -84,7 +93,7 @@ form label::after {
 }
 
 form button {
-  margin-right: 1rem;
+  margin-top: 1rem;
 }
 form button[type=button] {
   border-color: var(--background-color);
@@ -163,4 +172,10 @@ nav a:focus {
 .person-container h2 {
   margin: 0;
   font-size: 1.5rem;
+}
+
+.button-group {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
 }
