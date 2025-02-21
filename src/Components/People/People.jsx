@@ -304,51 +304,172 @@ function peopleObjectToArray(Data) {
 }
 
 function People() {
-  const [error, setError] = useState('');
   const [people, setPeople] = useState([]);
+  const [error, setError] = useState('');
   const [addingPerson, setAddingPerson] = useState(false);
+  
+  // Add new state for search and sort
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchField, setSearchField] = useState('name'); // 'name' or 'email'
+  const [sortField, setSortField] = useState('name');
+  const [sortDirection, setSortDirection] = useState('asc');
+  const [selectedRole, setSelectedRole] = useState(''); // Add state for role filter
+
+  const VALID_ROLES = ['ED', 'AU', 'RE']; // Define valid roles
+  const ROLE_LABELS = {
+    'ED': 'Editor',
+    'AU': 'Author',
+    'RE': 'Reviewer'
+  };
 
   const fetchPeople = async () => {
     try {
       const data = await getPeople();
       setPeople(peopleObjectToArray(data));
-    } catch (error) {
-      setError(`There was a problem retrieving the list of people: ${error.message}`);
+    } catch (err) {
+      setError(err.message);
     }
   };
-
-  const showAddPersonForm = () => { setAddingPerson(true); };
-  const hideAddPersonForm = () => { setAddingPerson(false); };
 
   useEffect(() => {
     fetchPeople();
   }, []);
 
+  const showAddPersonForm = () => { setAddingPerson(true); };
+  const hideAddPersonForm = () => { setAddingPerson(false); };
+
+  // Filter and sort functions
+  const filterPeople = (peopleList) => {
+    return peopleList.filter(person => {
+      // First apply search filter
+      const searchValue = searchQuery.toLowerCase();
+      const matchesSearch = searchField === 'name' 
+        ? person.name.toLowerCase().includes(searchValue)
+        : person.email.toLowerCase().includes(searchValue);
+
+      // Then apply role filter
+      const matchesRole = selectedRole === '' || (Array.isArray(person.roles) && person.roles.includes(selectedRole));
+
+      return matchesSearch && matchesRole;
+    });
+  };
+
+  const sortPeople = (peopleList) => {
+    return [...peopleList].sort((a, b) => {
+      let valueA = a[sortField];
+      let valueB = b[sortField];
+      
+      // Handle roles array for sorting
+      if (sortField === 'role') {
+        valueA = a.roles.join(',');
+        valueB = b.roles.join(',');
+      }
+
+      if (sortDirection === 'asc') {
+        return valueA.localeCompare(valueB);
+      } else {
+        return valueB.localeCompare(valueA);
+      }
+    });
+  };
+
+  const handleSortChange = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault(); // Prevent form submission
+    // The search is already implemented in filterPeople
+    // This is just to provide better UX with a search button
+  };
+
+  const filteredAndSortedPeople = sortPeople(filterPeople(people));
+
   return (
-    <div className="wrapper">
-      <header>
-        <h1>
-          View All People
-        </h1>
-        <button type="button" onClick={showAddPersonForm}>
-          Add a Person
-        </button>
-      </header>
+    <div className="people-container">
+      <h1>People</h1>
+      {error && <ErrorMessage message={error} />}
+      
+      {/* Search and Sort Controls */}
+      <div className="controls">
+        <div className="controls-group">
+          <form className="search-controls" onSubmit={handleSearch}>
+            <div className="search-input-group">
+              <input
+                type="text"
+                placeholder={`Search by ${searchField}`}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <select
+                value={searchField}
+                onChange={(e) => setSearchField(e.target.value)}
+              >
+                <option value="name">Name</option>
+                <option value="email">Email</option>
+              </select>
+              <button type="submit" className="search-button">
+                Search
+              </button>
+            </div>
+          </form>
+
+          <div className="role-filter">
+            <label htmlFor="role-filter">Filter by Role:</label>
+            <select
+              id="role-filter"
+              value={selectedRole}
+              onChange={(e) => setSelectedRole(e.target.value)}
+            >
+              <option value="">All Roles</option>
+              {VALID_ROLES.map(role => (
+                <option key={role} value={role}>
+                  {ROLE_LABELS[role]}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        
+        <div className="sort-controls">
+          <button
+            onClick={() => handleSortChange('role')}
+            className={sortField === 'role' ? 'active' : ''}
+          >
+            Sort by Role {sortField === 'role' && (sortDirection === 'asc' ? '↑' : '↓')}
+          </button>
+          <button
+            onClick={() => handleSortChange('affiliation')}
+            className={sortField === 'affiliation' ? 'active' : ''}
+          >
+            Sort by Affiliation {sortField === 'affiliation' && (sortDirection === 'asc' ? '↑' : '↓')}
+          </button>
+        </div>
+      </div>
+
+      <button type="button" onClick={showAddPersonForm}>Add Person</button>
       <AddPersonForm
         visible={addingPerson}
         cancel={hideAddPersonForm}
         fetchPeople={fetchPeople}
         setError={setError}
       />
-      {error && <ErrorMessage message={error} />}
-      {people.map((person) => (
-        <Person
-          key={person.email}
-          person={person}
-          fetchPeople={fetchPeople}
-          setError={setError}
-        />
-      ))}
+      
+      <div className="people-list">
+        {filteredAndSortedPeople.map((person) => (
+          <Person
+            key={person.email}
+            person={person}
+            fetchPeople={fetchPeople}
+            setError={setError}
+          />
+        ))}
+      </div>
     </div>
   );
 }
