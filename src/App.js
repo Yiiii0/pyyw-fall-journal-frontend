@@ -12,6 +12,7 @@ import './App.css';
 
 import Navbar from './Components/Navbar';
 import People from './Components/People';
+import Manuscripts from './Components/Manuscripts';
 import Login from './Components/Auth/Login';
 
 function PersonPage() {
@@ -57,6 +58,7 @@ function App() {
         <Route path="/" element={<div>Welcome to Journal System</div>} />
         <Route path="/login" element={<Login onLogin={handleLogin} />} />
         <Route path="/people" element={<People />} />
+        <Route path="/manuscripts" element={<Manuscripts />} />
         <Route path="/people/:name" element={<PersonPage />} />
         <Route path="/submissions" element={
           <ProtectedRoute user={user}>

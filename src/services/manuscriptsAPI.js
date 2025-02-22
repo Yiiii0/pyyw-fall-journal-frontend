@@ -2,11 +2,11 @@ import axios from 'axios';
 import { BACKEND_URL } from '../constants';
 
 const MANUSCRIPTS_ENDPOINTS = {
-  READ: `${BACKEND_URL}/manuscripts`,
-  READ_BY_TITLE: `${BACKEND_URL}/manuscripts/title`
+  READ: `${BACKEND_URL}/manuscript`,
+  READ_BY_TITLE: `${BACKEND_URL}/manuscript/title`
 };
 
-export const getManuscirpts = async () => {
+export const getManuscript = async () => {
   try {
     const { data } = await axios.get(MANUSCRIPTS_ENDPOINTS.READ);
     return data;
