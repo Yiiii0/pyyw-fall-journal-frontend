@@ -31,3 +31,30 @@ export const deleteManuscriptByTitle = async (title) => {
     throw new Error(`Failed to delete manuscript "${title}": ${error.message}`);
   }
 };
+
+export const createManuscript = async (manuscriptData) => {
+  try {
+    const { data } = await axios.put(`${MANUSCRIPTS_ENDPOINTS.READ}/create`, manuscriptData);
+    return data;
+  } catch (error) {
+    throw new Error(`Failed to create manuscript: ${error.message}`);
+  }
+};
+
+export const updateManuscript = async (manuscriptData) => {
+  try {
+    const { data } = await axios.put(`${MANUSCRIPTS_ENDPOINTS.READ}/update`, manuscriptData);
+    return data;
+  } catch (error) {
+    throw new Error(`Failed to update manuscript: ${error.message}`);
+  }
+};
+
+export const updateManuscriptState = async (title, action) => {
+  try {
+    const { data } = await axios.put(`${MANUSCRIPTS_ENDPOINTS.READ}/update_state`, { title, action });
+    return data;
+  } catch (error) {
+    throw new Error(`Failed to update manuscript state for "${title}": ${error.message}`);
+  }
+};
