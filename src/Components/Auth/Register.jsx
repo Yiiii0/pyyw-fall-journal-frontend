@@ -21,7 +21,7 @@ function Register({ onRegister }) {
         }
 
         try {
-            const userData = await register({ email: formData.email, password: formData.password });
+            const userData = await register({ username: formData.email, password: formData.password });
             onRegister(userData);
             navigate('/');
         } catch (err) {

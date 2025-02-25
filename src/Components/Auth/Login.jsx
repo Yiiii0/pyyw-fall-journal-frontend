@@ -7,7 +7,7 @@ import './Auth.css';
 function Login({ onLogin }) {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    email: '',
+    username: '',
     password: '',
   });
   const [error, setError] = useState('');
@@ -39,10 +39,10 @@ function Login({ onLogin }) {
         <div className="form-group">
           <label htmlFor="email">Email</label>
           <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
+            type="text"
+            id="username"
+            name="username"
+            value={formData.username}
             onChange={handleChange}
             required
           />
@@ -63,7 +63,7 @@ function Login({ onLogin }) {
         </button>
       </form>
       <div className="register-link">
-        <p>Haven't an account yet? <Link to="/register">Register now</Link></p>
+        <p>Havent an account yet? <Link to="/register">Register now</Link></p>
       </div>
     </div>
   );

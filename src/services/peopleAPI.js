@@ -7,6 +7,8 @@ const PEOPLE_ENDPOINTS = {
   UPDATE: `${BACKEND_URL}/people/update`,
   ADD_ROLE: `${BACKEND_URL}/people/add_role`,
   DELETE_ROLE: `${BACKEND_URL}/people/delete_role`,
+  LOGIN: `${BACKEND_URL}/auth/login`,
+  REGISTER: `${BACKEND_URL}/auth/register`,
 };
 
 export const getPeople = async () => {
@@ -78,33 +80,22 @@ export const deleteRole = async (email, role) => {
   }
 };
 
-// Mock login service
-export async function login({ email, password }) {
-  // For development/testing purposes
-  await new Promise(resolve => setTimeout(resolve, 500));
-
-  // Mock validation
-  if (email === 'test@example.com' && password === 'password') {
-    return { email, name: 'Test User' };
+export async function login({ username, password }) {
+  try {
+    console.log({ username, password })
+    const response = await axios.post(PEOPLE_ENDPOINTS.LOGIN, { username, password });
+    return response.data; // Assuming the response contains user data
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Login failed');
   }
-
-  throw new Error('Invalid credentials');
 }
 
-
-// Mock reg service
 export async function register(userData) {
-  const response = await fetch('/api/register', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(userData),
-  });
-
-  if (!response.ok) {
-    throw new Error('Registration failed');
+  try {
+    const response = await axios.post(PEOPLE_ENDPOINTS.REGISTER, userData);
+    return response.data; // Assuming successful response contains user data
+  } catch (error) {
+    console.error("Registration Error:", error.response?.data || error.message); // debug
+    throw new Error(error.response?.data?.message || 'Registration failed');
   }
-
-  return response.json();
 }
