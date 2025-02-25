@@ -14,7 +14,17 @@ function AddPersonForm({
   const [affiliation, setAffiliation] = useState('NYU');
   const [role, setRole] = useState('ED');
 
-  const VALID_ROLES = ['ED', 'AU', 'RE']; // Add all valid roles here
+  const VALID_ROLES = ['ED', 'ME', 'CE', 'MA', 'CP', 'TS', 'AU', 'RE']; // Updated to include all valid roles
+  const ROLE_LABELS = {
+    'ED': 'Editor',
+    'ME': 'Managing Editor',
+    'CE': 'Consulting Editor',
+    'MA': 'Managing',
+    'CP': 'Copy',
+    'TS': 'Typesetters',
+    'AU': 'Author',
+    'RE': 'Referee'
+  };
 
   const changeName = (event) => { setName(event.target.value); };
   const changeEmail = (event) => { setEmail(event.target.value); };
@@ -80,7 +90,7 @@ function AddPersonForm({
       >
         {VALID_ROLES.map(role => (
           <option key={role} value={role}>
-            {role}
+            {ROLE_LABELS[role]}
           </option>
         ))}
       </select>
@@ -119,7 +129,17 @@ function EditPersonForm({
   const [affiliation, setAffiliation] = useState(person.affiliation);
   const [newRole, setNewRole] = useState('');
   
-  const VALID_ROLES = ['ED', 'AU', 'RE']; // Same as in AddPersonForm
+  const VALID_ROLES = ['ED', 'ME', 'CE', 'MA', 'CP', 'TS', 'AU', 'RE']; // Updated to include all valid roles
+  const ROLE_LABELS = {
+    'ED': 'Editor',
+    'ME': 'Managing Editor',
+    'CE': 'Consulting Editor',
+    'MA': 'Managing',
+    'CP': 'Copy',
+    'TS': 'Typesetters',
+    'AU': 'Author',
+    'RE': 'Referee'
+  };
   
   const changeName = (event) => { setName(event.target.value); };
   const changeAffiliation = (event) => { setAffiliation(event.target.value); };
@@ -185,7 +205,7 @@ function EditPersonForm({
         <div className="current-roles">
           {Array.isArray(person.roles) && person.roles.map(role => (
             <div key={role} className="role-tag">
-              {role}
+              {ROLE_LABELS[role] || role}
               <button 
                 type="button" 
                 onClick={() => handleDeleteRole(role)}
@@ -206,7 +226,7 @@ function EditPersonForm({
             <option value="">Select a role...</option>
             {VALID_ROLES.map(role => (
               <option key={role} value={role}>
-                {role}
+                {ROLE_LABELS[role]}
               </option>
             ))}
           </select>
@@ -241,6 +261,17 @@ EditPersonForm.propTypes = {
 function Person({ person, fetchPeople, setError }) {
   const [isEditing, setIsEditing] = useState(false);
   const { name, email, roles, affiliation } = person;
+  
+  const ROLE_LABELS = {
+    'ED': 'Editor',
+    'ME': 'Managing Editor',
+    'CE': 'Consulting Editor',
+    'MA': 'Managing',
+    'CP': 'Copy',
+    'TS': 'Typesetters',
+    'AU': 'Author',
+    'RE': 'Referee'
+  };
 
   const handleDelete = async () => {
     if (window.confirm(`Are you sure you want to delete ${name}?`)) {
@@ -264,7 +295,7 @@ function Person({ person, fetchPeople, setError }) {
             <h2>{name}</h2>
             <p>Email: {email}</p>
             <p>Affiliation: {affiliation}</p>
-            <p>Roles: {Array.isArray(roles) ? roles.join(', ') : roles}</p>
+            <p>Roles: {Array.isArray(roles) ? roles.map(role => ROLE_LABELS[role] || role).join(', ') : roles}</p>
           </div>
         </div>
       </Link>
@@ -315,11 +346,16 @@ function People() {
   const [sortDirection, setSortDirection] = useState('asc');
   const [selectedRole, setSelectedRole] = useState(''); // Add state for role filter
 
-  const VALID_ROLES = ['ED', 'AU', 'RE']; // Define valid roles
+  const VALID_ROLES = ['ED', 'ME', 'CE', 'MA', 'CP', 'TS', 'AU', 'RE']; // Updated to include all valid roles
   const ROLE_LABELS = {
     'ED': 'Editor',
+    'ME': 'Managing Editor',
+    'CE': 'Consulting Editor',
+    'MA': 'Managing',
+    'CP': 'Copy',
+    'TS': 'Typesetters',
     'AU': 'Author',
-    'RE': 'Reviewer'
+    'RE': 'Referee'
   };
 
   const fetchPeople = async () => {
