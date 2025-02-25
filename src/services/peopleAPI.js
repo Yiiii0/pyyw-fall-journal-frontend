@@ -89,4 +89,22 @@ export async function login({ email, password }) {
   }
 
   throw new Error('Invalid credentials');
-} 
+}
+
+
+// Mock reg service
+export async function register(userData) {
+  const response = await fetch('/api/register', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(userData),
+  });
+
+  if (!response.ok) {
+    throw new Error('Registration failed');
+  }
+
+  return response.json();
+}

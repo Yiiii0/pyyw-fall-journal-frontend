@@ -17,6 +17,7 @@ import Manuscripts from './Components/Manuscripts';
 import Submissions from './Components/Submissions';
 import About from './Components/About';
 import Login from './Components/Auth/Login';
+import Register from './Components/Auth/Register';
 
 function PersonPage() {
   const { name } = useParams();
@@ -76,6 +77,7 @@ function App() {
       <Routes>
         <Route path="/" element={<WelcomePage />} />
         <Route path="/login" element={<Login onLogin={handleLogin} />} />
+        <Route path="/register" element={<Register onRegister={handleLogin} />} />
         <Route path="/people" element={<People />} />
         <Route path="/manuscripts" element={<Manuscripts />} />
         <Route path="/people/:name" element={<PersonPage />} />

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { login } from '../../services/peopleAPI';
 import './Auth.css';
@@ -62,6 +62,9 @@ function Login({ onLogin }) {
           Sign In
         </button>
       </form>
+      <div className="register-link">
+        <p>Haven't an account yet? <Link to="/register">Register now</Link></p>
+      </div>
     </div>
   );
 }
