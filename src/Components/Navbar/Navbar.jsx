@@ -27,17 +27,11 @@ function Navbar({ user, onLogout }) {
     navigate('/');
   };
 
-  // Filter pages based on auth status
+  // Simplified navigation - just keep Home
   const getVisiblePages = () => {
     const basePages = [
       { label: 'Home', destination: '/' },
-      { label: 'View All People', destination: '/people' },
     ];
-    
-    if (user) {
-      basePages.push({ label: 'View All Submissions', destination: '/submissions' });
-    }
-    
     return basePages;
   };
 

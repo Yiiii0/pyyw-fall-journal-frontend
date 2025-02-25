@@ -1,2 +1,1 @@
-import Manuscripts from './Manuscripts';
-export default Manuscripts;
+export { default } from './Manuscripts';

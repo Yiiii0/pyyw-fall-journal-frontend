@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react';
 import propTypes from 'prop-types';
 
 import { getManuscript, getManuscriptsByTitle } from '../../services/manuscriptsAPI';
-
-// import './Manuscripts.css';
+import './Manuscripts.css';
 
 function ErrorMessage({ message }) {
   return (
@@ -29,7 +28,9 @@ function Manuscripts() {
 
   const fetchManuscripts = async () => {
     try {
+      console.log('Fetching manuscripts...');
       const data = await getManuscript();
+      console.log('Received data:', data);
       // Convert data to array if necessary
       const manuscriptsArray = Array.isArray(data)
         ? data
@@ -37,6 +38,7 @@ function Manuscripts() {
       setManuscripts(manuscriptsArray);
       setError('');
     } catch (err) {
+      console.error('Error fetching manuscripts:', err);
       setError(`There was a problem retrieving the list of manuscripts. ${err.message}`);
     }
   };
@@ -60,6 +62,7 @@ function Manuscripts() {
   };
 
   useEffect(() => {
+    console.log('Manuscripts component mounted');
     fetchManuscripts();
   }, []);
 

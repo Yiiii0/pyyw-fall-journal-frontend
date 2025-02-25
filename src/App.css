@@ -390,3 +390,30 @@ nav a:focus {
   gap: 20px;
   margin-top: 20px;
 }
+
+.welcome-page {
+  padding: 2rem;
+  text-align: center;
+}
+
+.welcome-nav ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.welcome-nav a {
+  text-decoration: none;
+  padding: 1rem 2rem;
+  background-color: #007bff;
+  color: white;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.welcome-nav a:hover {
+  background-color: #0056b3;
+}

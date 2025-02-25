@@ -5,6 +5,7 @@ import {
   Route,
   useParams,
   Navigate,
+  Link,
 } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
@@ -40,6 +41,21 @@ ProtectedRoute.defaultProps = {
   user: null,
 };
 
+function WelcomePage() {
+  return (
+    <div className="welcome-page">
+      <h1>Welcome to Journal System</h1>
+      <nav className="welcome-nav">
+        <ul>
+          <li><Link to="/manuscripts">View Manuscripts</Link></li>
+          <li><Link to="/people">View People</Link></li>
+          <li><Link to="/submissions">Submissions</Link></li>
+        </ul>
+      </nav>
+    </div>
+  );
+}
+
 function App() {
   const [user, setUser] = useState(null);
 
@@ -55,7 +71,7 @@ function App() {
     <BrowserRouter>
       <Navbar user={user} onLogout={handleLogout} />
       <Routes>
-        <Route path="/" element={<div>Welcome to Journal System</div>} />
+        <Route path="/" element={<WelcomePage />} />
         <Route path="/login" element={<Login onLogin={handleLogin} />} />
         <Route path="/people" element={<People />} />
         <Route path="/manuscripts" element={<Manuscripts />} />
