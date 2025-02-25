@@ -15,6 +15,7 @@ import Navbar from './Components/Navbar';
 import People from './Components/People';
 import Manuscripts from './Components/Manuscripts';
 import Submissions from './Components/Submissions';
+import About from './Components/About';
 import Login from './Components/Auth/Login';
 
 function PersonPage() {
@@ -51,6 +52,7 @@ function WelcomePage() {
           <li><Link to="/manuscripts">View Manuscripts</Link></li>
           <li><Link to="/people">View People</Link></li>
           <li><Link to="/submissions">Submissions</Link></li>
+          <li><Link to="/about">About Us</Link></li>
         </ul>
       </nav>
     </div>
@@ -77,6 +79,7 @@ function App() {
         <Route path="/people" element={<People />} />
         <Route path="/manuscripts" element={<Manuscripts />} />
         <Route path="/people/:name" element={<PersonPage />} />
+        <Route path="/about" element={<About />} />
         <Route path="/submissions" element={
           <ProtectedRoute user={user}>
             <Submissions user={user} />

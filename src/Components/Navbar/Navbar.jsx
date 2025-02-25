@@ -37,6 +37,7 @@ function Navbar({ user, onLogout }) {
   const getVisiblePages = () => {
     const basePages = [
       { label: 'Home', destination: '/' },
+      { label: 'About', destination: '/about' },
     ];
     return basePages;
   };
