@@ -76,4 +76,17 @@ export const deleteRole = async (email, role) => {
     const errorMessage = error.response?.data?.message || error.message;
     throw new Error(errorMessage);
   }
-}; 
+};
+
+// Mock login service
+export async function login({ email, password }) {
+  // For development/testing purposes
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+  // Mock validation
+  if (email === 'test@example.com' && password === 'password') {
+    return { email, name: 'Test User' };
+  }
+
+  throw new Error('Invalid credentials');
+} 

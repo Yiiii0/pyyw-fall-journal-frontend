@@ -5,16 +5,25 @@
 }
 
 html {
-  --poppy: hsla(356, 74%, 52%, 1);
-  --cambridge-blue: hsla(132, 27%, 63%, 1);
-  --lemon-chiffon: hsla(58, 74%, 85%, 1);
-  --buff: hsla(27, 64%, 65%, 1);
-  --bistre: hsla(10, 31%, 19%, 1);
-  --off-white: hsla(45, 29%, 97%, 1);
+  /* Modern color palette */
+  --primary: #6366f1;
+  --primary-hover: #4f46e5;
+  --background: #fafafa;
+  --surface: #ffffff;
+  --text: #1e293b;
+  --text-light: #64748b;
+  --border: #e2e8f0;
+  --accent: #f43f5e;
+  --accent-hover: #e11d48;
+  
+  background-color: var(--background);
+  color: var(--text);
+  font-family: 'Poppins', sans-serif;
+}
 
-  --background-color: var(--off-white);
-  --accent-color: var(--cambridge-blue);
-  background-color: var(--background-color);
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Playfair Display', serif;
+  letter-spacing: -0.02em;
 }
 
 .wrapper {
@@ -30,44 +39,59 @@ html {
 }
 
 button {
-  font-size: 1.5rem;
-  padding: 0.5rem 1rem;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  padding: 0.875rem 1.5rem;
+  border-radius: 0.75rem;
+  transition: all 0.3s ease;
   cursor: pointer;
-
-  border-radius: 5px;
-  border: 2px solid var(--accent-color);
-  color: var(--accent-color);
-  background: var(--background-color);
+  font-size: 1rem;
 }
-button:focus,
-button:hover {
-  background: var(--accent-color);
-  color: var(--background-color);
+
+.primary-button {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 6px rgba(99, 102, 241, 0.2);
+}
+
+.primary-button:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 8px rgba(99, 102, 241, 0.3);
 }
 
 .error-message {
-  border: 2px solid var(--buff);
+  border: 2px solid var(--accent);
   padding: 1em;
   margin: 1em 0;
   border-radius: 5px;
 }
 
 form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  max-width: 400px;
-  margin: 2rem auto;
-  padding: 2rem;
-  border: 2px solid var(--accent-color);
-  border-radius: 5px;
+  background-color: var(--surface);
+  border-radius: 1rem;
+  padding: 2.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  max-width: 450px;
+  margin: 3rem auto;
+  border: none;
 }
 
 form input {
   width: 100%;
-  padding: 0.5rem;
-  border: 1px solid var(--accent-color);
-  border-radius: 4px;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  background-color: var(--background);
+}
+
+form input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
 form label {
@@ -86,7 +110,7 @@ form label::after {
   top: -.25rem;
   left: -5px;
   width: calc(100% + 10px);
-  border: 2px solid var(--accent-color);
+  border: 2px solid var(--accent);
   border-radius: 5px;
   background-color: white;
   z-index: -1;
@@ -96,71 +120,87 @@ form button {
   margin-top: 1rem;
 }
 form button[type=button] {
-  border-color: var(--background-color);
+  border-color: var(--background);
 }
 form button[type=button]:focus,
 form button[type=button]:hover {
-  border-color: var(--accent-color);
+  border-color: var(--accent);
 }
 
 nav {
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 1.25rem 0;
   margin: 0;
-  padding-top: 0.5rem;
-  background-color: var(--accent-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 2rem;
 }
 
 nav ul {
-  list-style: none;
   display: flex;
   gap: 2rem;
+  margin: 0;
   padding: 0;
 }
 
 nav a {
-  color: var(--background-color);
-  display: block;
-  --padding: 1rem;
-  padding: var(--padding);
+  color: var(--text);
   text-decoration: none;
-  font-weight: bold;
-  --border-radius: 15px;
-  border-radius: 5px 5px 0 0;
-  position: relative;
-}
-nav a:hover::before,
-nav a:focus::before {
-  content: '';
-  position: absolute;
-  width: var(--border-radius);
-  height: var(--border-radius);
-  border-radius: 0 0 100vw 0;
-  box-shadow: 5px 5px 0 5px var(--background-color);
-  background-color: var(--accent-color);
-  bottom: 0;
-  left: calc(var(--padding) * -1 + 1px);
-}
-nav a:hover::after,
-nav a:focus::after {
-  content: '';
-  position: absolute;
-  width: var(--border-radius);
-  height: var(--border-radius);
-  border-radius: 0 0 0 100vw;
-  box-shadow: -5px 5px 0 5px var(--background-color);
-  background-color: var(--accent-color);
-  bottom: 0;
-  right: calc(var(--padding) * -1 + 1px);
+  font-weight: 500;
+  padding: 0.5rem 0;
+  transition: color 0.2s ease;
 }
 
-nav a:hover,
-nav a:focus {
-  background-color: var(--background-color);
-  color: var(--accent-color);
-  outline: none;
+nav a:hover {
+  color: var(--primary);
+}
+
+.auth-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-email {
+  color: var(--text-light);
+}
+
+.logout-button {
+  background-color: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.logout-button:hover {
+  background-color: var(--background);
+  border-color: var(--text-light);
+}
+
+.login-link {
+  color: var(--primary) !important;
+  font-weight: 500;
 }
 
 .person-container {
-  border: 2px solid var(--accent-color);
+  border: 2px solid var(--accent);
   margin: 1rem 0;
   padding: 2rem;
   display: flex;
@@ -197,7 +237,7 @@ nav a:focus {
 .roles-section {
   margin: 1rem 0;
   padding: 1rem;
-  border: 1px solid var(--accent-color);
+  border: 1px solid var(--accent);
   border-radius: 4px;
 }
 
@@ -213,8 +253,8 @@ nav a:focus {
 }
 
 .role-tag {
-  background-color: var(--accent-color);
-  color: var(--background-color);
+  background-color: var(--accent);
+  color: var(--background);
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
   display: flex;
@@ -225,7 +265,7 @@ nav a:focus {
 .delete-role {
   background: none;
   border: none;
-  color: var(--background-color);
+  color: var(--background);
   cursor: pointer;
   padding: 0;
   font-size: 1.2rem;
@@ -234,7 +274,7 @@ nav a:focus {
 }
 
 .delete-role:hover {
-  color: var(--buff);
+  color: var(--accent);
 }
 
 .add-role {
@@ -252,7 +292,7 @@ nav a:focus {
 
 .add-role select {
   padding: 0.5rem;
-  border: 1px solid var(--accent-color);
+  border: 1px solid var(--accent);
   border-radius: 4px;
   height: 2rem;
 }
@@ -314,7 +354,7 @@ nav a:focus {
   padding: 8px 16px !important;
   height: auto !important;
   margin: 0 !important;
-  background-color: var(--accent-color);
+  background-color: var(--accent);
   color: white;
   border: none;
   border-radius: 4px;
@@ -323,7 +363,7 @@ nav a:focus {
 }
 
 .search-button:hover {
-  background-color: var(--cambridge-blue);
+  background-color: var(--primary);
   opacity: 0.9;
 }
 
@@ -392,8 +432,18 @@ nav a:focus {
 }
 
 .welcome-page {
-  padding: 2rem;
+  padding: 6rem 2rem;
   text-align: center;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.welcome-page h1 {
+  font-size: 3.5rem;
+  color: var(--text);
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
 }
 
 .welcome-nav ul {
@@ -401,19 +451,26 @@ nav a:focus {
   padding: 0;
   display: flex;
   justify-content: center;
-  gap: 2rem;
-  margin-top: 2rem;
+  gap: 1.5rem;
+  margin-top: 3rem;
+  flex-wrap: wrap;
 }
 
 .welcome-nav a {
   text-decoration: none;
   padding: 1rem 2rem;
-  background-color: #007bff;
+  background-color: var(--primary);
   color: white;
-  border-radius: 4px;
-  transition: background-color 0.3s;
+  border-radius: 1rem;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  box-shadow: 0 4px 6px rgba(99, 102, 241, 0.2);
+  position: relative;
+  overflow: hidden;
 }
 
 .welcome-nav a:hover {
-  background-color: #0056b3;
+  background-color: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 12px rgba(99, 102, 241, 0.3);
 }

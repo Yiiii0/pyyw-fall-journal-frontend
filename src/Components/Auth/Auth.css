@@ -1,0 +1,62 @@
+.login-container {
+  max-width: 400px;
+  margin: 4rem auto;
+  padding: 2.5rem;
+  background-color: var(--surface);
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.login-container h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.5rem;
+  color: var(--text);
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  font-weight: 500;
+}
+
+.form-group input {
+  padding: 0.875rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.login-button {
+  margin-top: 1rem;
+  width: 100%;
+  padding: 1rem;
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(99, 102, 241, 0.2);
+}
+
+.login-button:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 8px rgba(99, 102, 241, 0.3);
+} 

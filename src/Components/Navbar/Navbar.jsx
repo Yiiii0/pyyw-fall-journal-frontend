@@ -1,13 +1,20 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import './Navbar.css';
 
 function NavLink({ page }) {
-  const { label, destination } = page;
+  const location = useLocation();
+  const isActive = location.pathname === page.destination;
+  
   return (
     <li>
-      <Link to={destination}>{label}</Link>
+      <Link 
+        to={page.destination} 
+        className={isActive ? 'active' : ''}
+      >
+        {page.label}
+      </Link>
     </li>
   );
 }
@@ -27,7 +34,6 @@ function Navbar({ user, onLogout }) {
     navigate('/');
   };
 
-  // Simplified navigation - just keep Home
   const getVisiblePages = () => {
     const basePages = [
       { label: 'Home', destination: '/' },
@@ -36,25 +42,39 @@ function Navbar({ user, onLogout }) {
   };
 
   return (
-    <nav>
-      <div className="nav-container">
-        <ul className="wrapper">
-          {getVisiblePages().map((page) => <NavLink key={page.destination} page={page} />)}
+    <header className="header">
+      <nav className="nav-container">
+        <div className="nav-brand">
+          <Link to="/" className="brand-link">
+            Journal System
+          </Link>
+        </div>
+        
+        <ul className="nav-links">
+          {getVisiblePages().map((page) => (
+            <NavLink key={page.destination} page={page} />
+          ))}
         </ul>
+
         <div className="auth-section">
           {user ? (
             <div className="user-info">
-              <span className="user-email">{user.email}</span>
+              <div className="user-email">
+                <span className="welcome-text">Welcome,</span>
+                <span className="user-name">{user.name}</span>
+              </div>
               <button onClick={handleLogout} className="logout-button">
                 Logout
               </button>
             </div>
           ) : (
-            <Link to="/login" className="login-link">Login</Link>
+            <Link to="/login" className="login-button">
+              Sign In
+            </Link>
           )}
         </div>
-      </div>
-    </nav>
+      </nav>
+    </header>
   );
 }
 

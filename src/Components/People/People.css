@@ -1,0 +1,190 @@
+.people-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+}
+
+.people-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.people-header h1 {
+  font-size: 2.75rem;
+  color: var(--text);
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+}
+
+.controls {
+  background-color: var(--surface);
+  border-radius: 1rem;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.controls-group {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.search-controls {
+  flex: 1;
+  min-width: 280px;
+}
+
+.search-input-group {
+  display: flex;
+  gap: 1rem;
+}
+
+.search-input-group input,
+.search-input-group select {
+  padding: 0.875rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  background-color: var(--background);
+}
+
+.search-input-group input:focus,
+.search-input-group select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.search-input-group input {
+  flex: 1;
+}
+
+.search-button {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.875rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(99, 102, 241, 0.2);
+}
+
+.search-button:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 8px rgba(99, 102, 241, 0.3);
+}
+
+.role-filter {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 200px;
+}
+
+.role-filter label {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  font-weight: 500;
+}
+
+.sort-controls {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.sort-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.sort-group label {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  font-weight: 500;
+}
+
+.people-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.person-container {
+  background-color: var(--surface);
+  border: none;
+  border-radius: 1rem;
+  padding: 2rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.person-container:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
+}
+
+.person-container h2 {
+  font-size: 1.5rem;
+  color: var(--text);
+  margin-bottom: 1rem;
+}
+
+.person-info {
+  color: var(--text-light);
+  margin-bottom: 1.5rem;
+}
+
+.person-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.person-actions button {
+  flex: 1;
+  padding: 0.75rem 1rem;
+}
+
+.roles-section {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background-color: var(--background);
+  border-radius: 0.75rem;
+  border: none;
+}
+
+.roles-section h3 {
+  color: var(--text);
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.current-roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.role-tag {
+  background-color: var(--primary);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+} 
