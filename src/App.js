@@ -14,6 +14,7 @@ import './App.css';
 import Navbar from './Components/Navbar';
 import People from './Components/People';
 import Manuscripts from './Components/Manuscripts';
+import Submissions from './Components/Submissions';
 import Login from './Components/Auth/Login';
 
 function PersonPage() {
@@ -78,7 +79,7 @@ function App() {
         <Route path="/people/:name" element={<PersonPage />} />
         <Route path="/submissions" element={
           <ProtectedRoute user={user}>
-            <div>Submissions Page (Coming Soon)</div>
+            <Submissions user={user} />
           </ProtectedRoute>
         } />
       </Routes>

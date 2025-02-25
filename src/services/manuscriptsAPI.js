@@ -50,9 +50,14 @@ export const updateManuscript = async (manuscriptData) => {
   }
 };
 
-export const updateManuscriptState = async (title, action) => {
+export const updateManuscriptState = async (title, action, extraParams = {}) => {
   try {
-    const { data } = await axios.put(`${MANUSCRIPTS_ENDPOINTS.READ}/update_state`, { title, action });
+    const requestData = { 
+      title, 
+      action,
+      ...extraParams 
+    };
+    const { data } = await axios.put(`${MANUSCRIPTS_ENDPOINTS.READ}/update_state`, requestData);
     return data;
   } catch (error) {
     throw new Error(`Failed to update manuscript state for "${title}": ${error.message}`);
