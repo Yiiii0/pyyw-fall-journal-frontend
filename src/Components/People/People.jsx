@@ -1,30 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import propTypes from 'prop-types';
 import { Link } from 'react-router-dom';
-import { getPeople, createPerson, deletePerson, updatePerson, addRole, deleteRole } from '../../services/peopleAPI';
+import { getPeople, createPerson, deletePerson, updatePerson, addRole, deleteRole, getRoles } from '../../services/peopleAPI';
 
 function AddPersonForm({
   visible,
   cancel,
   fetchPeople,
   setError,
+  roles,
 }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [affiliation, setAffiliation] = useState('NYU');
   const [role, setRole] = useState('ED');
-
-  const VALID_ROLES = ['ED', 'ME', 'CE', 'MA', 'CP', 'TS', 'AU', 'RE']; // Updated to include all valid roles
-  const ROLE_LABELS = {
-    'ED': 'Editor',
-    'ME': 'Managing Editor',
-    'CE': 'Consulting Editor',
-    'MA': 'Managing',
-    'CP': 'Copy',
-    'TS': 'Typesetters',
-    'AU': 'Author',
-    'RE': 'Referee'
-  };
 
   const changeName = (event) => { setName(event.target.value); };
   const changeEmail = (event) => { setEmail(event.target.value); };
@@ -34,7 +23,7 @@ function AddPersonForm({
   const addPerson = async (event) => {
     event.preventDefault();
     setError(''); // Clear any previous errors
-    
+
     const newPerson = {
       name,
       email,
@@ -55,30 +44,30 @@ function AddPersonForm({
   return (
     <form>
       <label htmlFor="name">Name</label>
-      <input 
-        required 
-        type="text" 
-        id="name" 
-        value={name} 
-        onChange={changeName} 
+      <input
+        required
+        type="text"
+        id="name"
+        value={name}
+        onChange={changeName}
       />
-      
+
       <label htmlFor="email">Email</label>
-      <input 
-        required 
-        type="email" 
-        id="email" 
+      <input
+        required
+        type="email"
+        id="email"
         value={email}
-        onChange={changeEmail} 
+        onChange={changeEmail}
       />
 
       <label htmlFor="affiliation">Affiliation</label>
-      <input 
-        required 
-        type="text" 
-        id="affiliation" 
+      <input
+        required
+        type="text"
+        id="affiliation"
         value={affiliation}
-        onChange={changeAffiliation} 
+        onChange={changeAffiliation}
       />
 
       <label htmlFor="role">Role</label>
@@ -88,9 +77,9 @@ function AddPersonForm({
         value={role}
         onChange={changeRole}
       >
-        {VALID_ROLES.map(role => (
-          <option key={role} value={role}>
-            {ROLE_LABELS[role]}
+        {Object.entries(roles).map(([code, label]) => (
+          <option key={code} value={code}>
+            {`${code}: ${label}`}
           </option>
         ))}
       </select>
@@ -105,6 +94,7 @@ AddPersonForm.propTypes = {
   cancel: propTypes.func.isRequired,
   fetchPeople: propTypes.func.isRequired,
   setError: propTypes.func.isRequired,
+  roles: propTypes.object.isRequired,
 };
 
 function ErrorMessage({ message }) {
@@ -124,23 +114,12 @@ function EditPersonForm({
   cancel,
   fetchPeople,
   setError,
+  roles,
 }) {
   const [name, setName] = useState(person.name);
   const [affiliation, setAffiliation] = useState(person.affiliation);
   const [newRole, setNewRole] = useState('');
-  
-  const VALID_ROLES = ['ED', 'ME', 'CE', 'MA', 'CP', 'TS', 'AU', 'RE']; // Updated to include all valid roles
-  const ROLE_LABELS = {
-    'ED': 'Editor',
-    'ME': 'Managing Editor',
-    'CE': 'Consulting Editor',
-    'MA': 'Managing',
-    'CP': 'Copy',
-    'TS': 'Typesetters',
-    'AU': 'Author',
-    'RE': 'Referee'
-  };
-  
+
   const changeName = (event) => { setName(event.target.value); };
   const changeAffiliation = (event) => { setAffiliation(event.target.value); };
   const changeNewRole = (event) => { setNewRole(event.target.value); };
@@ -160,7 +139,7 @@ function EditPersonForm({
 
   const handleAddRole = async () => {
     if (!newRole) return;
-    
+
     try {
       await addRole(person.email, newRole);
       fetchPeople();
@@ -205,9 +184,9 @@ function EditPersonForm({
         <div className="current-roles">
           {Array.isArray(person.roles) && person.roles.map(role => (
             <div key={role} className="role-tag">
-              {ROLE_LABELS[role] || role}
-              <button 
-                type="button" 
+              {`${role}: ${roles[role] || role}`}
+              <button
+                type="button"
                 onClick={() => handleDeleteRole(role)}
                 className="delete-role"
               >
@@ -224,9 +203,9 @@ function EditPersonForm({
             onChange={changeNewRole}
           >
             <option value="">Select a role...</option>
-            {VALID_ROLES.map(role => (
-              <option key={role} value={role}>
-                {ROLE_LABELS[role]}
+            {Object.entries(roles).map(([code, label]) => (
+              <option key={code} value={code}>
+                {`${code}: ${label}`}
               </option>
             ))}
           </select>
@@ -256,22 +235,12 @@ EditPersonForm.propTypes = {
   cancel: propTypes.func.isRequired,
   fetchPeople: propTypes.func.isRequired,
   setError: propTypes.func.isRequired,
+  roles: propTypes.object.isRequired,
 };
 
-function Person({ person, fetchPeople, setError }) {
+function Person({ person, fetchPeople, setError, roles }) {
   const [isEditing, setIsEditing] = useState(false);
-  const { name, email, roles, affiliation } = person;
-  
-  const ROLE_LABELS = {
-    'ED': 'Editor',
-    'ME': 'Managing Editor',
-    'CE': 'Consulting Editor',
-    'MA': 'Managing',
-    'CP': 'Copy',
-    'TS': 'Typesetters',
-    'AU': 'Author',
-    'RE': 'Referee'
-  };
+  const { name, email, roles: personRoles, affiliation } = person;
 
   const handleDelete = async () => {
     if (window.confirm(`Are you sure you want to delete ${name}?`)) {
@@ -295,7 +264,7 @@ function Person({ person, fetchPeople, setError }) {
             <h2>{name}</h2>
             <p>Email: {email}</p>
             <p>Affiliation: {affiliation}</p>
-            <p>Roles: {Array.isArray(roles) ? roles.map(role => ROLE_LABELS[role] || role).join(', ') : roles}</p>
+            <p>Roles: {Array.isArray(personRoles) ? personRoles.map(role => `${role}: ${roles[role] || role}`).join(', ') : personRoles}</p>
           </div>
         </div>
       </Link>
@@ -309,6 +278,7 @@ function Person({ person, fetchPeople, setError }) {
         cancel={hideEditForm}
         fetchPeople={fetchPeople}
         setError={setError}
+        roles={roles}
       />
     </div>
   );
@@ -326,6 +296,7 @@ Person.propTypes = {
   }).isRequired,
   fetchPeople: propTypes.func.isRequired,
   setError: propTypes.func.isRequired,
+  roles: propTypes.object.isRequired,
 };
 
 function peopleObjectToArray(Data) {
@@ -338,25 +309,14 @@ function People() {
   const [people, setPeople] = useState([]);
   const [error, setError] = useState('');
   const [addingPerson, setAddingPerson] = useState(false);
-  
+  const [roles, setRoles] = useState({}); // New state for roles from API
+
   // Add new state for search and sort
   const [searchQuery, setSearchQuery] = useState('');
   const [searchField, setSearchField] = useState('name'); // 'name' or 'email'
   const [sortField, setSortField] = useState('name');
   const [sortDirection, setSortDirection] = useState('asc');
   const [selectedRole, setSelectedRole] = useState(''); // Add state for role filter
-
-  const VALID_ROLES = ['ED', 'ME', 'CE', 'MA', 'CP', 'TS', 'AU', 'RE']; // Updated to include all valid roles
-  const ROLE_LABELS = {
-    'ED': 'Editor',
-    'ME': 'Managing Editor',
-    'CE': 'Consulting Editor',
-    'MA': 'Managing',
-    'CP': 'Copy',
-    'TS': 'Typesetters',
-    'AU': 'Author',
-    'RE': 'Referee'
-  };
 
   const fetchPeople = async () => {
     try {
@@ -368,7 +328,20 @@ function People() {
   };
 
   useEffect(() => {
-    fetchPeople();
+    const fetchData = async () => {
+      try {
+        // Fetch people
+        fetchPeople();
+
+        // Fetch roles
+        const rolesData = await getRoles();
+        setRoles(rolesData);
+      } catch (err) {
+        setError(err.message);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const showAddPersonForm = () => { setAddingPerson(true); };
@@ -379,7 +352,7 @@ function People() {
     return peopleList.filter(person => {
       // First apply search filter
       const searchValue = searchQuery.toLowerCase();
-      const matchesSearch = searchField === 'name' 
+      const matchesSearch = searchField === 'name'
         ? person.name.toLowerCase().includes(searchValue)
         : person.email.toLowerCase().includes(searchValue);
 
@@ -394,7 +367,7 @@ function People() {
     return [...peopleList].sort((a, b) => {
       let valueA = a[sortField];
       let valueB = b[sortField];
-      
+
       // Handle roles array for sorting
       if (sortField === 'role') {
         valueA = a.roles.join(',');
@@ -430,7 +403,7 @@ function People() {
     <div className="people-container">
       <h1>People</h1>
       {error && <ErrorMessage message={error} />}
-      
+
       {/* Search and Sort Controls */}
       <div className="controls">
         <div className="controls-group">
@@ -463,15 +436,15 @@ function People() {
               onChange={(e) => setSelectedRole(e.target.value)}
             >
               <option value="">All Roles</option>
-              {VALID_ROLES.map(role => (
-                <option key={role} value={role}>
-                  {ROLE_LABELS[role]}
+              {Object.entries(roles).map(([code, label]) => (
+                <option key={code} value={code}>
+                  {`${code}: ${label}`}
                 </option>
               ))}
             </select>
           </div>
         </div>
-        
+
         <div className="sort-controls">
           <button
             onClick={() => handleSortChange('role')}
@@ -494,8 +467,9 @@ function People() {
         cancel={hideAddPersonForm}
         fetchPeople={fetchPeople}
         setError={setError}
+        roles={roles}
       />
-      
+
       <div className="people-list">
         {filteredAndSortedPeople.map((person) => (
           <Person
@@ -503,6 +477,7 @@ function People() {
             person={person}
             fetchPeople={fetchPeople}
             setError={setError}
+            roles={roles}
           />
         ))}
       </div>

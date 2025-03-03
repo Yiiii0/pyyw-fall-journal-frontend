@@ -7,6 +7,7 @@ const PEOPLE_ENDPOINTS = {
   UPDATE: `${BACKEND_URL}/people/update`,
   ADD_ROLE: `${BACKEND_URL}/people/add_role`,
   DELETE_ROLE: `${BACKEND_URL}/people/delete_role`,
+  GET_ROLES: `${BACKEND_URL}/roles`,
   LOGIN: `${BACKEND_URL}/auth/login`,
   REGISTER: `${BACKEND_URL}/auth/register`,
 };
@@ -51,6 +52,15 @@ export const updatePerson = async (email, name, affiliation) => {
   } catch (error) {
     const errorMessage = error.response?.data?.message || error.message;
     throw new Error(errorMessage);
+  }
+};
+
+export const getRoles = async () => {
+  try {
+    const { data } = await axios.get(PEOPLE_ENDPOINTS.GET_ROLES);
+    return data;
+  } catch (error) {
+    throw new Error(`Failed to fetch people: ${error.message}`);
   }
 };
 
