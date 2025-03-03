@@ -2,15 +2,16 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import './Navbar.css';
+import { useAuth } from '../../contexts/AuthContext';
 
 function NavLink({ page }) {
   const location = useLocation();
   const isActive = location.pathname === page.destination;
-  
+
   return (
     <li>
-      <Link 
-        to={page.destination} 
+      <Link
+        to={page.destination}
         className={isActive ? 'active' : ''}
       >
         {page.label}
@@ -26,11 +27,13 @@ NavLink.propTypes = {
   }).isRequired,
 };
 
-function Navbar({ user, onLogout }) {
+function Navbar() {
+  const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    onLogout();
+    logout();
+    localStorage.removeItem('userData');
     navigate('/');
   };
 
@@ -50,7 +53,7 @@ function Navbar({ user, onLogout }) {
             Journal System
           </Link>
         </div>
-        
+
         <ul className="nav-links">
           {getVisiblePages().map((page) => (
             <NavLink key={page.destination} page={page} />
@@ -58,11 +61,11 @@ function Navbar({ user, onLogout }) {
         </ul>
 
         <div className="auth-section">
-          {user ? (
+          {currentUser ? (
             <div className="user-info">
               <div className="user-email">
                 <span className="welcome-text">Welcome,</span>
-                <span className="user-name">{user.name}</span>
+                <span className="user-name">{currentUser.name}</span>
               </div>
               <button onClick={handleLogout} className="logout-button">
                 Logout
@@ -79,17 +82,17 @@ function Navbar({ user, onLogout }) {
   );
 }
 
-Navbar.propTypes = {
-  user: PropTypes.shape({
-    email: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-  }),
-  onLogout: PropTypes.func,
-};
+// Navbar.propTypes = {
+//   user: PropTypes.shape({
+//     email: PropTypes.string.isRequired,
+//     name: PropTypes.string.isRequired,
+//   }),
+//   onLogout: PropTypes.func,
+// };
 
-Navbar.defaultProps = {
-  user: null,
-  onLogout: () => {},
-};
+// Navbar.defaultProps = {
+//   user: null,
+//   onLogout: () => { },
+// };
 
 export default Navbar;

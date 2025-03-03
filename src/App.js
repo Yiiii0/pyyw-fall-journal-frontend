@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   BrowserRouter,
   Routes,
@@ -19,14 +19,17 @@ import About from './Components/About';
 import Login from './Components/Auth/Login';
 import Register from './Components/Auth/Register';
 
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+
 function PersonPage() {
   const { name } = useParams();
   return <h1>{name}</h1>
 }
 
 // Protected Route wrapper component
-function ProtectedRoute({ children, user }) {
-  if (!user) {
+function ProtectedRoute({ children }) {
+  const { currentUser } = useAuth();
+  if (!currentUser) {
     return <Navigate to="/login" replace />;
   }
   return children;
@@ -34,14 +37,6 @@ function ProtectedRoute({ children, user }) {
 
 ProtectedRoute.propTypes = {
   children: PropTypes.node.isRequired,
-  user: PropTypes.shape({
-    email: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-  }),
-};
-
-ProtectedRoute.defaultProps = {
-  user: null,
 };
 
 function WelcomePage() {
@@ -60,35 +55,37 @@ function WelcomePage() {
   );
 }
 
-function App() {
-  const [user, setUser] = useState(null);
-
-  const handleLogin = (userData) => {
-    setUser(userData);
-  };
-
-  const handleLogout = () => {
-    setUser(null);
-  };
+function AppContent() {
+  const { currentUser, login } = useAuth();
 
   return (
-    <BrowserRouter>
-      <Navbar user={user} onLogout={handleLogout} />
+    <>
+      <Navbar />
       <Routes>
         <Route path="/" element={<WelcomePage />} />
-        <Route path="/login" element={<Login onLogin={handleLogin} />} />
-        <Route path="/register" element={<Register onRegister={handleLogin} />} />
+        <Route path="/login" element={<Login onLogin={login} />} />
+        <Route path="/register" element={<Register onRegister={login} />} />
         <Route path="/people" element={<People />} />
         <Route path="/manuscripts" element={<Manuscripts />} />
         <Route path="/people/:name" element={<PersonPage />} />
         <Route path="/about" element={<About />} />
         <Route path="/submissions" element={
-          <ProtectedRoute user={user}>
-            <Submissions user={user} />
+          <ProtectedRoute>
+            <Submissions user={currentUser} />
           </ProtectedRoute>
         } />
       </Routes>
-    </BrowserRouter>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <AppContent />
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 

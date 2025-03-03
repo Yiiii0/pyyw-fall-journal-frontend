@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import { login } from '../../services/peopleAPI';
 import './Auth.css';
+import { useAuth } from '../../contexts/AuthContext';
 
 function Login({ onLogin }) {
+  const { login, currentUser } = useAuth();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: '',
@@ -12,14 +13,29 @@ function Login({ onLogin }) {
   });
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    // If already logged in, redirect to home
+    if (currentUser) {
+      navigate('/');
+    }
+  }, [currentUser, navigate]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const userData = await login(formData);
-      onLogin(userData);
+      // Here you would typically make a call to your API
+      // For now, we'll simulate a successful login
+      const userData = {
+        name: formData.username,
+        email: formData.username,
+        // other user data
+      };
+
+      login(userData);
+      if (onLogin) onLogin(userData); // Call the prop function if provided
       navigate('/');
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Login failed');
     }
   };
 
@@ -70,7 +86,11 @@ function Login({ onLogin }) {
 }
 
 Login.propTypes = {
-  onLogin: PropTypes.func.isRequired,
+  onLogin: PropTypes.func,
 };
 
-export default Login; 
+Login.defaultProps = {
+  onLogin: null,
+};
+
+export default Login;
