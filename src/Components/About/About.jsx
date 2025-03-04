@@ -68,7 +68,7 @@ function About() {
             <p>Specializing in xxx</p>
           </div>
           <div className="team-member">
-            <h3>Chelsea Wang</h3>
+            <h3>Chelsea Chen</h3>
             <p className="role">xxx</p>
             <p>NYU B.S. in Computer Science</p>
             <p>Specializing in xxx</p>
