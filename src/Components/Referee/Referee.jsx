@@ -1,21 +1,25 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { updateManuscriptState } from '../../services/manuscriptsAPI';
+import './Referee.css';
 
-function RefereeActionForm({ title, action, currentReferee, onSuccess, setError, onCancel }) {
-  const [refereeEmail, setRefereeEmail] = useState('');
+const REFEREE_ACTIONS = [
+  { code: 'SBR', label: 'Submit Review' },
+];
+
+function RefereeActionForm({ title, onSuccess, setError, onCancel }) {
+  const [action, setAction] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!refereeEmail.trim()) {
-      setError('Referee email is required');
+    setError('');
+
+    if (!action) {
+      setError('Please select the Referee action.');
       return;
     }
     try {
-      if (action === 'ARF' && currentReferee) {
-        await updateManuscriptState(title, 'DRF', { referee: currentReferee });
-      }
-      await updateManuscriptState(title, action, { referee: refereeEmail });
+      await updateManuscriptState(title, action);
       onSuccess();
     } catch (error) {
       setError(error.message);
@@ -25,16 +29,25 @@ function RefereeActionForm({ title, action, currentReferee, onSuccess, setError,
   return (
     <div className="referee-action-form">
       <form onSubmit={handleSubmit}>
-        <label htmlFor="referee-email">Referee Email:</label>
-        <input
-          type="email"
-          id="referee-email"
-          value={refereeEmail}
-          onChange={(e) => setRefereeEmail(e.target.value)}
+        <label htmlFor="referee-action">Referee Action:</label>
+        <select
+          id="referee-action"
+          value={action}
+          onChange={(e) => setAction(e.target.value)}
           required
-        />
+        >
+          <option value="">-- Select an action --</option>
+          {REFEREE_ACTIONS.map((item) => (
+            <option key={item.code} value={item.code}>
+              {item.label}
+            </option>
+          ))}
+        </select>
+
         <div className="button-group">
-          <button type="button" onClick={onCancel}>Cancel</button>
+          <button type="button" onClick={onCancel}>
+            Cancel
+          </button>
           <button type="submit">Apply Action</button>
         </div>
       </form>
@@ -44,8 +57,7 @@ function RefereeActionForm({ title, action, currentReferee, onSuccess, setError,
 
 RefereeActionForm.propTypes = {
   title: PropTypes.string.isRequired,
-  action: PropTypes.oneOf(['ARF', 'DRF']).isRequired,
-  currentReferee: PropTypes.string,
+  /** Called after a successful action */
   onSuccess: PropTypes.func.isRequired,
   setError: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,

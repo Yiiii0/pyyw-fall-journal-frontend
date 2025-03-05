@@ -481,7 +481,7 @@ function Manuscript({ manuscript, fetchManuscripts, setError }) {
         actions.push('REV', 'REJ');
         break;
       case 'REV':
-        actions.push('AUR', 'REJ', 'CED');
+        actions.push('SBR');
         break;
       case 'AUR':
         actions.push('REV', 'REJ');
@@ -608,24 +608,16 @@ function Manuscript({ manuscript, fetchManuscripts, setError }) {
                 </option>
               ))}
             </select>
-            {/* For non-referee actions, show inline buttons */}
-            {selectedAction !== 'ARF' && selectedAction !== 'DRF' && (
+            {selectedAction !== 'SBR' && (
               <div className="button-group">
                 <button type="button" onClick={hideStateUpdateForm}>Cancel</button>
                 <button type="submit">Apply Action</button>
               </div>
             )}
           </form>
-          {/* When the selected action is for referee operations, render the modular RefereeActionForm */}
-          {(selectedAction === 'ARF' || selectedAction === 'DRF') && (
+          {selectedAction === 'SBR' && (
             <RefereeActionForm
               title={manuscript.title}
-              action={selectedAction}
-              currentReferee={
-                manuscript.referees && manuscript.referees.length > 0
-                  ? manuscript.referees[0]
-                  : undefined
-              }
               onSuccess={() => {
                 fetchManuscripts();
                 hideStateUpdateForm();

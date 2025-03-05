@@ -1,0 +1,55 @@
+.referee-action-form {
+    border: 1px solid #ccc;
+    padding: 16px;
+    border-radius: 8px;
+    margin-top: 20px;
+    background-color: #f8f9fa;
+  }
+  
+  .referee-action-form label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .referee-action-form select {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .referee-action-form .button-group {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+  
+  .referee-action-form button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  
+  .referee-action-form button[type="submit"] {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  .referee-action-form button[type="submit"]:hover {
+    background-color: #0056b3;
+  }
+  
+  .referee-action-form button[type="button"] {
+    background-color: #6c757d;
+    color: white;
+  }
+  
+  .referee-action-form button[type="button"]:hover {
+    background-color: #5a6268;
+  }
+  
