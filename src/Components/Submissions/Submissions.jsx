@@ -5,14 +5,10 @@ import {
   getManuscriptsByTitle, 
   createManuscript, 
   updateManuscript, 
-  deleteManuscript,
-  updateManuscriptState,
-  deleteAllTextPages,
-  getTextPages,
-  deleteTextPage
+  deleteManuscriptByTitle,
+  updateManuscriptState
 } from '../../services/manuscriptsAPI';
 import RefereeActionForm from '../Referee';
-import TextPageEditor from '../Manuscripts/TextPageEditor';
 import './Submissions.css';
 
 // Error message component
@@ -28,9 +24,9 @@ function AddManuscriptForm({ visible, cancel, fetchManuscripts, setError, curren
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
   const [authorEmail, setAuthorEmail] = useState('');
+  const [text, setText] = useState('');
   const [abstract, setAbstract] = useState('');
   const [editorEmail, setEditorEmail] = useState('');
-  const [validationErrors, setValidationErrors] = useState({});
 
   useEffect(() => {
     if (currentUser && currentUser.email) {
@@ -38,39 +34,16 @@ function AddManuscriptForm({ visible, cancel, fetchManuscripts, setError, curren
     }
   }, [currentUser]);
 
-  // Validate email format according to backend requirements
-  const validateEmail = (email) => {
-    const pattern = /^(?!.*\.\.)[A-Za-z0-9][a-zA-Z0-9._%+-]*@[A-Za-z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,10}$/;
-    return pattern.test(email);
-  };
-
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError('');
-    setValidationErrors({});
-
-    // Validate inputs
-    const errors = {};
-    if (!validateEmail(authorEmail)) {
-      errors.authorEmail = 'Invalid email format';
-    }
-    if (!validateEmail(editorEmail)) {
-      errors.editorEmail = 'Invalid email format';
-    }
-
-    // If there are validation errors, don't submit
-    if (Object.keys(errors).length > 0) {
-      setValidationErrors(errors);
-      return;
-    }
-
     const manuscriptData = {
       title,
       author,
       author_email: authorEmail,
+      text,
       abstract,
       editor_email: editorEmail,
-      text: 'Initial manuscript content. Please add text pages for detailed content.',
     };
     try {
       await createManuscript(manuscriptData);
@@ -79,6 +52,7 @@ function AddManuscriptForm({ visible, cancel, fetchManuscripts, setError, curren
       setTitle('');
       setAuthor('');
       setAuthorEmail('');
+      setText('');
       setAbstract('');
     } catch (error) {
       setError(error.message);
@@ -89,39 +63,22 @@ function AddManuscriptForm({ visible, cancel, fetchManuscripts, setError, curren
 
   return (
     <form className="submission-form" onSubmit={handleSubmit}>
-      <h2>Add New Manuscript</h2>
+      <h2>Submit New Manuscript</h2>
       <label htmlFor="title">Title</label>
       <input required type="text" id="title" value={title} onChange={(e) => setTitle(e.target.value)} />
       <label htmlFor="author">Author</label>
       <input required type="text" id="author" value={author} onChange={(e) => setAuthor(e.target.value)} />
       <label htmlFor="authorEmail">Author Email</label>
-      <input 
-        required 
-        type="email" 
-        id="authorEmail" 
-        value={authorEmail} 
-        onChange={(e) => setAuthorEmail(e.target.value)} 
-        className={validationErrors.authorEmail ? 'error' : ''}
-      />
-      {validationErrors.authorEmail && <div className="validation-error">{validationErrors.authorEmail}</div>}
+      <input required type="email" id="authorEmail" value={authorEmail} onChange={(e) => setAuthorEmail(e.target.value)} />
       <label htmlFor="abstract">Abstract</label>
       <textarea required id="abstract" value={abstract} onChange={(e) => setAbstract(e.target.value)} />
+      <label htmlFor="text">Main Text</label>
+      <textarea required id="text" value={text} onChange={(e) => setText(e.target.value)} />
       <label htmlFor="editorEmail">Editor Email</label>
-      <input 
-        required 
-        type="email" 
-        id="editorEmail" 
-        value={editorEmail} 
-        onChange={(e) => setEditorEmail(e.target.value)} 
-        className={validationErrors.editorEmail ? 'error' : ''}
-      />
-      {validationErrors.editorEmail && <div className="validation-error">{validationErrors.editorEmail}</div>}
-      <div className="note">
-        <p>Note: Text pages can be added after creating the manuscript.</p>
-      </div>
-      <div className="form-actions">
-        <button type="submit">Submit</button>
+      <input required type="email" id="editorEmail" value={editorEmail} onChange={(e) => setEditorEmail(e.target.value)} />
+      <div className="button-group">
         <button type="button" onClick={cancel}>Cancel</button>
+        <button type="submit">Submit Manuscript</button>
       </div>
     </form>
   );
@@ -139,89 +96,38 @@ AddManuscriptForm.propTypes = {
 
 // Component for editing an existing manuscript
 function EditManuscriptForm({ manuscript, visible, cancel, fetchManuscripts, setError }) {
-  // Add debugging for the manuscript object
-  console.log('EditManuscriptForm - manuscript:', manuscript);
-  console.log('EditManuscriptForm - manuscript._id:', manuscript._id);
-  console.log('EditManuscriptForm - manuscript ID type:', typeof manuscript._id);
-  
-  // Ensure we have a valid manuscript ID
-  const manuscriptId = manuscript._id ? (typeof manuscript._id === 'string' ? manuscript._id : String(manuscript._id)) : null;
-  console.log('EditManuscriptForm - processed manuscriptId:', manuscriptId);
-  
   const [title, setTitle] = useState(manuscript.title);
   const [author, setAuthor] = useState(manuscript.author);
   const [authorEmail, setAuthorEmail] = useState(manuscript.author_email);
+  const [text, setText] = useState(manuscript.text);
   const [abstract, setAbstract] = useState(manuscript.abstract);
   const [editorEmail, setEditorEmail] = useState(manuscript.editor_email);
-  const [validationErrors, setValidationErrors] = useState({});
 
   useEffect(() => {
     setTitle(manuscript.title);
     setAuthor(manuscript.author);
     setAuthorEmail(manuscript.author_email);
+    setText(manuscript.text);
     setAbstract(manuscript.abstract);
     setEditorEmail(manuscript.editor_email);
   }, [manuscript]);
 
-  // Validate email format according to backend requirements
-  const validateEmail = (email) => {
-    const pattern = /^(?!.*\.\.)[A-Za-z0-9][a-zA-Z0-9._%+-]*@[A-Za-z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,10}$/;
-    return pattern.test(email);
-  };
-
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError('');
-    setValidationErrors({});
-
-    // Validate inputs
-    const errors = {};
-    if (!validateEmail(authorEmail)) {
-      errors.authorEmail = 'Invalid email format';
-    }
-    if (!validateEmail(editorEmail)) {
-      errors.editorEmail = 'Invalid email format';
-    }
-
-    // If there are validation errors, don't submit
-    if (Object.keys(errors).length > 0) {
-      setValidationErrors(errors);
-      return;
-    }
-
-    // Check if manuscript ID is available
-    console.log('handleSubmit - manuscript:', manuscript);
-    console.log('handleSubmit - manuscript._id:', manuscript._id);
-    console.log('handleSubmit - manuscriptId:', manuscriptId);
-    
-    if (!manuscriptId) {
-      console.error('Manuscript ID is missing');
-      setError('Manuscript ID is missing. Cannot update manuscript.');
-      return;
-    }
-
-    // Ensure text is not empty
-    const textContent = 'Updated manuscript content. Please check text pages for detailed content.';
-    
     const manuscriptData = {
-      manu_id: manuscriptId,
       title,
       author,
       author_email: authorEmail,
+      text,
       abstract,
       editor_email: editorEmail,
-      text: textContent,
     };
-    
-    console.log('Submitting manuscript update with data:', manuscriptData);
-    
     try {
-      const response = await updateManuscript(manuscriptData);
-      console.log('Manuscript update successful:', response);
+      await updateManuscript(manuscriptData);
       fetchManuscripts();
       cancel();
     } catch (error) {
-      console.error('Error in handleSubmit:', error);
       setError(error.message);
     }
   };
@@ -236,40 +142,22 @@ function EditManuscriptForm({ manuscript, visible, cancel, fetchManuscripts, set
       <label htmlFor="edit-author">Author</label>
       <input required type="text" id="edit-author" value={author} onChange={(e) => setAuthor(e.target.value)} />
       <label htmlFor="edit-authorEmail">Author Email</label>
-      <input 
-        required 
-        type="email" 
-        id="edit-authorEmail" 
-        value={authorEmail} 
-        onChange={(e) => setAuthorEmail(e.target.value)} 
-        className={validationErrors.authorEmail ? 'error' : ''}
-      />
-      {validationErrors.authorEmail && <div className="validation-error">{validationErrors.authorEmail}</div>}
+      <input required type="email" id="edit-authorEmail" value={authorEmail} onChange={(e) => setAuthorEmail(e.target.value)} />
       <label htmlFor="edit-abstract">Abstract</label>
       <textarea required id="edit-abstract" value={abstract} onChange={(e) => setAbstract(e.target.value)} />
+      <label htmlFor="edit-text">Main Text</label>
+      <textarea required id="edit-text" value={text} onChange={(e) => setText(e.target.value)} />
       <label htmlFor="edit-editorEmail">Editor Email</label>
-      <input 
-        required 
-        type="email" 
-        id="edit-editorEmail" 
-        value={editorEmail} 
-        onChange={(e) => setEditorEmail(e.target.value)} 
-        className={validationErrors.editorEmail ? 'error' : ''}
-      />
-      {validationErrors.editorEmail && <div className="validation-error">{validationErrors.editorEmail}</div>}
-      <div className="note">
-        <p>Note: Text pages can be managed in the Manuscripts section.</p>
-      </div>
-      <div className="form-actions">
-        <button type="submit">Save Changes</button>
+      <input required type="email" id="edit-editorEmail" value={editorEmail} onChange={(e) => setEditorEmail(e.target.value)} />
+      <div className="button-group">
         <button type="button" onClick={cancel}>Cancel</button>
+        <button type="submit">Save Changes</button>
       </div>
     </form>
   );
 }
 EditManuscriptForm.propTypes = {
   manuscript: propTypes.shape({
-    _id: propTypes.string.isRequired,
     title: propTypes.string.isRequired,
     author: propTypes.string.isRequired,
     author_email: propTypes.string.isRequired,
@@ -286,233 +174,105 @@ EditManuscriptForm.propTypes = {
   setError: propTypes.func.isRequired,
 };
 
-// Component for managing text pages
-function ManageTextPages({ manuscript, onBack, setError }) {
-  const [textPages, setTextPages] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [editingPage, setEditingPage] = useState(null);
-  const [addingPage, setAddingPage] = useState(false);
-  const [localError, setLocalError] = useState('');
-
-  const fetchTextPages = async () => {
-    try {
-      setLoading(true);
-      setLocalError('');
-      const pages = await getTextPages(manuscript._id);
-      setTextPages(pages);
-    } catch (error) {
-      setLocalError(`Failed to load text pages: ${error.message}`);
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTextPages();
-  }, [manuscript._id]);
-
-  const handleEditPage = (pageNumber) => {
-    setEditingPage({
-      manuscriptId: manuscript._id,
-      pageNumber
-    });
-  };
-
-  const handleAddPage = () => {
-    setAddingPage(true);
-  };
-
-  const handleDeletePage = async (pageNumber) => {
-    if (!window.confirm(`Are you sure you want to delete page ${pageNumber}?`)) {
-      return;
-    }
-
-    try {
-      setLocalError('');
-      await deleteTextPage(manuscript._id, pageNumber);
-      await fetchTextPages();
-    } catch (error) {
-      setLocalError(`Failed to delete page: ${error.message}`);
-      setError(error.message);
-    }
-  };
-
-  const handleSavePage = async () => {
-    await fetchTextPages();
-    setEditingPage(null);
-    setAddingPage(false);
-  };
-
-  const handleCancelEdit = () => {
-    setEditingPage(null);
-    setAddingPage(false);
-  };
-
-  // If we're editing or adding a page, show the editor
-  if (editingPage) {
-    return (
-      <TextPageEditor
-        manuscriptId={editingPage.manuscriptId}
-        pageNumber={editingPage.pageNumber}
-        onSave={handleSavePage}
-        onCancel={handleCancelEdit}
-      />
-    );
-  }
-
-  if (addingPage) {
-    return (
-      <TextPageEditor
-        manuscriptId={manuscript._id}
-        onSave={handleSavePage}
-        onCancel={handleCancelEdit}
-      />
-    );
-  }
-
-  // Sort pages by page number
-  const sortedPages = [...textPages].sort((a, b) => {
-    // Try to sort numerically if possible
-    const numA = parseInt(a.pageNumber, 10);
-    const numB = parseInt(b.pageNumber, 10);
-    
-    if (!isNaN(numA) && !isNaN(numB)) {
-      return numA - numB;
-    }
-    
-    // Fall back to string comparison
-    return a.pageNumber.localeCompare(b.pageNumber);
-  });
-
-  return (
-    <div className="manage-text-pages">
-      <div className="manage-text-pages-header">
-        <button className="back-button" onClick={onBack}>
-          ← Back to Manuscript
-        </button>
-        <h2>Manage Text Pages for &quot;{manuscript.title}&quot;</h2>
-      </div>
-      
-      {localError && <ErrorMessage message={localError} />}
-      
-      <div className="text-pages-actions">
-        <button className="add-page-button" onClick={handleAddPage}>
-          Add New Page
-        </button>
-      </div>
-      
-      {loading ? (
-        <div className="loading-text-pages">Loading text pages...</div>
-      ) : sortedPages.length === 0 ? (
-        <div className="no-text-pages">
-          <p>No text pages available</p>
-          <button className="add-page-button" onClick={handleAddPage}>
-            Add First Page
-          </button>
-        </div>
-      ) : (
-        <div className="text-pages-list">
-          {sortedPages.map((page) => (
-            <div key={page.pageNumber} className="text-page-item">
-              <div className="text-page-header">
-                <h3>{page.title}</h3>
-                <div className="page-number">Page {page.pageNumber}</div>
-              </div>
-              <div className="text-page-content">{page.text}</div>
-              <div className="text-page-actions">
-                <button 
-                  className="edit-button" 
-                  onClick={() => handleEditPage(page.pageNumber)}
-                >
-                  Edit
-                </button>
-                <button 
-                  className="delete-button" 
-                  onClick={() => handleDeletePage(page.pageNumber)}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-ManageTextPages.propTypes = {
-  manuscript: propTypes.shape({
-    _id: propTypes.string.isRequired,
-    title: propTypes.string.isRequired,
-  }).isRequired,
-  onBack: propTypes.func.isRequired,
-  setError: propTypes.func.isRequired,
-};
-
 // Component for displaying a single manuscript
 function Manuscript({ manuscript, fetchManuscripts, setError }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isUpdatingState, setIsUpdatingState] = useState(false);
   const [selectedAction, setSelectedAction] = useState('');
-  const [localError, setLocalError] = useState('');
-  const [managingTextPages, setManagingTextPages] = useState(false);
-  
-  // Add a function to navigate to the Manuscripts section
-  const navigateToManuscripts = () => {
-    window.location.href = '/manuscripts';
+
+  const STATE_LABELS = {
+    'SUB': 'Submitted',
+    'REV': 'In Review',
+    'REJ': 'Rejected',
+    'CED': 'Copy Editing',
+    'AUR': 'Author Review',
+    'WIT': 'Withdrawn',
+    'EDR': 'Editor Review',
+    'ARV': 'Author Revision',
+    'FMT': 'Formatting',
+    'PUB': 'Published'
   };
 
-  // Add a function to manage text pages directly in this component
-  const handleManageTextPages = () => {
-    setManagingTextPages(true);
-  };
-  
-  const handleBackFromTextPages = () => {
-    setManagingTextPages(false);
-  };
-  
   // Build valid actions based on the current state
   const getValidActions = () => {
-    const actions = [];
+    let actions = [];
     switch (manuscript.state) {
       case 'SUB':
-        actions.push('REV', 'REJ');
+        actions = [
+          { code: 'ARF', label: 'Assign Referee' },
+          { code: 'REJ', label: 'Reject' },
+          { code: 'WIT', label: 'Withdraw' }
+        ];
         break;
       case 'REV':
-        actions.push('SBR');
-        break;
-      case 'AUR':
-        actions.push('REV', 'REJ');
+        actions = [
+          { code: 'ARF', label: 'Assign Referee' },
+          { code: 'DRF', label: 'Remove Referee' },
+          { code: 'ACC', label: 'Accept' },
+          { code: 'REJ', label: 'Reject' },
+          { code: 'AWR', label: 'Accept with Revisions' },
+          { code: 'SBR', label: 'Submit Review' },
+          { code: 'WIT', label: 'Withdraw' }
+        ];
         break;
       case 'CED':
-        actions.push('PUB', 'REJ');
+        actions = [
+          { code: 'DON', label: 'Done' },
+          { code: 'WIT', label: 'Withdraw' }
+        ];
+        break;
+      case 'AUR':
+        actions = [
+          { code: 'DON', label: 'Done' },
+          { code: 'WIT', label: 'Withdraw' }
+        ];
+        break;
+      case 'ARV':
+        actions = [
+          { code: 'DON', label: 'Done' },
+          { code: 'WIT', label: 'Withdraw' }
+        ];
+        break;
+      case 'EDR':
+        actions = [
+          { code: 'ACC', label: 'Accept' },
+          { code: 'WIT', label: 'Withdraw' }
+        ];
+        break;
+      case 'FMT':
+        actions = [
+          { code: 'DON', label: 'Done' },
+          { code: 'WIT', label: 'Withdraw' }
+        ];
+        break;
+      case 'PUB':
+        actions = [{ code: 'WIT', label: 'Withdraw' }];
+        break;
+      case 'REJ':
+        actions = [{ code: 'WIT', label: 'Withdraw' }];
+        break;
+      case 'WIT':
+        actions = [];
         break;
       default:
-        break;
+        actions = [];
+    }
+    // If a referee already exists, update the ARF label to "Assign New Referee"
+    if (manuscript.referees && manuscript.referees.length > 0) {
+      actions = actions.map((action) =>
+        action.code === 'ARF' ? { ...action, label: 'Assign New Referee' } : action
+      );
     }
     return actions;
   };
-  
-  const [validActions, setValidActions] = useState([]);
-  
-  useEffect(() => {
-    setValidActions(getValidActions());
-  }, [manuscript.state]);
-  
+
   const handleDelete = async () => {
     if (window.confirm(`Are you sure you want to delete "${manuscript.title}"?`)) {
       try {
-        setLocalError('');
-        // First, delete all text pages associated with the manuscript
-        await deleteAllTextPages(manuscript._id);
-        // Then delete the manuscript
-        await deleteManuscript(manuscript._id);
+        await deleteManuscriptByTitle(manuscript.title);
         fetchManuscripts();
       } catch (error) {
-        setLocalError(`Failed to delete manuscript: ${error.message}`);
-        setError(error.message); // Also set the parent error state for consistent error handling
+        setError(error.message);
       }
     }
   };
@@ -520,14 +280,12 @@ function Manuscript({ manuscript, fetchManuscripts, setError }) {
   const handleStateUpdate = async (e) => {
     e.preventDefault();
     try {
-      setLocalError('');
       await updateManuscriptState(manuscript.title, selectedAction);
       fetchManuscripts();
       setIsUpdatingState(false);
       setSelectedAction('');
     } catch (error) {
-      setLocalError(`Failed to update manuscript state: ${error.message}`);
-      setError(error.message); // Also set the parent error state for consistent error handling
+      setError(error.message);
     }
   };
 
@@ -539,49 +297,43 @@ function Manuscript({ manuscript, fetchManuscripts, setError }) {
     setSelectedAction('');
   };
 
-  // If we're managing text pages, show the ManageTextPages component
-  if (managingTextPages) {
-    return (
-      <ManageTextPages 
-        manuscript={manuscript} 
-        onBack={handleBackFromTextPages}
-        setError={setError}
-      />
-    );
-  }
+  const validActions = getValidActions();
 
   return (
     <div className="manuscript-item">
-      {localError && <ErrorMessage message={localError} />}
-      <div className="manuscript-title">
-        <h2>{manuscript.title}</h2>
-        <span className={`state-tag state-${manuscript.state}`}>{manuscript.state}</span>
+      <div className={`state-tag state-${manuscript.state}`}>
+        {STATE_LABELS[manuscript.state] || manuscript.state}
       </div>
+      <h3 className="manuscript-title">{manuscript.title}</h3>
       <div className="manuscript-info">
         <p><span className="label">Author:</span> {manuscript.author}</p>
         <p><span className="label">Author Email:</span> {manuscript.author_email}</p>
-        <p><span className="label">Editor Email:</span> {manuscript.editor_email}</p>
-        <p><span className="label">Abstract:</span> {manuscript.abstract}</p>
-        <p><span className="label">Referees:</span> {manuscript.referees && manuscript.referees.length > 0 ? manuscript.referees.join(', ') : 'None'}</p>
-        <p><span className="label">History:</span> {manuscript.history && manuscript.history.length > 0 ? manuscript.history.join(', ') : 'No history'}</p>
-        <div className="text-pages-link">
-          <div className="text-pages-buttons">
-            <button onClick={handleManageTextPages} className="manage-text-pages-button">
-              Manage Text Pages
-            </button>
-            <button onClick={navigateToManuscripts} className="view-text-pages-button">
-              View Text Pages
-            </button>
-          </div>
-          <p className="text-pages-note">
-            You can manage text pages directly here or view them in the Manuscripts section.
+        <p><span className="label">Editor:</span> {manuscript.editor_email}</p>
+        {manuscript.referees && manuscript.referees.length > 0 && (
+          <p>
+            <span className="label">Referees:</span> {manuscript.referees.join(', ')}
           </p>
+        )}
+        <div className="abstract-text">
+          <p><span className="label">Abstract:</span></p>
+          <p>{manuscript.abstract}</p>
         </div>
+        <div className="main-text">
+          <p><span className="label">Text:</span></p>
+          <p>{manuscript.text}</p>
+        </div>
+        {manuscript.history && manuscript.history.length > 0 && (
+          <p>
+            <span className="label">History:</span> {manuscript.history.map(state => STATE_LABELS[state] || state).join(' → ')}
+          </p>
+        )}
       </div>
       <div className="manuscript-actions">
         <button className="edit-button" onClick={showEditForm}>Edit</button>
+        {validActions.length > 0 && (
+          <button className="view-button" onClick={showStateUpdateForm}>Update State</button>
+        )}
         <button className="delete-button" onClick={handleDelete}>Delete</button>
-        <button className="view-button" onClick={showStateUpdateForm}>Update State</button>
       </div>
       <EditManuscriptForm
         manuscript={manuscript}
@@ -603,8 +355,8 @@ function Manuscript({ manuscript, fetchManuscripts, setError }) {
             >
               <option value="">Select an action...</option>
               {validActions.map((action) => (
-                <option key={action} value={action}>
-                  {action}
+                <option key={action.code} value={action.code}>
+                  {action.label}
                 </option>
               ))}
             </select>
@@ -633,12 +385,12 @@ function Manuscript({ manuscript, fetchManuscripts, setError }) {
 }
 Manuscript.propTypes = {
   manuscript: propTypes.shape({
-    _id: propTypes.string.isRequired,
     title: propTypes.string.isRequired,
     author: propTypes.string.isRequired,
     author_email: propTypes.string.isRequired,
-    editor_email: propTypes.string.isRequired,
+    text: propTypes.string.isRequired,
     abstract: propTypes.string.isRequired,
+    editor_email: propTypes.string.isRequired,
     state: propTypes.string.isRequired,
     referees: propTypes.arrayOf(propTypes.string),
     history: propTypes.arrayOf(propTypes.string),
