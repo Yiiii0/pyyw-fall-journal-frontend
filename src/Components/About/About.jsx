@@ -1,7 +1,92 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './About.css';
+import { getPeople, getRoles } from '../../services/peopleAPI';
 
 function About() {
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [roles, setRoles] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchTeamData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch team members from the people API
+        const peopleData = await getPeople();
+        console.log('People data received:', peopleData);
+        
+        // Fetch roles to map role codes to readable names
+        const rolesData = await getRoles();
+        console.log('Roles data received:', rolesData);
+        
+        const rolesMap = {};
+        
+        // Process roles data
+        if (rolesData && typeof rolesData === 'object') {
+          Object.keys(rolesData).forEach(key => {
+            rolesMap[key] = rolesData[key];
+          });
+        }
+        
+        console.log('Processed roles map:', rolesMap);
+        setRoles(rolesMap);
+        
+        // Process people data
+        let allPeople = [];
+        
+        if (peopleData && typeof peopleData === 'object') {
+          // Convert object to array
+          allPeople = Object.values(peopleData);
+        } else if (Array.isArray(peopleData)) {
+          allPeople = peopleData;
+        }
+        
+        // Filter to show only team members with editor roles
+        const teamData = allPeople.filter(person => {
+          if (!person) return false;
+          
+          // Check if roles is an array
+          if (Array.isArray(person.roles)) {
+            // Check if any role in the array is an editor role
+            return person.roles.some(role => {
+              // Check if the role code is ED (Editor) or contains "editor"
+              if (role === 'ED' || role === 'ME' || role === 'CE') return true;
+              if (role.toLowerCase().includes('editor')) return true;
+              
+              // Check if the mapped role name contains "editor"
+              const roleName = rolesMap[role];
+              return roleName && roleName.toLowerCase().includes('editor');
+            });
+          }
+          
+          // Fallback checks for other role formats
+          if (person.role) {
+            if (person.role === 'ED' || person.role === 'ME' || person.role === 'CE') return true;
+            if (person.role.toLowerCase().includes('editor')) return true;
+            
+            const roleName = rolesMap[person.role];
+            if (roleName && roleName.toLowerCase().includes('editor')) return true;
+          }
+          
+          return false;
+        });
+        
+        console.log('Filtered team data (editors only):', teamData);
+        setTeamMembers(teamData);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching team data:', err);
+        setError('Failed to load team data. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTeamData();
+  }, []);
+
   return (
     <div className="about-container">
       <h1>About Our Journal System</h1>
@@ -37,43 +122,35 @@ function About() {
       </div>
       
       <div className="about-section">
-        <h2>Our Team</h2>
+        <h2>Our Editorial Team</h2>
         <p>
-          Our journal is managed by a dedicated team of professionals committed to advancing
+          Our journal is managed by a dedicated team of editors committed to advancing
           scholarly communication:
         </p>
-        <div className="team-members">
-          <div className="team-member">
-            <h3>Yuwei Sun</h3>
-            <p className="role">xxx</p>
-            <p>NYU B.S. in Computer Science</p>
-            <p>Specializing in xxx</p>
+        {loading ? (
+          <p>Loading editorial team information...</p>
+        ) : error ? (
+          <p className="error-message">{error}</p>
+        ) : (
+          <div className="team-members">
+            {teamMembers.length > 0 ? (
+              teamMembers.map((member, index) => (
+                <div className="team-member" key={index}>
+                  <h3>{member.name || 'Team Member'}</h3>
+                  <p className="role">
+                    {Array.isArray(member.roles) && member.roles.length > 0 
+                      ? member.roles.map(role => roles[role] || role).join(', ')
+                      : roles[member.role] || member.role || 'Editor'}
+                  </p>
+                  <p>{member.affiliation || 'Affiliation not specified'}</p>
+                  <p>{member.bio || 'Bio not available'}</p>
+                </div>
+              ))
+            ) : (
+              <p>No editorial team members found. Check the console for debugging information.</p>
+            )}
           </div>
-          <div className="team-member">
-            <h3>Yiqiao Zhou</h3>
-            <p className="role">xxx</p>
-            <p>NYU B.S. in Computer Science</p>
-            <p>Specializing in xxx</p>
-          </div>
-          <div className="team-member">
-            <h3>Yirong Wang</h3>
-            <p className="role">xxx</p>
-            <p>NYU B.S. in Computer Science</p>
-            <p>Specializing in xxx</p>
-          </div>
-          <div className="team-member">
-            <h3>Wayne Wang</h3>
-            <p className="role">xxx</p>
-            <p>NYU B.S. in Computer Science</p>
-            <p>Specializing in xxx</p>
-          </div>
-          <div className="team-member">
-            <h3>Chelsea Wang</h3>
-            <p className="role">xxx</p>
-            <p>NYU B.S. in Computer Science</p>
-            <p>Specializing in xxx</p>
-          </div>
-        </div>
+        )}
       </div>
       
       <div className="about-section">

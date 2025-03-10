@@ -60,7 +60,7 @@ export const getRoles = async () => {
     const { data } = await axios.get(PEOPLE_ENDPOINTS.GET_ROLES);
     return data;
   } catch (error) {
-    throw new Error(`Failed to fetch people: ${error.message}`);
+    throw new Error(`Failed to fetch roles: ${error.message}`);
   }
 };
 
