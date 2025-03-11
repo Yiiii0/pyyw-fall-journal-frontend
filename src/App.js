@@ -19,11 +19,12 @@ import About from './Components/About';
 import Login from './Components/Auth/Login';
 import Register from './Components/Auth/Register';
 
+import EditorDashboard from './Components/EditorDashboard/EditorDashboard';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 function PersonPage() {
   const { name } = useParams();
-  return <h1>{name}</h1>
+  return <h1>{name}</h1>;
 }
 
 // Protected Route wrapper component
@@ -49,6 +50,9 @@ function WelcomePage() {
           <li><Link to="/people">View People</Link></li>
           <li><Link to="/submissions">Submissions</Link></li>
           <li><Link to="/about">About Us</Link></li>
+          {/* 
+            Dashboard link only if user has ED or ME, 
+          */}
         </ul>
       </nav>
     </div>
@@ -72,6 +76,12 @@ function AppContent() {
         <Route path="/submissions" element={
           <ProtectedRoute>
             <Submissions user={currentUser} />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/editor-dashboard" element={
+          <ProtectedRoute>
+            <EditorDashboard />
           </ProtectedRoute>
         } />
       </Routes>

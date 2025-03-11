@@ -45,6 +45,8 @@ function Navbar() {
     return basePages;
   };
 
+  const isEditorOrME = currentUser?.roles?.some(role => role === 'ED' || role === 'ME');
+
   return (
     <header className="header">
       <nav className="nav-container">
@@ -58,6 +60,25 @@ function Navbar() {
           {getVisiblePages().map((page) => (
             <NavLink key={page.destination} page={page} />
           ))}
+
+          {currentUser && (
+            <>
+              <li>
+                <Link to="/manuscripts">Manuscripts</Link>
+              </li>
+              <li>
+                <Link to="/people">People</Link>
+              </li>
+              <li>
+                <Link to="/submissions">Submissions</Link>
+              </li>
+              {isEditorOrME && (
+                <li>
+                  <Link to="/editor-dashboard">Dashboard</Link>
+                </li>
+              )}
+            </>
+          )}
         </ul>
 
         <div className="auth-section">
@@ -65,7 +86,9 @@ function Navbar() {
             <div className="user-info">
               <div className="user-email">
                 <span className="welcome-text">Welcome,</span>
-                <span className="user-name">{currentUser.name}</span>
+                <span className="user-name">
+                  {currentUser.name || currentUser.email}
+                </span>
               </div>
               <button onClick={handleLogout} className="logout-button">
                 Logout

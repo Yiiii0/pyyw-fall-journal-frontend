@@ -1,7 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import propTypes from 'prop-types';
 import { Link } from 'react-router-dom';
-import { getPeople, createPerson, deletePerson, updatePerson, addRole, deleteRole, getRoles } from '../../services/peopleAPI';
+import {
+  getPeople,
+  createPerson,
+  deletePerson,
+  updatePerson,
+  addRole,
+  deleteRole,
+  getRoles
+} from '../../services/peopleAPI';
+
+import { useAuth } from '../../contexts/AuthContext';
 
 function AddPersonForm({
   visible,
@@ -264,7 +274,10 @@ function Person({ person, fetchPeople, setError, roles }) {
             <h2>{name}</h2>
             <p>Email: {email}</p>
             <p>Affiliation: {affiliation}</p>
-            <p>Roles: {Array.isArray(personRoles) ? personRoles.map(role => `${role}: ${roles[role] || role}`).join(', ') : personRoles}</p>
+            <p>Roles: {Array.isArray(personRoles)
+              ? personRoles.map(role => `${role}: ${roles[role] || role}`).join(', ')
+              : personRoles}
+            </p>
           </div>
         </div>
       </Link>
@@ -318,6 +331,23 @@ function People() {
   const [sortDirection, setSortDirection] = useState('asc');
   const [selectedRole, setSelectedRole] = useState(''); // Add state for role filter
 
+  const { currentUser } = useAuth();
+  const rolesArray = Array.isArray(currentUser?.roles)
+  ? currentUser.roles
+  : [currentUser.roles]; // convert single string to array
+  const isEditorOrME = rolesArray.some(r => r === 'ED' || r === 'ME');
+
+  if (!isEditorOrME) {
+    return (
+      <div className="people-container">
+        <div className="access-denied">
+          <h2>Access Denied</h2>
+          <p>You must be an Editor or Managing Editor to view this page.</p>
+        </div>
+      </div>
+    );
+  }
+
   const fetchPeople = async () => {
     try {
       const data = await getPeople();
@@ -357,7 +387,8 @@ function People() {
         : person.email.toLowerCase().includes(searchValue);
 
       // Then apply role filter
-      const matchesRole = selectedRole === '' || (Array.isArray(person.roles) && person.roles.includes(selectedRole));
+      const matchesRole = selectedRole === '' ||
+        (Array.isArray(person.roles) && person.roles.includes(selectedRole));
 
       return matchesSearch && matchesRole;
     });
@@ -370,8 +401,8 @@ function People() {
 
       // Handle roles array for sorting
       if (sortField === 'role') {
-        valueA = a.roles.join(',');
-        valueB = b.roles.join(',');
+        valueA = Array.isArray(a.roles) ? a.roles.join(',') : a.roles;
+        valueB = Array.isArray(b.roles) ? b.roles.join(',') : b.roles;
       }
 
       if (sortDirection === 'asc') {

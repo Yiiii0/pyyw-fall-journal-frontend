@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { updateManuscriptState } from '../../services/manuscriptsAPI';
-import './Editor.css';
+import './EditorActionForm.css';
 
 const EDITOR_ACTIONS = [
   { code: 'EDITOR_REJECT_SUB', label: 'Reject (Submitted → Rejected)' },
