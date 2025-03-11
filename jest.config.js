@@ -3,9 +3,8 @@
  * https://jestjs.io/docs/configuration
  */
 
-import type {Config} from 'jest';
-
-const config: Config = {
+/** @type {import('jest').Config} */
+const config = {
   // All imported modules in your tests should be mocked automatically
   // automock: false,
 
@@ -13,7 +12,7 @@ const config: Config = {
   // bail: 0,
 
   // The directory where Jest should store its cached dependency information
-  // cacheDirectory: "/private/var/folders/w8/f7m3z7t96_b6n0vssj72qkjh0000gn/T/jest_dx",
+  // cacheDirectory: "/private/var/folders/54/6cds90sx0vz1dw5xr1l6xxvh0000gn/T/jest_dx",
 
   // Automatically clear mock calls, instances, contexts and results before every test
   clearMocks: true,
@@ -33,7 +32,7 @@ const config: Config = {
   // ],
 
   // Indicates which provider should be used to instrument code for coverage
-  coverageProvider: "v8",
+  // coverageProvider: "babel",
 
   // A list of reporter names that Jest uses when writing coverage reports
   // coverageReporters: [
@@ -146,7 +145,7 @@ const config: Config = {
   // snapshotSerializers: [],
 
   // The test environment that will be used for testing
-  testEnvironment: "jsdom",
+  // testEnvironment: "jest-environment-node",
 
   // Options that will be passed to the testEnvironment
   // testEnvironmentOptions: {},
@@ -194,6 +193,18 @@ const config: Config = {
 
   // Whether to use watchman for file crawling
   // watchman: true,
+
+  testEnvironment: "jsdom",
+
+  moduleNameMapper: {
+    '\\.(css|less)$': '<rootDir>/test/jest/__mocks__/styleMock.js',
+  },
+
+  transform: {
+    "\\.[jt]sx?$": "babel-jest"
+  },
+
+  transformIgnorePatterns: ["node_modules/(?!axios|@bundled-es-modules|jest-fixed-jsdom)"],
 };
 
-export default config;
+module.exports = config;
