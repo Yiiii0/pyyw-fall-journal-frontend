@@ -129,7 +129,7 @@
 .manuscript-item {
   background-color: #fff;
   border-radius: 5px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   padding: 15px;
   position: relative;
 }
@@ -233,11 +233,91 @@
   color: #0c5460;
 }
 
-.abstract-text, .main-text {
+.abstract-text,
+.main-text {
   max-height: 100px;
   overflow-y: auto;
   margin-bottom: 10px;
   padding: 5px;
   border: 1px solid #eee;
   border-radius: 4px;
-} 
+}
+
+/* Submission Guidelines Styling */
+.submission-guidelines {
+  margin-bottom: 30px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+}
+
+.guidelines-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #ddd;
+  background-color: #f3f3f3;
+}
+
+.guidelines-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.toggle-guidelines {
+  padding: 8px 15px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.toggle-guidelines:hover {
+  background-color: #0056b3;
+}
+
+.guidelines-content {
+  padding: 20px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.guidelines-content h3 {
+  color: #333;
+  margin-top: 0;
+  font-size: 1.4rem;
+}
+
+.guidelines-content h4 {
+  color: #444;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+}
+
+.guidelines-content h5 {
+  color: #555;
+  margin-top: 15px;
+  margin-bottom: 8px;
+  font-size: 1.1rem;
+}
+
+.guidelines-content p {
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.guidelines-content ul {
+  margin-top: 8px;
+  margin-bottom: 15px;
+  padding-left: 20px;
+}
+
+.guidelines-content li {
+  margin-bottom: 5px;
+  line-height: 1.4;
+}
