@@ -69,7 +69,11 @@ function Manuscripts() {
     }
   };
 
-  const handleSearch = async () => {
+  const handleSearch = async (e) => {
+    if (e) {
+      e.preventDefault();
+    }
+
     if (!searchTitle.trim()) {
       fetchManuscripts();
       return;
@@ -96,15 +100,17 @@ function Manuscripts() {
     <div className="manuscripts-wrapper">
       <div className="manuscripts-header">
         <h1>View All Manuscripts</h1>
-        <div className="search-container">
-          <input
-            type="text"
-            placeholder="Search by title..."
-            value={searchTitle}
-            onChange={(e) => setSearchTitle(e.target.value)}
-          />
-          <button onClick={handleSearch}>Search</button>
-        </div>
+      </div>
+      
+      <div className="search-container">
+        <input
+          type="text"
+          placeholder="Search by title..."
+          value={searchTitle}
+          onChange={(e) => setSearchTitle(e.target.value)}
+          className="search-input"
+        />
+        <button className="search-button" onClick={handleSearch}>Search</button>
       </div>
       
       {error && <ErrorMessage message={error} />}
@@ -114,11 +120,12 @@ function Manuscripts() {
           <thead>
             <tr>
               <th>Basic Information</th>
-              <th>Peer Review</th>
+              <th>Referee Review</th>
               <th>Author Revisions</th>
               <th>Editor Review</th>
               <th>Copy Editing</th>
-              <th>Final Stage</th>
+              <th>Author Review</th>
+              <th>Final Processing</th>
             </tr>
           </thead>
           <tbody>
@@ -216,6 +223,21 @@ function Manuscripts() {
                     )}
                   </td>
                   <td className="process-cell">
+                    {manuscript.state === 'AUR' ? (
+                      <div className="stage-content active-stage">
+                        <span className="stage-indicator">In Progress</span>
+                      </div>
+                    ) : manuscript.history && manuscript.history.includes('AUR') ? (
+                      <div className="stage-content completed-stage">
+                        <span className="stage-indicator">Completed</span>
+                      </div>
+                    ) : (
+                      <div className="stage-content pending-stage">
+                        <span className="stage-indicator">Pending</span>
+                      </div>
+                    )}
+                  </td>
+                  <td className="process-cell">
                     {(manuscript.state === 'FMT' || manuscript.state === 'PUB') ? (
                       <div className="stage-content active-stage">
                         <span className="stage-indicator">In Progress</span>
@@ -234,7 +256,7 @@ function Manuscripts() {
               ))
             ) : (
               <tr>
-                <td colSpan="6" className="no-results">No manuscripts found.</td>
+                <td colSpan="7" className="no-results">No manuscripts found.</td>
               </tr>
             )}
           </tbody>
