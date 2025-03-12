@@ -1,0 +1,94 @@
+.masthead-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.masthead-container h1 {
+    margin-bottom: 30px;
+    color: #333;
+    text-align: center;
+}
+
+.editor-section {
+    margin-bottom: 40px;
+}
+
+.editor-section h2 {
+    color: #333;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.editor-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.consulting-editors {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+}
+
+.editor-item {
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+}
+
+.editor-item h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    color: #333;
+    font-size: 1.1rem;
+}
+
+.editor-item p {
+    margin: 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.editor-role {
+    font-weight: normal;
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
+.delineated {
+    position: relative;
+    margin-top: 40px;
+    padding-top: 40px;
+}
+
+.delineated:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50%;
+    height: 1px;
+    background-color: #ddd;
+}
+
+.editor-notes {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #ddd;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .editor-list {
+        grid-template-columns: repeat(auto-fill, minmax(100%, 1fr));
+    }
+
+    .consulting-editors {
+        grid-template-columns: repeat(auto-fill, minmax(100%, 1fr));
+    }
+}

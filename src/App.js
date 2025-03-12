@@ -18,6 +18,7 @@ import Submissions from './Components/Submissions';
 import About from './Components/About';
 import Login from './Components/Auth/Login';
 import Register from './Components/Auth/Register';
+import Masthead from './Components/Masthead/Masthead';
 
 import EditorDashboard from './Components/EditorDashboard/EditorDashboard';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -50,6 +51,7 @@ function WelcomePage() {
           <li><Link to="/people">View People</Link></li>
           <li><Link to="/submissions">Submissions</Link></li>
           <li><Link to="/about">About Us</Link></li>
+          <li><Link to="/masthead">Masthead</Link></li>
           {/* 
             Dashboard link only if user has ED or ME, 
           */}
@@ -73,6 +75,7 @@ function AppContent() {
         <Route path="/manuscripts" element={<Manuscripts />} />
         <Route path="/people/:name" element={<PersonPage />} />
         <Route path="/about" element={<About />} />
+        <Route path="/masthead" element={<Masthead />} />
         <Route path="/submissions" element={
           <ProtectedRoute>
             <Submissions user={currentUser} />
