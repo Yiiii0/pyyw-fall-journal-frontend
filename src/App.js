@@ -42,19 +42,24 @@ ProtectedRoute.propTypes = {
 };
 
 function WelcomePage() {
+  const { currentUser } = useAuth();
+  const isEditorOrME = currentUser?.roles?.some(r => r === 'ED' || r === 'ME');
+
   return (
     <div className="welcome-page">
       <h1>Welcome to Journal System</h1>
       <nav className="welcome-nav">
         <ul>
-          <li><Link to="/manuscripts">View Manuscripts</Link></li>
-          <li><Link to="/people">View People</Link></li>
-          <li><Link to="/submissions">Submissions</Link></li>
-          <li><Link to="/about">About Us</Link></li>
+          {/* If ED/ME, show Editor Dashboard; otherwise, show Manuscripts */}
+          {isEditorOrME ? (
+            <li><Link to="/editor-dashboard">Editor Dashboard</Link></li>) : (
+            <li><Link to="/manuscripts">Manuscripts</Link></li>)}
+          {/* Show Submissions if user is logged in, any role */}
+          {currentUser && (
+            <li><Link to="/submissions">Submissions</Link></li>)}
+          {/* Always show About */}
           <li><Link to="/masthead">Masthead</Link></li>
-          {/* 
-            Dashboard link only if user has ED or ME, 
-          */}
+          <li><Link to="/about">About Us</Link></li>
         </ul>
       </nav>
     </div>

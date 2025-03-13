@@ -11,8 +11,6 @@ import {
   getRoles
 } from '../../services/peopleAPI';
 
-import { useAuth } from '../../contexts/AuthContext';
-
 function AddPersonForm({
   visible,
   cancel,
@@ -330,23 +328,6 @@ function People() {
   const [sortField, setSortField] = useState('name');
   const [sortDirection, setSortDirection] = useState('asc');
   const [selectedRole, setSelectedRole] = useState(''); // Add state for role filter
-
-  const { currentUser } = useAuth();
-  const rolesArray = Array.isArray(currentUser?.roles)
-  ? currentUser.roles
-  : [currentUser.roles]; // convert single string to array
-  const isEditorOrME = rolesArray.some(r => r === 'ED' || r === 'ME');
-
-  if (!isEditorOrME) {
-    return (
-      <div className="people-container">
-        <div className="access-denied">
-          <h2>Access Denied</h2>
-          <p>You must be an Editor or Managing Editor to view this page.</p>
-        </div>
-      </div>
-    );
-  }
 
   const fetchPeople = async () => {
     try {

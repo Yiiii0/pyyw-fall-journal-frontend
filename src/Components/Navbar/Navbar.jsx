@@ -1,35 +1,14 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import './Navbar.css';
 import { useAuth } from '../../contexts/AuthContext';
 
-function NavLink({ page }) {
-  const location = useLocation();
-  const isActive = location.pathname === page.destination;
-
-  return (
-    <li>
-      <Link
-        to={page.destination}
-        className={isActive ? 'active' : ''}
-      >
-        {page.label}
-      </Link>
-    </li>
-  );
-}
-
-NavLink.propTypes = {
-  page: PropTypes.shape({
-    label: PropTypes.string.isRequired,
-    destination: PropTypes.string.isRequired,
-  }).isRequired,
-};
-
 function Navbar() {
   const { currentUser, logout } = useAuth();
+  console.log(currentUser)
+  console.log('Current user:', currentUser);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     logout();
@@ -37,14 +16,7 @@ function Navbar() {
     navigate('/');
   };
 
-  const getVisiblePages = () => {
-    const basePages = [
-      { label: 'Home', destination: '/' },
-      { label: 'About', destination: '/about' },
-    ];
-    return basePages;
-  };
-
+  // Determine if user is Editor or Managing Editor
   const isEditorOrME = currentUser?.roles?.some(role => role === 'ED' || role === 'ME');
 
   return (
@@ -57,26 +29,55 @@ function Navbar() {
         </div>
 
         <ul className="nav-links">
-          {getVisiblePages().map((page) => (
-            <NavLink key={page.destination} page={page} />
-          ))}
+          {/* Always show Home and About */}
+          <li>
+            <Link
+              to="/"
+              className={location.pathname === '/' ? 'active' : ''}
+            >
+              Home
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/about"
+              className={location.pathname === '/about' ? 'active' : ''}
+            >
+              About
+            </Link>
+          </li>
 
           {currentUser && (
             <>
-              <li>
-                <Link to="/manuscripts">Manuscripts</Link>
-              </li>
-              <li>
-                <Link to="/people">People</Link>
-              </li>
-              <li>
-                <Link to="/submissions">Submissions</Link>
-              </li>
-              {isEditorOrME && (
+              {isEditorOrME ? (
                 <li>
-                  <Link to="/editor-dashboard">Dashboard</Link>
+                  <Link
+                    to="/editor-dashboard"
+                    className={location.pathname === '/editor-dashboard' ? 'active' : ''}
+                  >
+                    Editor Dashboard
+                  </Link>
+                </li>
+              ) : (
+                <li>
+                  <Link
+                    to="/manuscripts"
+                    className={location.pathname === '/manuscripts' ? 'active' : ''}
+                  >
+                    Manuscripts
+                  </Link>
                 </li>
               )}
+
+              {/* Optional: show Submissions if user is logged in, any role */}
+              <li>
+                <Link
+                  to="/submissions"
+                  className={location.pathname === '/submissions' ? 'active' : ''}
+                >
+                  Submissions
+                </Link>
+              </li>
             </>
           )}
         </ul>

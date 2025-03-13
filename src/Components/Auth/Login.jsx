@@ -4,9 +4,12 @@ import PropTypes from 'prop-types';
 import './Auth.css';
 import { useAuth } from '../../contexts/AuthContext';
 
+import { doLogin } from '../../services/authAPI';
+
 function Login({ onLogin }) {
   const { login, currentUser } = useAuth();
   const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -14,7 +17,6 @@ function Login({ onLogin }) {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // If already logged in, redirect to home
     if (currentUser) {
       navigate('/');
     }
@@ -23,16 +25,12 @@ function Login({ onLogin }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Here you would typically make a call to your API
-      // For now, we'll simulate a successful login
-      const userData = {
-        name: formData.username,
-        email: formData.username,
-        // other user data
-      };
-
+      const userData = await doLogin({
+        username: formData.username,
+        password: formData.password,
+      });
       login(userData);
-      if (onLogin) onLogin(userData); // Call the prop function if provided
+      if (onLogin) onLogin(userData);
       navigate('/');
     } catch (err) {
       setError(err.message || 'Login failed');
@@ -79,7 +77,9 @@ function Login({ onLogin }) {
         </button>
       </form>
       <div className="register-link">
-        <p>Havent an account yet? <Link to="/register">Register now</Link></p>
+        <p>
+          Haven&apos;t an account yet? <Link to="/register">Register now</Link>
+        </p>
       </div>
     </div>
   );

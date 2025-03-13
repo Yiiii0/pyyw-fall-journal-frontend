@@ -50,3 +50,23 @@
 .editor-action-form {
   margin-top: 1rem;
 }
+
+.editor-dashboard-links {
+  margin-top: 1rem;
+  display: flex;
+  gap: 1rem;
+}
+
+.editor-dashboard-link {
+  padding: 8px 16px;
+  background-color: #007bff;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.editor-dashboard-link:hover {
+  background-color: #0056b3;
+}
