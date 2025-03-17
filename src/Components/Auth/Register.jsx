@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { register } from '../../services/peopleAPI';
@@ -12,6 +12,13 @@ function Register({ onRegister }) {
         confirmPassword: '',
     });
     const [error, setError] = useState('');
+
+    // Clear password mismatch error when passwords match
+    useEffect(() => {
+        if (error === 'Passwords do not match' && formData.password === formData.confirmPassword) {
+            setError('');
+        }
+    }, [formData.password, formData.confirmPassword, error]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
