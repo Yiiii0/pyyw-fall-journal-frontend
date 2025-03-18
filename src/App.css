@@ -432,10 +432,40 @@ nav a:hover {
 }
 
 .welcome-page {
-  padding: 6rem 2rem;
+  padding: 0;
   text-align: center;
-  max-width: 1200px;
   margin: 0 auto;
+  height: calc(100vh - 72px); /* Adjust based on navbar height to avoid overlap */
+  width: 100%;
+  background-image: url('./pictures/notebook-1840276_1280.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.welcome-page::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5); /* Dark overlay for better text readability */
+  z-index: 1;
+}
+
+.welcome-content {
+  position: relative;
+  z-index: 2;
+  max-width: 800px;
+  padding: 2rem;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 1rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
 }
 
 .welcome-page h1 {
@@ -444,6 +474,19 @@ nav a:hover {
   margin-bottom: 1.5rem;
   font-weight: 700;
   line-height: 1.2;
+}
+
+.welcome-tagline {
+  font-size: 1.5rem;
+  color: var(--primary);
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.welcome-description {
+  font-size: 1.1rem;
+  color: var(--text-light);
+  line-height: 1.6;
 }
 
 .welcome-nav ul {

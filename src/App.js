@@ -43,7 +43,11 @@ ProtectedRoute.propTypes = {
 function WelcomePage() {
   return (
     <div className="welcome-page">
-      <h1>Welcome to Journal System</h1>
+      <div className="welcome-content">
+        <h1>Welcome to Journal System</h1>
+        <p className="welcome-tagline">A modern platform for academic publishing and collaboration</p>
+        <p className="welcome-description">Discover, submit, and review scholarly articles in an efficient and transparent environment</p>
+      </div>
     </div>
   );
 }
