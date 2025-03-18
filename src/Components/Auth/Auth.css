@@ -133,3 +133,9 @@ button:hover {
 .register-link a:hover {
   text-decoration: underline;
 }
+
+.required {
+  color: red;
+  font-weight: bold;
+  margin-left: 5px;
+}
