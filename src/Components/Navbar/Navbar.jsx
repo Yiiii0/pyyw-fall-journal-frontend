@@ -46,6 +46,14 @@ function Navbar() {
               About
             </Link>
           </li>
+          <li>
+            <Link
+              to="/masthead"
+              className={location.pathname === '/masthead' ? 'active' : ''}
+            >
+              Masthead
+            </Link>
+          </li>
 
           {currentUser && (
             <>
