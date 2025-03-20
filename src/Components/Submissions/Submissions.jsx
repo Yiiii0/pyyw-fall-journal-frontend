@@ -116,6 +116,7 @@ function EditManuscriptForm({ manuscript, visible, cancel, fetchManuscripts, set
     event.preventDefault();
     setError('');
     const manuscriptData = {
+      _id: manuscript._id,
       title,
       author,
       author_email: authorEmail,
@@ -158,6 +159,7 @@ function EditManuscriptForm({ manuscript, visible, cancel, fetchManuscripts, set
 }
 EditManuscriptForm.propTypes = {
   manuscript: propTypes.shape({
+    _id: propTypes.string.isRequired,
     title: propTypes.string.isRequired,
     author: propTypes.string.isRequired,
     author_email: propTypes.string.isRequired,
