@@ -1,20 +1,35 @@
 .submissions-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 2rem;
+  font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-.submissions-container h1 {
-  margin-bottom: 20px;
-  color: #333;
+.submissions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.submissions-header h2 {
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0;
+  letter-spacing: -0.5px;
 }
 
 .error-message {
-  background-color: #ffdddd;
-  color: #ff0000;
-  padding: 10px;
-  margin-bottom: 20px;
-  border-radius: 5px;
+  background-color: #fff5f5;
+  color: #c53030;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+  border-left: 4px solid #c53030;
 }
 
 .controls {
@@ -32,92 +47,120 @@
 }
 
 .search-controls {
+  margin-bottom: 2rem;
+}
+
+.search-controls form {
   display: flex;
-  align-items: center;
+  gap: 0.5rem;
+  max-width: 800px;
 }
 
-.search-input-group {
-  display: flex;
-  gap: 10px;
+.search-controls input {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 1rem;
+  color: #2d3748;
+  min-width: 400px;
 }
 
-.search-input-group input {
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  width: 250px;
-}
-
-.search-button {
-  padding: 8px 15px;
-  background-color: #007bff;
+.search-controls button {
+  padding: 0.6rem 1rem;
+  background-color: #4299e1;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 500;
   cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
-.search-button:hover {
-  background-color: #0056b3;
+.search-controls button:hover {
+  background-color: #3182ce;
+  transform: translateY(-1px);
 }
 
 .submission-form {
-  background-color: #f9f9f9;
-  padding: 20px;
-  margin-bottom: 20px;
-  border-radius: 5px;
-  border: 1px solid #ddd;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-top: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.submission-form h2, .submission-form h3 {
+  font-size: 1.8rem;
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
 }
 
 .submission-form label {
   display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
+  margin-bottom: 0.8rem;
+  font-weight: 500;
+  color: #4a5568;
 }
 
 .submission-form input,
-.submission-form textarea {
+.submission-form textarea,
+.submission-form select {
   width: 100%;
-  padding: 8px;
-  margin-bottom: 15px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 0.8rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  color: #2d3748;
+  transition: border-color 0.2s ease;
+  margin-bottom: 1.2rem;
+}
+
+.submission-form input:focus,
+.submission-form textarea:focus,
+.submission-form select:focus {
+  outline: none;
+  border-color: #4299e1;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
 }
 
 .submission-form textarea {
-  min-height: 100px;
+  min-height: 150px;
   resize: vertical;
 }
 
 .button-group {
   display: flex;
-  gap: 10px;
-  margin-top: 15px;
+  gap: 1rem;
+  margin-top: 1.5rem;
 }
 
 .button-group button {
-  padding: 8px 15px;
-  border: none;
-  border-radius: 4px;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
   cursor: pointer;
-}
-
-.button-group button[type="submit"] {
-  background-color: #28a745;
-  color: white;
-}
-
-.button-group button[type="submit"]:hover {
-  background-color: #218838;
+  transition: all 0.2s ease;
+  border: none;
 }
 
 .button-group button[type="button"] {
-  background-color: #6c757d;
+  background-color: #e2e8f0;
+  color: #4a5568;
+}
+
+.button-group button[type="submit"] {
+  background-color: #4299e1;
   color: white;
 }
 
-.button-group button[type="button"]:hover {
-  background-color: #5a6268;
+.button-group button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .manuscript-list {
@@ -127,120 +170,126 @@
 }
 
 .manuscript-item {
-  background-color: #fff;
-  border-radius: 5px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  padding: 15px;
-  position: relative;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid #eef2f7;
+}
+
+.manuscript-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.08);
 }
 
 .manuscript-title {
-  font-size: 1.2rem;
-  margin-bottom: 10px;
-  color: #333;
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0 0 1.5rem 0;
+  letter-spacing: -0.3px;
 }
 
 .manuscript-info {
-  margin-bottom: 10px;
+  color: #4a5568;
+  line-height: 1.6;
 }
 
 .manuscript-info p {
-  margin: 5px 0;
+  margin: 0.8rem 0;
+  font-size: 1.1rem;
 }
 
-.manuscript-info .label {
-  font-weight: bold;
-  margin-right: 5px;
+.label {
+  font-weight: 600;
+  color: #2d3748;
+  margin-right: 0.5rem;
 }
 
 .manuscript-actions {
   display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 15px;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #eef2f7;
 }
 
 .manuscript-actions button {
-  padding: 5px 10px;
-  border: none;
-  border-radius: 4px;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
   cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .edit-button {
-  background-color: #ffc107;
-  color: #212529;
-}
-
-.edit-button:hover {
-  background-color: #e0a800;
-}
-
-.delete-button {
-  background-color: #dc3545;
-  color: white;
-}
-
-.delete-button:hover {
-  background-color: #c82333;
+  background-color: #e3f2fd;
+  color: #1976d2;
 }
 
 .view-button {
-  background-color: #17a2b8;
-  color: white;
+  background-color: #e8f5e9;
+  color: #2e7d32;
 }
 
-.view-button:hover {
-  background-color: #138496;
+.delete-button {
+  background-color: #ffebee;
+  color: #d32f2f;
+}
+
+.manuscript-actions button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .state-tag {
   display: inline-block;
-  padding: 3px 8px;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: bold;
-  margin-bottom: 10px;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 1rem;
 }
 
-.state-SUB {
-  background-color: #cce5ff;
-  color: #004085;
-}
-
-.state-REV {
-  background-color: #fff3cd;
-  color: #856404;
-}
-
-.state-REJ {
-  background-color: #f8d7da;
-  color: #721c24;
-}
-
-.state-CED {
-  background-color: #d4edda;
-  color: #155724;
-}
-
-.state-AUR {
-  background-color: #e2e3e5;
-  color: #383d41;
-}
-
-.state-PUB {
-  background-color: #d1ecf1;
-  color: #0c5460;
-}
+.state-SUB { background-color: #e3f2fd; color: #1976d2; }
+.state-REV { background-color: #fff3e0; color: #f57c00; }
+.state-REJ { background-color: #ffebee; color: #d32f2f; }
+.state-CED { background-color: #e8f5e9; color: #388e3c; }
+.state-AUR { background-color: #f3e5f5; color: #7b1fa2; }
+.state-WIT { background-color: #eceff1; color: #455a64; }
+.state-EDR { background-color: #e0f7fa; color: #00838f; }
+.state-ARV { background-color: #fff8e1; color: #ffa000; }
+.state-FMT { background-color: #e8eaf6; color: #3949ab; }
+.state-PUB { background-color: #e8f5e9; color: #2e7d32; }
 
 .abstract-text,
 .main-text {
-  max-height: 100px;
-  overflow-y: auto;
-  margin-bottom: 10px;
-  padding: 5px;
-  border: 1px solid #eee;
-  border-radius: 4px;
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background-color: #f8fafc;
+  border-radius: 8px;
+}
+
+.abstract-text p, .main-text p {
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+
+.manuscript-info p:last-child {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eef2f7;
+  font-size: 0.95rem;
+  color: #718096;
 }
 
 /* Submission Guidelines Styling */
@@ -320,4 +369,27 @@
 .guidelines-content li {
   margin-bottom: 5px;
   line-height: 1.4;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .submissions-container {
+    padding: 1rem;
+  }
+
+  .manuscript-item {
+    padding: 1.5rem;
+  }
+
+  .manuscript-title {
+    font-size: 1.5rem;
+  }
+
+  .manuscript-actions {
+    flex-direction: column;
+  }
+
+  .search-controls form {
+    flex-direction: column;
+  }
 }

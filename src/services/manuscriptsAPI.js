@@ -5,6 +5,16 @@ const MANUSCRIPTS_ENDPOINTS = {
   READ: `${BACKEND_URL}/manuscript`,
 };
 
+const GET_MANUSCRIPT = `${BACKEND_URL}/manuscript`;
+const GET_MANUSCRIPT_VALID_ACTIONS = `${BACKEND_URL}/manuscript/valid_actions`;
+const GET_MANUSCRIPT_EDITOR_ACTIONS = `${BACKEND_URL}/manuscript/editor_actions`;
+const GET_MANUSCRIPT_REFEREE_ACTIONS = `${BACKEND_URL}/manuscript/referee_actions`;
+
+// Get token from localStorage
+const getToken = () => {
+  return localStorage.getItem('token');
+};
+
 export const getManuscript = async () => {
   try {
     const { data } = await axios.get(MANUSCRIPTS_ENDPOINTS.READ);
@@ -61,5 +71,75 @@ export const updateManuscriptState = async (title, action, extraParams = {}) => 
     return data;
   } catch (error) {
     throw new Error(`Failed to update manuscript state for "${title}": ${error.message}`);
+  }
+};
+
+// Get valid actions for a given manuscript state
+export const getValidActions = async (state) => {
+  try {
+    const response = await fetch(`${GET_MANUSCRIPT_VALID_ACTIONS}/${state}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`
+      }
+    });
+    if (!response.ok) {
+      throw new Error('Failed to fetch valid actions');
+    }
+    const data = await response.json();
+    return data.valid_actions;
+  } catch (error) {
+    throw new Error(`Error fetching valid actions: ${error.message}`);
+  }
+};
+
+// Get all possible editor actions
+export const getEditorActions = async () => {
+  try {
+    const response = await fetch(GET_MANUSCRIPT_EDITOR_ACTIONS, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`
+      }
+    });
+    if (!response.ok) {
+      throw new Error('Failed to fetch editor actions');
+    }
+    const data = await response.json();
+    return data.editor_actions;
+  } catch (error) {
+    throw new Error(`Error fetching editor actions: ${error.message}`);
+  }
+};
+
+// Get all possible referee actions
+export const getRefereeActions = async () => {
+  try {
+    const response = await fetch(GET_MANUSCRIPT_REFEREE_ACTIONS, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`
+      }
+    });
+    if (!response.ok) {
+      throw new Error('Failed to fetch referee actions');
+    }
+    const data = await response.json();
+    return data.referee_actions;
+  } catch (error) {
+    throw new Error(`Error fetching referee actions: ${error.message}`);
+  }
+};
+
+// Get all manuscripts
+export const getManuscripts = async () => {
+  try {
+    const { data } = await axios.get(GET_MANUSCRIPT);
+    return data;
+  } catch (error) {
+    throw new Error(`Failed to fetch manuscripts: ${error.message}`);
   }
 };

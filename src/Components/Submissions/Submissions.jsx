@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import propTypes from 'prop-types';
 import {
-  getManuscript,
   getManuscriptsByTitle,
   createManuscript,
   updateManuscript,
   deleteManuscriptByTitle,
-  updateManuscriptState
+  updateManuscriptState,
+  getManuscripts,
+  getValidActions
 } from '../../services/manuscriptsAPI';
 import RefereeActionForm from '../Referee';
 import './Submissions.css';
@@ -181,6 +182,7 @@ function Manuscript({ manuscript, fetchManuscripts, setError }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isUpdatingState, setIsUpdatingState] = useState(false);
   const [selectedAction, setSelectedAction] = useState('');
+  const [validActions, setValidActions] = useState([]);
 
   const STATE_LABELS = {
     'SUB': 'Submitted',
@@ -195,78 +197,17 @@ function Manuscript({ manuscript, fetchManuscripts, setError }) {
     'PUB': 'Published'
   };
 
-  // Build valid actions based on the current state
-  const getValidActions = () => {
-    let actions = [];
-    switch (manuscript.state) {
-      case 'SUB':
-        actions = [
-          { code: 'ARF', label: 'Assign Referee' },
-          { code: 'REJ', label: 'Reject' },
-          { code: 'WIT', label: 'Withdraw' }
-        ];
-        break;
-      case 'REV':
-        actions = [
-          { code: 'ARF', label: 'Assign Referee' },
-          { code: 'DRF', label: 'Remove Referee' },
-          { code: 'ACC', label: 'Accept' },
-          { code: 'REJ', label: 'Reject' },
-          { code: 'AWR', label: 'Accept with Revisions' },
-          { code: 'SBR', label: 'Submit Review' },
-          { code: 'WIT', label: 'Withdraw' }
-        ];
-        break;
-      case 'CED':
-        actions = [
-          { code: 'DON', label: 'Done' },
-          { code: 'WIT', label: 'Withdraw' }
-        ];
-        break;
-      case 'AUR':
-        actions = [
-          { code: 'DON', label: 'Done' },
-          { code: 'WIT', label: 'Withdraw' }
-        ];
-        break;
-      case 'ARV':
-        actions = [
-          { code: 'DON', label: 'Done' },
-          { code: 'WIT', label: 'Withdraw' }
-        ];
-        break;
-      case 'EDR':
-        actions = [
-          { code: 'ACC', label: 'Accept' },
-          { code: 'WIT', label: 'Withdraw' }
-        ];
-        break;
-      case 'FMT':
-        actions = [
-          { code: 'DON', label: 'Done' },
-          { code: 'WIT', label: 'Withdraw' }
-        ];
-        break;
-      case 'PUB':
-        actions = [{ code: 'WIT', label: 'Withdraw' }];
-        break;
-      case 'REJ':
-        actions = [{ code: 'WIT', label: 'Withdraw' }];
-        break;
-      case 'WIT':
-        actions = [];
-        break;
-      default:
-        actions = [];
-    }
-    // If a referee already exists, update the ARF label to "Assign New Referee"
-    if (manuscript.referees && manuscript.referees.length > 0) {
-      actions = actions.map((action) =>
-        action.code === 'ARF' ? { ...action, label: 'Assign New Referee' } : action
-      );
-    }
-    return actions;
-  };
+  useEffect(() => {
+    const fetchValidActions = async () => {
+      try {
+        const actions = await getValidActions(manuscript.state);
+        setValidActions(actions);
+      } catch (error) {
+        setError(error.message);
+      }
+    };
+    fetchValidActions();
+  }, [manuscript.state, setError]);
 
   const handleDelete = async () => {
     if (window.confirm(`Are you sure you want to delete "${manuscript.title}"?`)) {
@@ -298,8 +239,6 @@ function Manuscript({ manuscript, fetchManuscripts, setError }) {
     setIsUpdatingState(false);
     setSelectedAction('');
   };
-
-  const validActions = getValidActions();
 
   return (
     <div className="manuscript-item">
@@ -400,11 +339,6 @@ Manuscript.propTypes = {
   fetchManuscripts: propTypes.func.isRequired,
   setError: propTypes.func.isRequired,
 };
-
-function manuscriptsObjectToArray(data) {
-  if (!data) return [];
-  return Object.keys(data).map((key) => data[key]);
-}
 
 // Submission Guidelines Component
 function SubmissionGuidelines({ visible, toggleVisibility }) {
@@ -517,27 +451,43 @@ SubmissionGuidelines.propTypes = {
   toggleVisibility: propTypes.func.isRequired
 };
 
-function Submissions({ user }) {
+const Submissions = ({ user }) => {
   const [manuscripts, setManuscripts] = useState([]);
+  const [filteredManuscripts, setFilteredManuscripts] = useState([]);
   const [error, setError] = useState('');
   const [addingManuscript, setAddingManuscript] = useState(false);
-  const [searchTitle, setSearchTitle] = useState('');
-  const [filteredManuscripts, setFilteredManuscripts] = useState([]);
   const [guidelinesVisible, setGuidelinesVisible] = useState(false);
+  const [selectedManuscript, setSelectedManuscript] = useState(null);
+  const [searchTitle, setSearchTitle] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [isUpdatingState, setIsUpdatingState] = useState(false);
+  const [selectedAction, setSelectedAction] = useState('');
+  const [validActions, setValidActions] = useState([]);
 
-  const toggleGuidelines = () => {
-    setGuidelinesVisible(!guidelinesVisible);
+  const STATE_LABELS = {
+    'SUB': 'Submitted',
+    'REV': 'In Review',
+    'REJ': 'Rejected',
+    'CED': 'Copy Editing',
+    'AUR': 'Author Review',
+    'WIT': 'Withdrawn',
+    'EDR': 'Editor Review',
+    'ARV': 'Author Revision',
+    'FMT': 'Formatting',
+    'PUB': 'Published'
   };
 
   const fetchManuscripts = async () => {
     try {
-      const data = await getManuscript();
-      const manuscriptsArray = manuscriptsObjectToArray(data);
+      const data = await getManuscripts();
+      const manuscriptsArray = Array.isArray(data.manuscripts) ? data.manuscripts : [];
       setManuscripts(manuscriptsArray);
       setFilteredManuscripts(manuscriptsArray);
       setError('');
     } catch (err) {
-      setError(`Failed to fetch manuscripts: ${err.message}`);
+      setError(err.message);
+      setManuscripts([]);
+      setFilteredManuscripts([]);
     }
   };
 
@@ -555,6 +505,20 @@ function Submissions({ user }) {
       setFilteredManuscripts(filtered);
     }
   }, [searchTitle, manuscripts]);
+
+  useEffect(() => {
+    const fetchValidActions = async () => {
+      if (selectedManuscript) {
+        try {
+          const actions = await getValidActions(selectedManuscript.state);
+          setValidActions(actions);
+        } catch (error) {
+          setError(error.message);
+        }
+      }
+    };
+    fetchValidActions();
+  }, [selectedManuscript]);
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -575,56 +539,175 @@ function Submissions({ user }) {
   const showAddManuscriptForm = () => setAddingManuscript(true);
   const hideAddManuscriptForm = () => setAddingManuscript(false);
 
+  const showEditForm = () => setIsEditing(true);
+  const hideEditForm = () => setIsEditing(false);
+  const showStateUpdateForm = (manuscript) => {
+    setSelectedManuscript(manuscript);
+    setIsUpdatingState(true);
+  };
+  const hideStateUpdateForm = () => {
+    setIsUpdatingState(false);
+    setSelectedAction('');
+  };
+
+  const handleDelete = async (manuscript) => {
+    if (window.confirm(`Are you sure you want to delete "${manuscript.title}"?`)) {
+      try {
+        await deleteManuscriptByTitle(manuscript.title);
+        fetchManuscripts();
+      } catch (error) {
+        setError(error.message);
+      }
+    }
+  };
+
+  const handleStateUpdate = async (e, manuscript) => {
+    e.preventDefault();
+    try {
+      await updateManuscriptState(manuscript.title, selectedAction);
+      fetchManuscripts();
+      setIsUpdatingState(false);
+      setSelectedAction('');
+    } catch (error) {
+      setError(error.message);
+    }
+  };
+
+  const toggleGuidelines = () => {
+    setGuidelinesVisible(!guidelinesVisible);
+  };
+
   return (
     <div className="submissions-container">
-      <h1>Manuscript Submissions</h1>
+      <div className="submissions-header">
+        <h2>Manuscripts</h2>
+        <button onClick={showAddManuscriptForm} className="add-button">
+          Add Manuscript
+        </button>
+      </div>
+
+      <div className="search-controls">
+        <form onSubmit={handleSearch}>
+          <input
+            type="text"
+            placeholder="Search by title..."
+            value={searchTitle}
+            onChange={(e) => setSearchTitle(e.target.value)}
+          />
+          <button type="submit">Search</button>
+        </form>
+      </div>
+
+      {error && <div className="error-message">{error}</div>}
+
+      {addingManuscript && (
+        <AddManuscriptForm
+          visible={addingManuscript}
+          cancel={hideAddManuscriptForm}
+          fetchManuscripts={fetchManuscripts}
+          setError={setError}
+          currentUser={user}
+        />
+      )}
+
+      <div className="manuscripts-list">
+        {filteredManuscripts && filteredManuscripts.length > 0 ? (
+          filteredManuscripts.map((manuscript) => (
+            <div key={manuscript.id} className="manuscript-item">
+              <div className={`state-tag state-${manuscript.state}`}>
+                {STATE_LABELS[manuscript.state] || manuscript.state}
+              </div>
+              <h3 className="manuscript-title">{manuscript.title}</h3>
+              <div className="manuscript-info">
+                <p><span className="label">Author:</span> {manuscript.author}</p>
+                <p><span className="label">Author Email:</span> {manuscript.author_email}</p>
+                <p><span className="label">Editor:</span> {manuscript.editor_email}</p>
+                {manuscript.referees && manuscript.referees.length > 0 && (
+                  <p>
+                    <span className="label">Referees:</span> {manuscript.referees.join(', ')}
+                  </p>
+                )}
+                <div className="abstract-text">
+                  <p><span className="label">Abstract:</span></p>
+                  <p>{manuscript.abstract}</p>
+                </div>
+                <div className="main-text">
+                  <p><span className="label">Text:</span></p>
+                  <p>{manuscript.text}</p>
+                </div>
+                {manuscript.history && manuscript.history.length > 0 && (
+                  <p>
+                    <span className="label">History:</span> {manuscript.history.map(state => STATE_LABELS[state] || state).join(' → ')}
+                  </p>
+                )}
+              </div>
+              <div className="manuscript-actions">
+                <button className="edit-button" onClick={showEditForm}>Edit</button>
+                {validActions.length > 0 && (
+                  <button className="view-button" onClick={() => showStateUpdateForm(manuscript)}>Update State</button>
+                )}
+                <button className="delete-button" onClick={() => handleDelete(manuscript)}>Delete</button>
+              </div>
+              <EditManuscriptForm
+                manuscript={manuscript}
+                visible={isEditing}
+                cancel={hideEditForm}
+                fetchManuscripts={fetchManuscripts}
+                setError={setError}
+              />
+              {isUpdatingState && (
+                <div className="submission-form">
+                  <h3>Update Manuscript State</h3>
+                  <form onSubmit={(e) => handleStateUpdate(e, manuscript)}>
+                    <label htmlFor="action">Select Action</label>
+                    <select
+                      id="action"
+                      value={selectedAction}
+                      onChange={(e) => setSelectedAction(e.target.value)}
+                      required
+                    >
+                      <option value="">Select an action...</option>
+                      {validActions.map((action) => (
+                        <option key={action.code} value={action.code}>
+                          {action.label}
+                        </option>
+                      ))}
+                    </select>
+                    {selectedAction !== 'SBR' && (
+                      <div className="button-group">
+                        <button type="button" onClick={hideStateUpdateForm}>Cancel</button>
+                        <button type="submit">Apply Action</button>
+                      </div>
+                    )}
+                  </form>
+                  {selectedAction === 'SBR' && (
+                    <RefereeActionForm
+                      title={manuscript.title}
+                      onSuccess={() => {
+                        fetchManuscripts();
+                        hideStateUpdateForm();
+                      }}
+                      setError={setError}
+                      onCancel={hideStateUpdateForm}
+                    />
+                  )}
+                </div>
+              )}
+            </div>
+          ))
+        ) : (
+          <div className="no-manuscripts">No manuscripts found</div>
+        )}
+      </div>
 
       <SubmissionGuidelines
         visible={guidelinesVisible}
         toggleVisibility={toggleGuidelines}
       />
-
-      {error && <ErrorMessage message={error} />}
-      <div className="controls">
-        <div className="controls-group">
-          <form className="search-controls" onSubmit={handleSearch}>
-            <div className="search-input-group">
-              <input
-                type="text"
-                placeholder="Search by title..."
-                value={searchTitle}
-                onChange={(e) => setSearchTitle(e.target.value)}
-              />
-              <button type="submit" className="search-button">Search</button>
-            </div>
-          </form>
-        </div>
-        <button type="button" onClick={showAddManuscriptForm}>Submit New Manuscript</button>
-      </div>
-      <AddManuscriptForm
-        visible={addingManuscript}
-        cancel={hideAddManuscriptForm}
-        fetchManuscripts={fetchManuscripts}
-        setError={setError}
-        currentUser={user}
-      />
-      <div className="manuscript-list">
-        {filteredManuscripts.length > 0 ? (
-          filteredManuscripts.map((manuscript) => (
-            <Manuscript
-              key={manuscript.title}
-              manuscript={manuscript}
-              fetchManuscripts={fetchManuscripts}
-              setError={setError}
-            />
-          ))
-        ) : (
-          <p>No manuscripts found.</p>
-        )}
-      </div>
     </div>
   );
-}
+};
+
 Submissions.propTypes = {
   user: propTypes.shape({
     email: propTypes.string,

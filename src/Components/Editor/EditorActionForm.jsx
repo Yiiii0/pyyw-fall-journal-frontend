@@ -1,21 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { updateManuscriptState } from '../../services/manuscriptsAPI';
+import { updateManuscriptState, getEditorActions } from '../../services/manuscriptsAPI';
 import './EditorActionForm.css';
-
-const EDITOR_ACTIONS = [
-  { code: 'EDITOR_REJECT_SUB', label: 'Reject (Submitted → Rejected)' },
-  { code: 'EDITOR_ASSIGN_REF', label: 'Assign new referee (Submitted → Referee Review)' },
-  { code: 'EDITOR_REJECT_REV', label: 'Reject (Referee Review → Rejected)' },
-  { code: 'EDITOR_ACCEPT_REV_WITH_REVISIONS', label: 'Accept w/ Revisions (Ref Rev → Author Revisions)' },
-  { code: 'EDITOR_ACCEPT_REV', label: 'Accept (Referee Review → Copy Edit)' },
-  { code: 'EDITOR_DONE_ARV', label: 'Done (Author Revisions → Editor Review)' },
-  { code: 'EDITOR_ACCEPT_EDR', label: 'Accept (Editor Review → Copy Edit)' },
-  { code: 'EDITOR_DONE_CED', label: 'Done (Copy Edit → Author Review)' },
-  { code: 'EDITOR_DONE_AUR', label: 'Done (Author Review → Formatting)' },
-  { code: 'EDITOR_DONE_FMT', label: 'Done (Formatting → Published)' },
-  { code: 'EDITOR_REMOVE_REF', label: 'Remove referee (Ref Rev → Submitted)' },
-];
 
 function EditorActionForm({
   title,
@@ -23,19 +9,32 @@ function EditorActionForm({
   setError,
   onCancel,
 }) {
-  const [selectedAction, setSelectedAction] = useState('');
+  const [action, setAction] = useState('');
+  const [editorActions, setEditorActions] = useState([]);
+
+  useEffect(() => {
+    const fetchEditorActions = async () => {
+      try {
+        const actions = await getEditorActions();
+        setEditorActions(actions);
+      } catch (error) {
+        setError(error.message);
+      }
+    };
+    fetchEditorActions();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    if (!selectedAction) {
+    if (!action) {
       setError('Please select an Editor action.');
       return;
     }
 
     try {
-      await updateManuscriptState(title, selectedAction);
+      await updateManuscriptState(title, action);
       onSuccess();
     } catch (error) {
       setError(error.message);
@@ -45,26 +44,28 @@ function EditorActionForm({
   return (
     <div className="editor-action-form">
       <form onSubmit={handleSubmit}>
-        <label htmlFor="editor-action">Editor Action (Red Arrows):</label>
-        <select
-          id="editor-action"
-          value={selectedAction}
-          onChange={(e) => setSelectedAction(e.target.value)}
-          required
-        >
-          <option value="">-- Select an action --</option>
-          {EDITOR_ACTIONS.map((item) => (
-            <option key={item.code} value={item.code}>
-              {item.label}
-            </option>
-          ))}
-        </select>
-
+        <div className="form-group">
+          <label htmlFor="action">Action:</label>
+          <select
+            id="action"
+            value={action}
+            onChange={(e) => setAction(e.target.value)}
+            required
+          >
+            <option value="">Select an action...</option>
+            {editorActions.map((action) => (
+              <option key={action} value={action}>
+                {action}
+              </option>
+            ))}
+          </select>
+        </div>
+        {setError && <div className="error">{setError}</div>}
         <div className="button-group">
           <button type="button" onClick={onCancel}>
             Cancel
           </button>
-          <button type="submit">Apply Action</button>
+          <button type="submit">Submit</button>
         </div>
       </form>
     </div>

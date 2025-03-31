@@ -1,65 +1,60 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { updateManuscriptState } from '../../services/manuscriptsAPI';
+import { updateManuscriptState, getRefereeActions } from '../../services/manuscriptsAPI';
 import './Referee.css';
 
-const REFEREE_ACTIONS = [
-  { code: 'SBR', label: 'Submit Review' },
-];
-
-function RefereeActionForm({ title, onSuccess, setError, onCancel }) {
+const RefereeActionForm = ({ manuscript, onSubmit, onCancel }) => {
   const [action, setAction] = useState('');
+  const [refereeActions, setRefereeActions] = useState([]);
+  const [error, setError] = useState('');
 
-  const handleSubmit = async (e) => {
+  useEffect(() => {
+    const fetchRefereeActions = async () => {
+      try {
+        const actions = await getRefereeActions();
+        setRefereeActions(actions);
+      } catch (error) {
+        setError(error.message);
+      }
+    };
+    fetchRefereeActions();
+  }, []);
+
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setError('');
-
-    if (!action) {
-      setError('Please select the Referee action.');
-      return;
-    }
-    try {
-      await updateManuscriptState(title, action);
-      onSuccess();
-    } catch (error) {
-      setError(error.message);
-    }
+    onSubmit(action);
   };
 
   return (
-    <div className="referee-action-form">
-      <form onSubmit={handleSubmit}>
-        <label htmlFor="referee-action">Referee Action:</label>
+    <form onSubmit={handleSubmit}>
+      <div className="form-group">
+        <label htmlFor="action">Action:</label>
         <select
-          id="referee-action"
+          id="action"
           value={action}
           onChange={(e) => setAction(e.target.value)}
           required
         >
-          <option value="">-- Select an action --</option>
-          {REFEREE_ACTIONS.map((item) => (
-            <option key={item.code} value={item.code}>
-              {item.label}
+          <option value="">Select an action...</option>
+          {refereeActions.map((action) => (
+            <option key={action} value={action}>
+              {action}
             </option>
           ))}
         </select>
-
-        <div className="button-group">
-          <button type="button" onClick={onCancel}>
-            Cancel
-          </button>
-          <button type="submit">Apply Action</button>
-        </div>
-      </form>
-    </div>
+      </div>
+      {error && <div className="error">{error}</div>}
+      <div className="button-group">
+        <button type="button" onClick={onCancel}>Cancel</button>
+        <button type="submit">Submit</button>
+      </div>
+    </form>
   );
-}
+};
 
 RefereeActionForm.propTypes = {
-  title: PropTypes.string.isRequired,
-  /** Called after a successful action */
-  onSuccess: PropTypes.func.isRequired,
-  setError: PropTypes.func.isRequired,
+  manuscript: PropTypes.string.isRequired,
+  onSubmit: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,
 };
 
