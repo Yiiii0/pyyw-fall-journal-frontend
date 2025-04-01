@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { updateManuscriptState, getRefereeActions } from '../../services/manuscriptsAPI';
+import {getRefereeActions } from '../../services/manuscriptsAPI';
 import './Referee.css';
 
-const RefereeActionForm = ({ manuscript, onSubmit, onCancel }) => {
+const RefereeActionForm = ({ onSubmit, onCancel }) => {
   const [action, setAction] = useState('');
   const [refereeActions, setRefereeActions] = useState([]);
   const [error, setError] = useState('');
@@ -45,7 +45,9 @@ const RefereeActionForm = ({ manuscript, onSubmit, onCancel }) => {
       </div>
       {error && <div className="error">{error}</div>}
       <div className="button-group">
-        <button type="button" onClick={onCancel}>Cancel</button>
+        <button type="button" onClick={onCancel}>
+          Cancel
+        </button>
         <button type="submit">Submit</button>
       </div>
     </form>
