@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import propTypes from 'prop-types';
-
+import { useAuth } from '../../contexts/AuthContext';
 import { getManuscript, getManuscriptsByTitle, updateManuscript } from '../../services/manuscriptsAPI';
+import { getReferees, addRefereeToManuscript as apiAddRefereeToManuscript, createReferee as apiCreateReferee } from '../../services/refereeAPI';
 import './Manuscripts.css';
 
 function ErrorMessage({ message }) {
@@ -16,12 +17,10 @@ ErrorMessage.propTypes = {
 };
 
 function ManuscriptsObjectToArray(data) {
-  // Convert a dictionary of manuscripts (keyed by title) to an array
   if (!data) return [];
   return Object.keys(data).map((key) => data[key]);
 }
 
-// Status renderer that displays state in a nicely formatted badge
 function StatusBadge({ state }) {
   const stateLabels = {
     'SUB': 'Submitted',
@@ -35,7 +34,7 @@ function StatusBadge({ state }) {
     'FMT': 'Formatting',
     'PUB': 'Published'
   };
-  
+
   return (
     <span className={`status-badge status-${state}`}>
       {stateLabels[state] || state}
@@ -48,6 +47,7 @@ StatusBadge.propTypes = {
 };
 
 function Manuscripts() {
+  const { currentUser } = useAuth();
   const [error, setError] = useState('');
   const [manuscripts, setManuscripts] = useState([]);
   const [searchTitle, setSearchTitle] = useState('');
@@ -63,39 +63,51 @@ function Manuscripts() {
   });
   const [isSimpleView, setIsSimpleView] = useState(false);
   const [expandedManuscripts, setExpandedManuscripts] = useState(new Set());
+  const [referees, setReferees] = useState([]);
+  const [dropdownOpen, setDropdownOpen] = useState({});
+  const [newRefereeFormOpen, setNewRefereeFormOpen] = useState(false);
+  const [newRefereeData, setNewRefereeData] = useState({
+    email: '',
+    password: '',
+    affiliation: ''
+  });
+  const [selectedReferee, setSelectedReferee] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const hasEditorRole = currentUser?.roles?.includes('ED');
 
   const fetchManuscripts = async () => {
     try {
-      console.log('Fetching manuscripts...');
       const data = await getManuscript();
-      console.log('Received data:', data);
-      // Convert data to array if necessary
-      const manuscriptsArray = Array.isArray(data)
-        ? data
-        : ManuscriptsObjectToArray(data);
+      const manuscriptsArray = Array.isArray(data) ? data : ManuscriptsObjectToArray(data);
       setManuscripts(manuscriptsArray);
       setError('');
     } catch (err) {
-      console.error('Error fetching manuscripts:', err);
       setError(`There was a problem retrieving the list of manuscripts. ${err.message}`);
     }
   };
 
-  const handleSearch = async (e) => {
-    if (e) {
-      e.preventDefault();
+  const fetchReferees = async () => {
+    if (!hasEditorRole) return;
+    try {
+      setIsLoading(true);
+      const data = await getReferees();
+      setReferees(data);
+    } catch (err) {
+      setError(`Failed to fetch referees: ${err.message}`);
+    } finally {
+      setIsLoading(false);
     }
+  };
 
+  const handleSearch = async (e) => {
+    if (e) e.preventDefault();
     if (!searchTitle.trim()) {
       fetchManuscripts();
       return;
     }
     try {
       const data = await getManuscriptsByTitle(searchTitle);
-      // Convert data to array if necessary
-      const manuscriptsArray = Array.isArray(data)
-        ? data
-        : ManuscriptsObjectToArray(data);
+      const manuscriptsArray = Array.isArray(data) ? data : ManuscriptsObjectToArray(data);
       setManuscripts(manuscriptsArray);
       setError('');
     } catch (err) {
@@ -140,14 +152,12 @@ function Manuscripts() {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
-      console.log("Sending update with data:", editFormData);
       await updateManuscript(editFormData);
       setEditingManuscript(null);
-      fetchManuscripts(); // Refresh the list after update
+      fetchManuscripts();
       setError('');
     } catch (err) {
       setError(`Failed to update manuscript: ${err.message}`);
-      console.error("Update error:", err);
     }
   };
 
@@ -168,6 +178,66 @@ function Manuscripts() {
     });
   };
 
+  const toggleDropdown = (manuscriptId) => {
+    setDropdownOpen(prev => ({
+      ...prev,
+      [manuscriptId]: !prev[manuscriptId]
+    }));
+  };
+
+  const handleRefereeSelect = (manuscriptId, refereeEmail) => {
+    setSelectedReferee(prev => ({
+      ...prev,
+      [manuscriptId]: refereeEmail
+    }));
+  };
+
+  const addRefereeToManuscript = async (manuscriptId) => {
+    const refereeEmail = selectedReferee[manuscriptId];
+    if (!refereeEmail) {
+      setError('Please select a referee first.');
+      return;
+    }
+    try {
+      setIsLoading(true);
+      await apiAddRefereeToManuscript(manuscriptId, refereeEmail);
+      fetchManuscripts();
+      setDropdownOpen(prev => ({ ...prev, [manuscriptId]: false }));
+      setSelectedReferee(prev => ({ ...prev, [manuscriptId]: '' }));
+    } catch (err) {
+      setError(`Error adding referee: ${err.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleNewRefereeChange = (e) => {
+    const { name, value } = e.target;
+    setNewRefereeData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const createNewReferee = async (e) => {
+    e.preventDefault();
+    try {
+      setIsLoading(true);
+      const data = await apiCreateReferee(newRefereeData);
+      setReferees(prev => [...prev, data]);
+      setNewRefereeData({
+        email: '',
+        password: '',
+        affiliation: ''
+      });
+      setNewRefereeFormOpen(false);
+    } catch (err) {
+      setError(`Error creating referee: ${err.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const truncateText = (text, wordLimit) => {
     const words = text.split(' ');
     if (words.length <= wordLimit) return text;
@@ -175,15 +245,17 @@ function Manuscripts() {
   };
 
   useEffect(() => {
-    console.log('Manuscripts component mounted');
     fetchManuscripts();
-  }, []);
+    if (hasEditorRole) {
+      fetchReferees();
+    }
+  }, [hasEditorRole]);
 
   return (
     <div className="manuscripts-wrapper">
       <div className="manuscripts-header">
         <h1>View All Manuscripts</h1>
-        <button 
+        <button
           className="view-toggle-button"
           onClick={toggleView}
           title={isSimpleView ? "Switch to Table View" : "Switch to Card View"}
@@ -199,7 +271,7 @@ function Manuscripts() {
           )}
         </button>
       </div>
-      
+
       <div className="search-container">
         <input
           type="text"
@@ -210,9 +282,9 @@ function Manuscripts() {
         />
         <button className="search-button" onClick={handleSearch}>Search</button>
       </div>
-      
+
       {error && <ErrorMessage message={error} />}
-      
+
       {editingManuscript && (
         <div className="edit-form-container">
           <h2>Edit Manuscript</h2>
@@ -288,9 +360,8 @@ function Manuscripts() {
           </form>
         </div>
       )}
-      
+
       {isSimpleView ? (
-        // Card View
         <div className="manuscripts-grid">
           {manuscripts.length > 0 ? (
             manuscripts.map((manuscript) => (
@@ -318,18 +389,60 @@ function Manuscripts() {
                     </div>
                   )}
                   <div className="manuscript-actions">
-                    <button 
+                    <button
                       className="expand-button"
                       onClick={() => toggleManuscriptExpansion(manuscript._id)}
                     >
                       {expandedManuscripts.has(manuscript._id) ? 'Show Less' : 'Show More'}
                     </button>
-                    <button 
-                      className="edit-button" 
+                    <button
+                      className="edit-button"
                       onClick={() => handleEditClick(manuscript)}
                     >
                       Edit
                     </button>
+
+                    {hasEditorRole && (
+                      <div className="referee-dropdown-container">
+                        <button
+                          className="add-referee-button"
+                          onClick={() => toggleDropdown(manuscript._id)}
+                        >
+                          Add Referee
+                        </button>
+                        {dropdownOpen[manuscript._id] && (
+                          <div className="referee-dropdown">
+                            <select
+                              value={selectedReferee[manuscript._id] || ''}
+                              onChange={(e) => handleRefereeSelect(manuscript._id, e.target.value)}
+                              className="referee-select"
+                            >
+                              <option value="">Select a referee</option>
+                              {referees.map(referee => (
+                                <option key={referee.email} value={referee.email}>
+                                  {referee.name || referee.email} - {referee.affiliation}
+                                </option>
+                              ))}
+                            </select>
+                            <div className="dropdown-actions">
+                              <button
+                                onClick={() => addRefereeToManuscript(manuscript._id)}
+                                className="confirm-referee-button"
+                                disabled={isLoading || !selectedReferee[manuscript._id]}
+                              >
+                                {isLoading ? 'Adding...' : 'Confirm'}
+                              </button>
+                              <button
+                                onClick={() => toggleDropdown(manuscript._id)}
+                                className="cancel-referee-button"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -339,7 +452,6 @@ function Manuscripts() {
           )}
         </div>
       ) : (
-        // Table View (existing view)
         <div className="manuscripts-table-container">
           <table className="manuscripts-table">
             <thead>
@@ -372,8 +484,8 @@ function Manuscripts() {
                         <div className="info-row">
                           <span className="info-label">Referees:</span>
                           <span className="info-value">
-                            {manuscript.referees && manuscript.referees.length > 0 
-                              ? manuscript.referees.join(', ') 
+                            {manuscript.referees && manuscript.referees.length > 0
+                              ? manuscript.referees.join(', ')
                               : 'None'}
                           </span>
                         </div>
@@ -385,12 +497,56 @@ function Manuscripts() {
                           <span className="info-label">Abstract:</span>
                           <p className="abstract-text">{manuscript.abstract}</p>
                         </div>
-                        <button 
-                          className="edit-button" 
-                          onClick={() => handleEditClick(manuscript)}
-                        >
-                          Edit
-                        </button>
+                        <div className="manuscript-actions">
+                          <button
+                            className="edit-button"
+                            onClick={() => handleEditClick(manuscript)}
+                          >
+                            Edit
+                          </button>
+
+                          {hasEditorRole && (
+                            <div className="referee-dropdown-container">
+                              <button
+                                className="add-referee-button"
+                                onClick={() => toggleDropdown(manuscript._id)}
+                              >
+                                Add Referee
+                              </button>
+                              {dropdownOpen[manuscript._id] && (
+                                <div className="referee-dropdown">
+                                  <select
+                                    value={selectedReferee[manuscript._id] || ''}
+                                    onChange={(e) => handleRefereeSelect(manuscript._id, e.target.value)}
+                                    className="referee-select"
+                                  >
+                                    <option value="">Select a referee</option>
+                                    {referees.map(referee => (
+                                      <option key={referee.email} value={referee.email}>
+                                        {referee.name || referee.email} - {referee.affiliation}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <div className="dropdown-actions">
+                                    <button
+                                      onClick={() => addRefereeToManuscript(manuscript._id)}
+                                      className="confirm-referee-button"
+                                      disabled={isLoading || !selectedReferee[manuscript._id]}
+                                    >
+                                      {isLoading ? 'Adding...' : 'Confirm'}
+                                    </button>
+                                    <button
+                                      onClick={() => toggleDropdown(manuscript._id)}
+                                      className="cancel-referee-button"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className="process-cell">
@@ -494,13 +650,76 @@ function Manuscripts() {
           </table>
         </div>
       )}
+
+      {hasEditorRole && (
+        <div className="add-new-referee-section">
+          {!newRefereeFormOpen ? (
+            <button
+              className="add-new-referee-button"
+              onClick={() => setNewRefereeFormOpen(true)}
+            >
+              Add New Referee
+            </button>
+          ) : (
+            <div className="new-referee-form-container">
+              <h3>Add New Referee</h3>
+              <form onSubmit={createNewReferee} className="new-referee-form">
+                <div className="form-group">
+                  <label htmlFor="email">Email:</label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={newRefereeData.email}
+                    onChange={handleNewRefereeChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="password">Password:</label>
+                  <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    value={newRefereeData.password}
+                    onChange={handleNewRefereeChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="affiliation">Affiliation:</label>
+                  <input
+                    type="text"
+                    id="affiliation"
+                    name="affiliation"
+                    value={newRefereeData.affiliation}
+                    onChange={handleNewRefereeChange}
+                    required
+                  />
+                </div>
+                <div className="form-actions">
+                  <button
+                    type="submit"
+                    className="create-referee-button"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'Creating...' : 'Create Referee'}
+                  </button>
+                  <button
+                    type="button"
+                    className="cancel-button"
+                    onClick={() => setNewRefereeFormOpen(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
-
-// Add PropTypes for the Manuscripts component if needed
-Manuscripts.propTypes = {
-  // If there are any props, define them here
-};
 
 export default Manuscripts;

@@ -349,9 +349,17 @@ button:hover {
 
 /* Add a subtle pulse animation when the page loads to draw attention */
 @keyframes subtle-pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 .view-toggle-button {
@@ -467,12 +475,145 @@ button:hover {
 
 .manuscript-actions {
   display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #e2e8f0;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
 }
 
 .manuscript-actions button {
   flex: 1;
-} 
+}
+
+.manuscript-basic-info .manuscript-actions {
+  margin-top: 15px;
+}
+
+/* Referee dropdown styles */
+.referee-dropdown-container {
+  position: relative;
+  margin-top: 10px;
+}
+
+.add-referee-button {
+  background-color: #4b67d2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-left: 8px;
+}
+
+.referee-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 250px;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  padding: 10px;
+}
+
+.referee-select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.dropdown-actions {
+  display: flex;
+  justify-content: space-between;
+}
+
+.confirm-referee-button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.confirm-referee-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.cancel-referee-button {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+/* Add New Referee section */
+.add-new-referee-section {
+  margin-top: 30px;
+  text-align: center;
+  padding: 20px 0;
+  border-top: 1px solid #ddd;
+}
+
+.add-new-referee-button {
+  background-color: #4b67d2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 16px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.new-referee-form-container {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.new-referee-form h3 {
+  margin-top: 0;
+  color: #333;
+}
+
+.new-referee-form .form-group {
+  margin-bottom: 15px;
+}
+
+.new-referee-form label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.new-referee-form input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.create-referee-button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 16px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.create-referee-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
