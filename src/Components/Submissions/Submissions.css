@@ -393,3 +393,14 @@
     flex-direction: column;
   }
 }
+
+.manuscript-link {
+  color: #2c3e50;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.manuscript-link:hover {
+  color: #3182ce;
+  text-decoration: underline;
+}

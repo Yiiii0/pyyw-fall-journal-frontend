@@ -7,7 +7,8 @@ import {
   deleteManuscriptByTitle,
   updateManuscriptState,
   getManuscripts,
-  getValidActions
+  getValidActions,
+  getManuscriptById
 } from '../../services/manuscriptsAPI';
 import RefereeActionForm from '../Referee';
 import './Submissions.css';
@@ -245,28 +246,24 @@ function Manuscript({ manuscript, fetchManuscripts, setError }) {
       <div className={`state-tag state-${manuscript.state}`}>
         {STATE_LABELS[manuscript.state] || manuscript.state}
       </div>
-      <h3 className="manuscript-title">{manuscript.title}</h3>
+      <h3 className="manuscript-title">
+        <a href={`/manuscript/${manuscript._id}`} className="manuscript-link">
+          {manuscript.title}
+        </a>
+      </h3>
       <div className="manuscript-info">
         <p><span className="label">Author:</span> {manuscript.author}</p>
         <p><span className="label">Author Email:</span> {manuscript.author_email}</p>
         <p><span className="label">Editor:</span> {manuscript.editor_email}</p>
         {manuscript.referees && manuscript.referees.length > 0 && (
-          <p>
-            <span className="label">Referees:</span> {manuscript.referees.join(', ')}
-          </p>
+          <p><span className="label">Referees:</span> {manuscript.referees.join(', ')}</p>
         )}
         <div className="abstract-text">
           <p><span className="label">Abstract:</span></p>
           <p>{manuscript.abstract}</p>
         </div>
-        <div className="main-text">
-          <p><span className="label">Text:</span></p>
-          <p>{manuscript.text}</p>
-        </div>
         {manuscript.history && manuscript.history.length > 0 && (
-          <p>
-            <span className="label">History:</span> {manuscript.history.map(state => STATE_LABELS[state] || state).join(' → ')}
-          </p>
+          <p><span className="label">History:</span> {manuscript.history.map(state => STATE_LABELS[state] || state).join(' → ')}</p>
         )}
       </div>
       <div className="manuscript-actions">
@@ -326,6 +323,7 @@ function Manuscript({ manuscript, fetchManuscripts, setError }) {
 }
 Manuscript.propTypes = {
   manuscript: propTypes.shape({
+    _id: propTypes.string.isRequired,
     title: propTypes.string.isRequired,
     author: propTypes.string.isRequired,
     author_email: propTypes.string.isRequired,
@@ -452,16 +450,15 @@ SubmissionGuidelines.propTypes = {
 };
 
 const Submissions = ({ user }) => {
-  const [manuscripts, setManuscripts] = useState([]);
   const [filteredManuscripts, setFilteredManuscripts] = useState([]);
   const [error, setError] = useState('');
   const [addingManuscript, setAddingManuscript] = useState(false);
   const [guidelinesVisible, setGuidelinesVisible] = useState(false);
-  const [selectedManuscript, setSelectedManuscript] = useState(null);
   const [searchTitle, setSearchTitle] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [isUpdatingState, setIsUpdatingState] = useState(false);
   const [selectedAction, setSelectedAction] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
   const [validActions, setValidActions] = useState([]);
 
   const STATE_LABELS = {
@@ -481,58 +478,62 @@ const Submissions = ({ user }) => {
     try {
       const data = await getManuscripts();
       const manuscriptsArray = Array.isArray(data.manuscripts) ? data.manuscripts : [];
-      setManuscripts(manuscriptsArray);
       setFilteredManuscripts(manuscriptsArray);
       setError('');
     } catch (err) {
       setError(err.message);
-      setManuscripts([]);
+      setFilteredManuscripts([]);
+    }
+  };
+
+  const fetchManuscriptById = async (id) => {
+    try {
+      const data = await getManuscriptById(id);
+      if (data) {
+        setFilteredManuscripts([data]);
+      }
+      setError('');
+    } catch (err) {
+      setError(`Failed to fetch manuscript: ${err.message}`);
       setFilteredManuscripts([]);
     }
   };
 
   useEffect(() => {
-    fetchManuscripts();
+    // Check if we have an ID in the URL
+    const path = window.location.pathname;
+    const match = path.match(/\/manuscript\/(.+)/);
+    if (match) {
+      const id = match[1];
+      fetchManuscriptById(id);
+    } else {
+      fetchManuscripts();
+    }
   }, []);
 
-  useEffect(() => {
-    if (!searchTitle.trim()) {
-      setFilteredManuscripts(manuscripts);
-    } else {
-      const filtered = manuscripts.filter((manuscript) =>
-        manuscript.title.toLowerCase().includes(searchTitle.toLowerCase())
-      );
-      setFilteredManuscripts(filtered);
+  const handleSearch = async (e) => {
+    if (e) {
+      e.preventDefault();
     }
-  }, [searchTitle, manuscripts]);
-
-  useEffect(() => {
-    const fetchValidActions = async () => {
-      if (selectedManuscript) {
-        try {
-          const actions = await getValidActions(selectedManuscript.state);
-          setValidActions(actions);
-        } catch (error) {
-          setError(error.message);
+    setIsSearching(true);
+    try {
+      if (!searchTitle.trim()) {
+        await fetchManuscripts();
+      } else {
+        const data = await getManuscriptsByTitle(searchTitle);
+        const manuscriptsArray = Array.isArray(data) ? data : data.manuscripts || [];
+        setFilteredManuscripts(manuscriptsArray);
+        if (manuscriptsArray.length === 0) {
+          setError(`No manuscripts found matching "${searchTitle}"`);
+        } else {
+          setError('');
         }
       }
-    };
-    fetchValidActions();
-  }, [selectedManuscript]);
-
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!searchTitle.trim()) {
-      fetchManuscripts();
-      return;
-    }
-    try {
-      const data = await getManuscriptsByTitle(searchTitle);
-      const manuscriptsArray = Array.isArray(data) ? data : [data];
-      setFilteredManuscripts(manuscriptsArray);
-      setError('');
     } catch (err) {
       setError(`Failed to search for "${searchTitle}": ${err.message}`);
+      setFilteredManuscripts([]);
+    } finally {
+      setIsSearching(false);
     }
   };
 
@@ -542,7 +543,15 @@ const Submissions = ({ user }) => {
   const showEditForm = () => setIsEditing(true);
   const hideEditForm = () => setIsEditing(false);
   const showStateUpdateForm = (manuscript) => {
-    setSelectedManuscript(manuscript);
+    const fetchValidActions = async () => {
+      try {
+        const actions = await getValidActions(manuscript.state);
+        setValidActions(actions);
+      } catch (error) {
+        setError(error.message);
+      }
+    };
+    fetchValidActions();
     setIsUpdatingState(true);
   };
   const hideStateUpdateForm = () => {
@@ -594,7 +603,9 @@ const Submissions = ({ user }) => {
             value={searchTitle}
             onChange={(e) => setSearchTitle(e.target.value)}
           />
-          <button type="submit">Search</button>
+          <button type="submit" disabled={isSearching}>
+            {isSearching ? 'Searching...' : 'Search'}
+          </button>
         </form>
       </div>
 
@@ -613,32 +624,28 @@ const Submissions = ({ user }) => {
       <div className="manuscripts-list">
         {filteredManuscripts && filteredManuscripts.length > 0 ? (
           filteredManuscripts.map((manuscript) => (
-            <div key={manuscript.id} className="manuscript-item">
+            <div key={manuscript._id} className="manuscript-item">
               <div className={`state-tag state-${manuscript.state}`}>
                 {STATE_LABELS[manuscript.state] || manuscript.state}
               </div>
-              <h3 className="manuscript-title">{manuscript.title}</h3>
+              <h3 className="manuscript-title">
+                <a href={`/manuscript/${manuscript._id}`} className="manuscript-link">
+                  {manuscript.title}
+                </a>
+              </h3>
               <div className="manuscript-info">
                 <p><span className="label">Author:</span> {manuscript.author}</p>
                 <p><span className="label">Author Email:</span> {manuscript.author_email}</p>
                 <p><span className="label">Editor:</span> {manuscript.editor_email}</p>
                 {manuscript.referees && manuscript.referees.length > 0 && (
-                  <p>
-                    <span className="label">Referees:</span> {manuscript.referees.join(', ')}
-                  </p>
+                  <p><span className="label">Referees:</span> {manuscript.referees.join(', ')}</p>
                 )}
                 <div className="abstract-text">
                   <p><span className="label">Abstract:</span></p>
                   <p>{manuscript.abstract}</p>
                 </div>
-                <div className="main-text">
-                  <p><span className="label">Text:</span></p>
-                  <p>{manuscript.text}</p>
-                </div>
                 {manuscript.history && manuscript.history.length > 0 && (
-                  <p>
-                    <span className="label">History:</span> {manuscript.history.map(state => STATE_LABELS[state] || state).join(' → ')}
-                  </p>
+                  <p><span className="label">History:</span> {manuscript.history.map(state => STATE_LABELS[state] || state).join(' → ')}</p>
                 )}
               </div>
               <div className="manuscript-actions">
@@ -696,7 +703,9 @@ const Submissions = ({ user }) => {
             </div>
           ))
         ) : (
-          <div className="no-manuscripts">No manuscripts found</div>
+          <div className="no-manuscripts">
+            {!searchTitle.trim() ? "No manuscripts found" : null}
+          </div>
         )}
       </div>
 

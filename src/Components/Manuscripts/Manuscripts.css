@@ -7,6 +7,7 @@
 .manuscripts-header {
   margin-bottom: 1.5rem;
   text-align: center;
+  position: relative;
 }
 
 .manuscripts-header h1 {
@@ -304,4 +305,174 @@ button:hover {
 .status-PUB {
   background-color: #d1fae5;
   color: #047857;
+}
+
+.view-toggle-button {
+  position: absolute;
+  right: 2rem;
+  top: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  background-color: white;
+  color: #4299e1;
+  border: 2px solid #4299e1;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(66, 153, 225, 0.1);
+}
+
+.view-toggle-button:hover {
+  background-color: #4299e1;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(66, 153, 225, 0.2);
+}
+
+.view-toggle-button:active {
+  transform: translateY(0);
+}
+
+.view-toggle-button svg {
+  width: 24px;
+  height: 24px;
+  transition: transform 0.3s ease;
+}
+
+.view-toggle-button:hover svg {
+  transform: scale(1.1);
+}
+
+/* Add a subtle pulse animation when the page loads to draw attention */
+@keyframes subtle-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.view-toggle-button {
+  animation: subtle-pulse 2s ease-in-out;
+}
+
+/* Add a tooltip style */
+.view-toggle-button::before {
+  content: attr(title);
+  position: absolute;
+  right: 120%;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 8px 12px;
+  background-color: #2d3748;
+  color: white;
+  font-size: 0.875rem;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.view-toggle-button::after {
+  content: '';
+  position: absolute;
+  right: 110%;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 6px solid transparent;
+  border-left-color: #2d3748;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.view-toggle-button:hover::before,
+.view-toggle-button:hover::after {
+  opacity: 1;
+  visibility: visible;
+  right: 110%;
+}
+
+.manuscript-simple-content {
+  padding: 1.5rem;
+  border-radius: 8px;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.manuscript-simple-content .manuscript-title {
+  font-size: 1.4rem;
+  margin-bottom: 0.5rem;
+  color: #2d3748;
+}
+
+.manuscript-simple-content .manuscript-author {
+  color: #4a5568;
+  margin-bottom: 0.5rem;
+}
+
+.manuscript-simple-content .manuscript-abstract {
+  color: #718096;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+.expand-button {
+  padding: 0.4rem 0.8rem;
+  background-color: #edf2f7;
+  color: #4a5568;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.expand-button:hover {
+  background-color: #e2e8f0;
+}
+
+.manuscript-details {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.simple-view {
+  transition: all 0.3s ease;
+}
+
+.manuscripts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+  padding: 1rem;
+}
+
+.manuscript-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.manuscript-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+.manuscript-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.manuscript-actions button {
+  flex: 1;
 } 

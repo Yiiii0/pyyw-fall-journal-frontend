@@ -26,8 +26,12 @@ export const getManuscript = async () => {
 
 export const getManuscriptsByTitle = async (title) => {
   try {
-    const { data } = await axios.get(`${MANUSCRIPTS_ENDPOINTS.READ}/${encodeURIComponent(title)}`);
-    return data ? [data] : [];
+    const { data } = await axios.get(`${GET_MANUSCRIPT}?title=${encodeURIComponent(title)}`);
+    // Convert the object format to array format
+    if (data && typeof data === 'object') {
+      return Object.values(data).filter(manuscript => manuscript !== null);
+    }
+    return [];
   } catch (error) {
     throw new Error(`Failed to fetch ${title}: ${error.message}`);
   }
@@ -141,5 +145,16 @@ export const getManuscripts = async () => {
     return data;
   } catch (error) {
     throw new Error(`Failed to fetch manuscripts: ${error.message}`);
+  }
+};
+
+// Get a single manuscript by ID
+export const getManuscriptById = async (id) => {
+  try {
+    // The backend expects the raw ID without any encoding or replacement
+    const { data } = await axios.get(`${GET_MANUSCRIPT}/${id}`);
+    return data;
+  } catch (error) {
+    throw new Error(`Failed to fetch manuscript with ID ${id}: ${error.message}`);
   }
 };
