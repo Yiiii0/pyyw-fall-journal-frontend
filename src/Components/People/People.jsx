@@ -15,7 +15,7 @@ import './People.css';
 function AddPersonForm({ visible, cancel, fetchPeople, setError, roles }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [affiliation, setAffiliation] = useState('NYU');
+  const [affiliation, setAffiliation] = useState('');
   const [role, setRole] = useState('ED');
 
   const changeName = (e) => setName(e.target.value);

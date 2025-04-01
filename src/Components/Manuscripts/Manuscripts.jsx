@@ -67,9 +67,9 @@ function Manuscripts() {
   const [dropdownOpen, setDropdownOpen] = useState({});
   const [newRefereeFormOpen, setNewRefereeFormOpen] = useState(false);
   const [newRefereeData, setNewRefereeData] = useState({
+    name: '',
     email: '',
     password: '',
-    affiliation: ''
   });
   const [selectedReferee, setSelectedReferee] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -665,6 +665,17 @@ function Manuscripts() {
               <h3>Add New Referee</h3>
               <form onSubmit={createNewReferee} className="new-referee-form">
                 <div className="form-group">
+                  <label htmlFor="name">Name:</label>
+                  <input
+                    type="name"
+                    id="name"
+                    name="name"
+                    value={newRefereeData.name}
+                    onChange={handleNewRefereeChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
                   <label htmlFor="email">Email:</label>
                   <input
                     type="email"
@@ -682,17 +693,6 @@ function Manuscripts() {
                     id="password"
                     name="password"
                     value={newRefereeData.password}
-                    onChange={handleNewRefereeChange}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="affiliation">Affiliation:</label>
-                  <input
-                    type="text"
-                    id="affiliation"
-                    name="affiliation"
-                    value={newRefereeData.affiliation}
                     onChange={handleNewRefereeChange}
                     required
                   />
