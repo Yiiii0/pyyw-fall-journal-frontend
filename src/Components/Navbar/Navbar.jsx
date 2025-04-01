@@ -5,8 +5,9 @@ import { useAuth } from '../../contexts/AuthContext';
 
 function Navbar() {
   const { currentUser, logout } = useAuth();
-  console.log(currentUser)
+  console.log(currentUser);
   console.log('Current user:', currentUser);
+  console.log('Current user roles:', currentUser?.roles);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -16,8 +17,9 @@ function Navbar() {
     navigate('/');
   };
 
-  // Determine if user is Editor or Managing Editor
+  // Determine if user has specific roles
   const isEditorOrME = currentUser?.roles?.some(role => role === 'ED' || role === 'ME');
+  const isReferee = currentUser?.roles?.some(role => role === 'RE');
 
   return (
     <header className="header">
@@ -57,7 +59,8 @@ function Navbar() {
 
           {currentUser && (
             <>
-              {isEditorOrME ? (
+              {/* Show Editor Dashboard if user has Editor/ME role */}
+              {isEditorOrME && (
                 <li>
                   <Link
                     to="/editor-dashboard"
@@ -66,7 +69,22 @@ function Navbar() {
                     Editor Dashboard
                   </Link>
                 </li>
-              ) : (
+              )}
+
+              {/* Show Action Dashboard if user has Referee role */}
+              {isReferee && (
+                <li>
+                  <Link
+                    to="/action-dashboard"
+                    className={location.pathname === '/action-dashboard' ? 'active' : ''}
+                  >
+                    Action Dashboard
+                  </Link>
+                </li>
+              )}
+
+              {/* Show Manuscripts link if user has neither Editor/ME nor Referee role */}
+              {!isEditorOrME && !isReferee && (
                 <li>
                   <Link
                     to="/manuscripts"
@@ -77,7 +95,7 @@ function Navbar() {
                 </li>
               )}
 
-              {/* Optional: show Submissions if user is logged in, any role */}
+              {/* Always show Submissions if user is logged in */}
               <li>
                 <Link
                   to="/submissions"
@@ -113,18 +131,5 @@ function Navbar() {
     </header>
   );
 }
-
-// Navbar.propTypes = {
-//   user: PropTypes.shape({
-//     email: PropTypes.string.isRequired,
-//     name: PropTypes.string.isRequired,
-//   }),
-//   onLogout: PropTypes.func,
-// };
-
-// Navbar.defaultProps = {
-//   user: null,
-//   onLogout: () => { },
-// };
 
 export default Navbar;

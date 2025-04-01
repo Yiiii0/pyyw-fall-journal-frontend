@@ -1,0 +1,97 @@
+.action-dashboard-container {
+    background-color: var(--surface);
+    border-bottom: 1px solid var(--border);
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem 2rem;
+}
+
+.action-dashboard-heading {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 1.5rem;
+}
+
+/* Action Box Styling */
+.action-box {
+    background-color: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.action-box-title {
+    font-size: 1.5rem;
+    color: var(--primary);
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border-light);
+    padding-bottom: 0.5rem;
+}
+
+.action-box-content {
+    color: var(--text);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.action-button {
+    background-color: var(--primary);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.action-button:hover {
+    background-color: var(--primary-dark);
+}
+
+.action-dashboard-links {
+    list-style: none;
+    display: flex;
+    gap: 2rem;
+    margin: 0;
+    padding: 0;
+}
+
+.action-dashboard-link {
+    color: var(--text-light);
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.5rem 0;
+    position: relative;
+    transition: color 0.2s ease;
+}
+
+.action-dashboard-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: var(--primary);
+    transition: width 0.2s ease;
+}
+
+.action-dashboard-link:hover,
+.action-dashboard-link.active {
+    color: var(--primary);
+}
+
+.action-dashboard-link:hover::after,
+.action-dashboard-link.active::after {
+    width: 100%;
+}

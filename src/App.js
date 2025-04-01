@@ -20,6 +20,7 @@ import Register from './Components/Auth/Register';
 import Masthead from './Components/Masthead/Masthead';
 
 import EditorDashboard from './Components/EditorDashboard/EditorDashboard';
+import ActionDashboard from './Components/ActionDashboard';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 function PersonPage() {
@@ -76,6 +77,12 @@ function AppContent() {
         <Route path="/editor-dashboard" element={
           <ProtectedRoute>
             <EditorDashboard />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/action-dashboard" element={
+          <ProtectedRoute>
+            <ActionDashboard />
           </ProtectedRoute>
         } />
       </Routes>

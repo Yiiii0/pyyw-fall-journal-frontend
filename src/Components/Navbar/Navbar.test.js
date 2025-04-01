@@ -15,7 +15,7 @@ jest.mock('react-router-dom', () => ({
 // Mock the AuthContext
 jest.mock('../../contexts/AuthContext', () => {
   const originalModule = jest.requireActual('../../contexts/AuthContext');
-  
+
   return {
     ...originalModule,
     useAuth: jest.fn()
@@ -81,7 +81,7 @@ describe('Navbar Component', () => {
 
   describe('When user is authenticated as a regular user', () => {
     const mockLogout = jest.fn();
-    
+
     beforeEach(() => {
       // Mock authenticated state with regular user
       useAuth.mockReturnValue({
@@ -175,6 +175,65 @@ describe('Navbar Component', () => {
     });
   });
 
+  describe('When user is authenticated as a Referee', () => {
+    beforeEach(() => {
+      // Mock authenticated state with referee role
+      useAuth.mockReturnValue({
+        currentUser: {
+          name: 'Referee User',
+          email: 'referee@example.com',
+          roles: ['RE'] // Referee role
+        },
+        logout: jest.fn()
+      });
+    });
+
+    it('should render Referee Dashboard link', () => {
+      renderNavbar();
+      expect(screen.getByText('Action Dashboard')).toBeInTheDocument();
+    });
+
+    it('should not render Manuscripts link', () => {
+      renderNavbar();
+      expect(screen.queryByText('Manuscripts')).not.toBeInTheDocument();
+    });
+
+    it('should render Submissions link', () => {
+      renderNavbar();
+      expect(screen.getByText('Submissions')).toBeInTheDocument();
+    });
+  });
+
+  describe('When user has multiple roles (Editor and Referee)', () => {
+    beforeEach(() => {
+      // Mock authenticated state with multiple roles
+      useAuth.mockReturnValue({
+        currentUser: {
+          name: 'Multi-Role User',
+          email: 'multi@example.com',
+          roles: ['ED', 'RE'] // Both Editor and Referee roles
+        },
+        logout: jest.fn()
+      });
+    });
+
+    it('should render both Editor Dashboard and Referee Dashboard links', () => {
+      renderNavbar();
+      expect(screen.getByText('Editor Dashboard')).toBeInTheDocument();
+      expect(screen.getByText('Action Dashboard')).toBeInTheDocument();
+    });
+
+    it('should not render Manuscripts link', () => {
+      renderNavbar();
+      expect(screen.queryByText('Manuscripts')).not.toBeInTheDocument();
+    });
+
+    it('should render Submissions link', () => {
+      renderNavbar();
+      expect(screen.getByText('Submissions')).toBeInTheDocument();
+    });
+  });
+
   describe('Edge cases', () => {
     it('should display email if name is not available', () => {
       useAuth.mockReturnValue({
@@ -184,9 +243,9 @@ describe('Navbar Component', () => {
         },
         logout: jest.fn()
       });
-      
+
       renderNavbar();
       expect(screen.getByText('noname@example.com')).toBeInTheDocument();
     });
   });
-}); 
+});
