@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import propTypes from 'prop-types';
 import { useAuth } from '../../contexts/AuthContext';
 import { getManuscript, getManuscriptsByTitle, updateManuscript } from '../../services/manuscriptsAPI';
-import { getReferees, addRefereeToManuscript as apiAddRefereeToManuscript, createReferee as apiCreateReferee } from '../../services/refereeAPI';
+import { addRefereeToManuscript as apiAddRefereeToManuscript, createReferee as apiCreateReferee } from '../../services/refereeAPI';
+import { getAllPeople } from '../../services/peopleAPI';
 import './Manuscripts.css';
 
 function ErrorMessage({ message }) {
@@ -63,7 +64,7 @@ function Manuscripts() {
   });
   const [isSimpleView, setIsSimpleView] = useState(false);
   const [expandedManuscripts, setExpandedManuscripts] = useState(new Set());
-  const [referees, setReferees] = useState([]);
+  const [people, setPeople] = useState([]);
   const [dropdownOpen, setDropdownOpen] = useState({});
   const [newRefereeFormOpen, setNewRefereeFormOpen] = useState(false);
   const [newRefereeData, setNewRefereeData] = useState({
@@ -86,14 +87,14 @@ function Manuscripts() {
     }
   };
 
-  const fetchReferees = async () => {
+  const fetchPeople = async () => {
     if (!hasEditorRole) return;
     try {
       setIsLoading(true);
-      const data = await getReferees();
-      setReferees(data);
+      const data = await getAllPeople();
+      setPeople(data);
     } catch (err) {
-      setError(`Failed to fetch referees: ${err.message}`);
+      setError(`Failed to fetch people: ${err.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -224,7 +225,7 @@ function Manuscripts() {
     try {
       setIsLoading(true);
       const data = await apiCreateReferee(newRefereeData);
-      setReferees(prev => [...prev, data]);
+      setPeople(prev => [...prev, data]);
       setNewRefereeData({
         email: '',
         password: '',
@@ -247,7 +248,7 @@ function Manuscripts() {
   useEffect(() => {
     fetchManuscripts();
     if (hasEditorRole) {
-      fetchReferees();
+      fetchPeople();
     }
   }, [hasEditorRole]);
 
@@ -418,11 +419,18 @@ function Manuscripts() {
                               className="referee-select"
                             >
                               <option value="">Select a referee</option>
-                              {referees.map(referee => (
-                                <option key={referee.email} value={referee.email}>
-                                  {referee.name || referee.email} - {referee.affiliation}
-                                </option>
-                              ))}
+                              {people.map(person => {
+                                const match = person.match(/(.*) \((.*)\)/);
+                                if (match) {
+                                  const [, name, email] = match;
+                                  return (
+                                    <option key={email} value={email}>
+                                      {name} ({email})
+                                    </option>
+                                  );
+                                }
+                                return null;
+                              })}
                             </select>
                             <div className="dropdown-actions">
                               <button
@@ -521,11 +529,18 @@ function Manuscripts() {
                                     className="referee-select"
                                   >
                                     <option value="">Select a referee</option>
-                                    {referees.map(referee => (
-                                      <option key={referee.email} value={referee.email}>
-                                        {referee.name || referee.email} - {referee.affiliation}
-                                      </option>
-                                    ))}
+                                    {people.map(person => {
+                                      const match = person.match(/(.*) \((.*)\)/);
+                                      if (match) {
+                                        const [, name, email] = match;
+                                        return (
+                                          <option key={email} value={email}>
+                                            {name} ({email})
+                                          </option>
+                                        );
+                                      }
+                                      return null;
+                                    })}
                                   </select>
                                   <div className="dropdown-actions">
                                     <button

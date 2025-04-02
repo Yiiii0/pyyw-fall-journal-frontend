@@ -10,6 +10,7 @@ const PEOPLE_ENDPOINTS = {
   GET_ROLES: `${BACKEND_URL}/roles`,
   LOGIN: `${BACKEND_URL}/auth/login`,
   REGISTER: `${BACKEND_URL}/auth/register`,
+  GET_ALL_PEOPLE: `${BACKEND_URL}/people/get_all_people`,
 };
 
 export const getPeople = async () => {
@@ -108,3 +109,12 @@ export async function register(userData) {
     throw new Error(error.response?.data?.message || 'Registration failed');
   }
 }
+
+export const getAllPeople = async () => {
+  try {
+    const { data } = await axios.get(PEOPLE_ENDPOINTS.GET_ALL_PEOPLE);
+    return data;
+  } catch (error) {
+    throw new Error(`Failed to fetch people list: ${error.message}`);
+  }
+};
