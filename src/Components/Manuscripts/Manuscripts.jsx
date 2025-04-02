@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import propTypes from 'prop-types';
 import { useAuth } from '../../contexts/AuthContext';
 import { getManuscript, getManuscriptsByTitle, updateManuscript } from '../../services/manuscriptsAPI';
-import { addRefereeToManuscript as apiAddRefereeToManuscript, createReferee as apiCreateReferee } from '../../services/refereeAPI';
-import { getAllPeople } from '../../services/peopleAPI';
+import { addRefereeToManuscript as apiAddRefereeToManuscript } from '../../services/refereeAPI';
+import { getAllPeople, register } from '../../services/peopleAPI';
 import './Manuscripts.css';
 
 function ErrorMessage({ message }) {
@@ -71,6 +71,7 @@ function Manuscripts() {
     name: '',
     email: '',
     password: '',
+    affiliation: '',
   });
   const [selectedReferee, setSelectedReferee] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -224,12 +225,20 @@ function Manuscripts() {
     e.preventDefault();
     try {
       setIsLoading(true);
-      const data = await apiCreateReferee(newRefereeData);
-      setPeople(prev => [...prev, data]);
+      const userData = {
+        username: newRefereeData.email,
+        password: newRefereeData.password,
+        name: newRefereeData.name,
+        affiliation: newRefereeData.affiliation || 'N/A',
+        role: 'RE'  // Referee role code
+      };
+      await register(userData);
+      setPeople(prev => [...prev, `${newRefereeData.name} (${newRefereeData.email})`]);
       setNewRefereeData({
+        name: '',
         email: '',
         password: '',
-        affiliation: ''
+        affiliation: '',
       });
       setNewRefereeFormOpen(false);
     } catch (err) {
@@ -682,7 +691,7 @@ function Manuscripts() {
                 <div className="form-group">
                   <label htmlFor="name">Name:</label>
                   <input
-                    type="name"
+                    type="text"
                     id="name"
                     name="name"
                     value={newRefereeData.name}
@@ -710,6 +719,16 @@ function Manuscripts() {
                     value={newRefereeData.password}
                     onChange={handleNewRefereeChange}
                     required
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="affiliation">Affiliation:</label>
+                  <input
+                    type="text"
+                    id="affiliation"
+                    name="affiliation"
+                    value={newRefereeData.affiliation}
+                    onChange={handleNewRefereeChange}
                   />
                 </div>
                 <div className="form-actions">
