@@ -11,6 +11,7 @@ function EditorActionForm({
 }) {
   const [action, setAction] = useState('');
   const [editorActions, setEditorActions] = useState([]);
+  const [error, setErrorState] = useState('');
 
   useEffect(() => {
     const fetchEditorActions = async () => {
@@ -18,18 +19,22 @@ function EditorActionForm({
         const actions = await getEditorActions();
         setEditorActions(actions);
       } catch (error) {
+        setErrorState(error.message);
         setError(error.message);
       }
     };
     fetchEditorActions();
-  }, []);
+  }, [setError]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorState('');
     setError('');
 
     if (!action) {
-      setError('Please select an Editor action.');
+      const errMsg = 'Please select an Editor action.';
+      setErrorState(errMsg);
+      setError(errMsg);
       return;
     }
 
@@ -37,6 +42,7 @@ function EditorActionForm({
       await updateManuscriptState(title, action);
       onSuccess();
     } catch (error) {
+      setErrorState(error.message);
       setError(error.message);
     }
   };
@@ -60,7 +66,7 @@ function EditorActionForm({
             ))}
           </select>
         </div>
-        {setError && <div className="error">{setError}</div>}
+        {error && <div className="error">{error}</div>}
         <div className="button-group">
           <button type="button" onClick={onCancel}>
             Cancel
