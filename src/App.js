@@ -21,6 +21,7 @@ import Masthead from './Components/Masthead/Masthead';
 
 import EditorDashboard from './Components/EditorDashboard/EditorDashboard';
 import ActionDashboard from './Components/ActionDashboard';
+import ManuscriptReview from './Components/ManuscriptReview';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 function PersonPage() {
@@ -83,6 +84,12 @@ function AppContent() {
         <Route path="/action-dashboard" element={
           <ProtectedRoute>
             <ActionDashboard />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/referee/review/:id" element={
+          <ProtectedRoute>
+            <ManuscriptReview />
           </ProtectedRoute>
         } />
       </Routes>

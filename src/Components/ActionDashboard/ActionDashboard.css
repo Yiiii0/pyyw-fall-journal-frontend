@@ -95,3 +95,57 @@
 .action-dashboard-link.active::after {
     width: 100%;
 }
+
+.manuscripts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.manuscripts-list .manuscript-item {
+    background-color: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.manuscripts-list .manuscript-item:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.manuscripts-list .manuscript-title {
+    font-size: 1.4rem;
+    margin: 0 0 0.5rem 0;
+    color: var(--text-dark);
+}
+
+.manuscripts-list .manuscript-author {
+    font-size: 1rem;
+    color: var(--text-light);
+    margin-bottom: 1rem;
+}
+
+.manuscripts-list .manuscript-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.review-button {
+    background-color: var(--primary);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: inline-block;
+}
+
+.review-button:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-1px);
+}
