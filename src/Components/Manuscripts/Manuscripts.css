@@ -617,3 +617,30 @@ button:hover {
   background-color: #ccc;
   cursor: not-allowed;
 }
+
+.referee-item {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 5px;
+}
+
+.delete-referee-button {
+  background-color: #ff4757;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  padding: 2px 5px;
+  margin-left: 5px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.delete-referee-button:hover {
+  background-color: #ff6b81;
+}
+
+.delete-referee-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}

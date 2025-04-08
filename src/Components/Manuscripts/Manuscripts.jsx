@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import propTypes from 'prop-types';
 import { useAuth } from '../../contexts/AuthContext';
 import { getManuscript, getManuscriptsByTitle, updateManuscript } from '../../services/manuscriptsAPI';
-import { addRefereeToManuscript as apiAddRefereeToManuscript } from '../../services/refereeAPI';
+import { addRefereeToManuscript as apiAddRefereeToManuscript, deleteRefereeFromManuscript as apiDeleteRefereeFromManuscript } from '../../services/refereeAPI';
 import { getAllPeople, register } from '../../services/peopleAPI';
 import './Manuscripts.css';
 
@@ -207,7 +207,19 @@ function Manuscripts() {
       setDropdownOpen(prev => ({ ...prev, [manuscriptId]: false }));
       setSelectedReferee(prev => ({ ...prev, [manuscriptId]: '' }));
     } catch (err) {
-      setError(`Error adding referee: ${err.message}`);
+      setError(`Error assigning referee: ${err.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const deleteRefereeFromManuscript = async (manuscriptId, refereeEmail) => {
+    try {
+      setIsLoading(true);
+      await apiDeleteRefereeFromManuscript(manuscriptId, refereeEmail);
+      fetchManuscripts();
+    } catch (err) {
+      setError(`Error removing referee: ${err.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -389,9 +401,26 @@ function Manuscripts() {
                     <div className="manuscript-details">
                       <p><span className="info-label">Author Email:</span> {manuscript.author_email}</p>
                       <p><span className="info-label">Editor:</span> {manuscript.editor_email}</p>
-                      {manuscript.referees && manuscript.referees.length > 0 && (
-                        <p><span className="info-label">Referees:</span> {manuscript.referees.join(', ')}</p>
-                      )}
+                      <p className="manuscript-referees">
+                        <span className="info-label">Referees:</span> 
+                        {manuscript.referees && manuscript.referees.length > 0
+                          ? manuscript.referees.map((referee, index) => (
+                              <span key={index} className="referee-item">
+                                {referee}
+                                {hasEditorRole && (
+                                  <button 
+                                    className="delete-referee-button"
+                                    onClick={() => deleteRefereeFromManuscript(manuscript._id, referee)}
+                                    disabled={isLoading}
+                                  >
+                                    {isLoading ? '...' : 'Remove'}
+                                  </button>
+                                )}
+                                {index < manuscript.referees.length - 1 ? ', ' : ''}
+                              </span>
+                            ))
+                          : 'None'}
+                      </p>
                       <div className="abstract-section">
                         <p><span className="info-label">Full Abstract:</span></p>
                         <p>{manuscript.abstract}</p>
@@ -418,7 +447,7 @@ function Manuscripts() {
                           className="add-referee-button"
                           onClick={() => toggleDropdown(manuscript._id)}
                         >
-                          Add Referee
+                          Assign Referee
                         </button>
                         {dropdownOpen[manuscript._id] && (
                           <div className="referee-dropdown">
@@ -447,7 +476,7 @@ function Manuscripts() {
                                 className="confirm-referee-button"
                                 disabled={isLoading || !selectedReferee[manuscript._id]}
                               >
-                                {isLoading ? 'Adding...' : 'Confirm'}
+                                {isLoading ? 'Assigning...' : 'Confirm'}
                               </button>
                               <button
                                 onClick={() => toggleDropdown(manuscript._id)}
@@ -502,7 +531,21 @@ function Manuscripts() {
                           <span className="info-label">Referees:</span>
                           <span className="info-value">
                             {manuscript.referees && manuscript.referees.length > 0
-                              ? manuscript.referees.join(', ')
+                              ? manuscript.referees.map((referee, index) => (
+                                  <span key={index} className="referee-item">
+                                    {referee}
+                                    {hasEditorRole && (
+                                      <button 
+                                        className="delete-referee-button"
+                                        onClick={() => deleteRefereeFromManuscript(manuscript._id, referee)}
+                                        disabled={isLoading}
+                                      >
+                                        {isLoading ? '...' : 'Remove'}
+                                      </button>
+                                    )}
+                                    {index < manuscript.referees.length - 1 ? ', ' : ''}
+                                  </span>
+                                ))
                               : 'None'}
                           </span>
                         </div>
@@ -528,7 +571,7 @@ function Manuscripts() {
                                 className="add-referee-button"
                                 onClick={() => toggleDropdown(manuscript._id)}
                               >
-                                Add Referee
+                                Assign Referee
                               </button>
                               {dropdownOpen[manuscript._id] && (
                                 <div className="referee-dropdown">
@@ -557,7 +600,7 @@ function Manuscripts() {
                                       className="confirm-referee-button"
                                       disabled={isLoading || !selectedReferee[manuscript._id]}
                                     >
-                                      {isLoading ? 'Adding...' : 'Confirm'}
+                                      {isLoading ? 'Assigning...' : 'Confirm'}
                                     </button>
                                     <button
                                       onClick={() => toggleDropdown(manuscript._id)}

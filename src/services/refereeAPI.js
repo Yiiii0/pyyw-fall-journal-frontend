@@ -29,7 +29,7 @@ export const getReferees = async () => {
 };
 
 /**
- * Adds a referee to a specific manuscript
+ * Assigns a referee to a specific manuscript
  * @param {string} manuscriptId - ID of the manuscript
  * @param {string} refereeEmail - Email of the referee to assign
  * @returns {Promise<Object>} Updated manuscript object
@@ -45,8 +45,30 @@ export const addRefereeToManuscript = async (manuscriptId, refereeEmail) => {
         
         return data;
     } catch (error) {
-        console.error('Error adding referee to manuscript:', error);
-        throw new Error(`Failed to add referee to manuscript: ${error.message}`);
+        console.error('Error assigning referee to manuscript:', error);
+        throw new Error(`Failed to assign referee to manuscript: ${error.message}`);
+    }
+};
+
+/**
+ * Deletes a referee from a specific manuscript
+ * @param {string} manuscriptId - ID of the manuscript
+ * @param {string} refereeEmail - Email of the referee to delete
+ * @returns {Promise<Object>} Updated manuscript object
+ */
+export const deleteRefereeFromManuscript = async (manuscriptId, refereeEmail) => {
+    try {
+        // Use axios to match other API calls in manuscriptsAPI.js
+        const { data } = await axios.put(`${BACKEND_URL}/manuscript/update_state`, {
+            _id: manuscriptId,        // MANU_ID = '_id'
+            action: 'DRF',            // DELETE_REF action code
+            referee: refereeEmail     // REFEREE = 'referee'
+        });
+        
+        return data;
+    } catch (error) {
+        console.error('Error removing referee from manuscript:', error);
+        throw new Error(`Failed to remove referee from manuscript: ${error.message}`);
     }
 };
 
