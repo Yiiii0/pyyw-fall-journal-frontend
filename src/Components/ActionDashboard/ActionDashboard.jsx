@@ -14,19 +14,36 @@ function ActionDashboard() {
         const fetchManuscripts = async () => {
             try {
                 const data = await getManuscripts();
-                const manuscriptsArray = Array.isArray(data.manuscripts) ? data.manuscripts : [];
+                console.log("API Response:", data); // Debug: Log the complete API response
 
-                // Filter manuscripts where the current user is listed as a referee
-                const assignedManuscripts = manuscriptsArray.filter(manuscript => {
-                    // Check if the manuscript has a referees array and if the current user's email is in it
-                    return manuscript.referees &&
-                        Array.isArray(manuscript.referees) &&
-                        manuscript.referees.includes(currentUser.email);
-                });
+                // Check the data structure
+                let manuscriptsArray = [];
 
-                setManuscripts(assignedManuscripts);
+                if (data && data.manuscripts) {
+                    // Case 1: data has manuscripts property as an array
+                    if (Array.isArray(data.manuscripts)) {
+                        manuscriptsArray = data.manuscripts;
+                    }
+                    // Case 2: data has manuscripts property as an object
+                    else if (typeof data.manuscripts === 'object') {
+                        manuscriptsArray = Object.values(data.manuscripts).filter(item => item !== null);
+                    }
+                } else if (Array.isArray(data)) {
+                    // Case 3: data itself is an array
+                    manuscriptsArray = data;
+                } else if (typeof data === 'object' && data !== null) {
+                    // Case 4: data is a plain object (key-value pairs of manuscripts)
+                    manuscriptsArray = Object.values(data).filter(item => item !== null);
+                }
+
+                console.log("Processed manuscripts array:", manuscriptsArray); // Debug: Log the processed array
+                console.log("Manuscripts array length:", manuscriptsArray.length); // Debug: Log the array length
+
+                // TEST MODE: Set all manuscripts for testing
+                setManuscripts(manuscriptsArray);
                 setError('');
             } catch (err) {
+                console.error("Error fetching manuscripts:", err); // Debug: Log any errors
                 setError(err.message);
             } finally {
                 setLoading(false);
@@ -41,11 +58,12 @@ function ActionDashboard() {
     return (
         <div className="action-dashboard-container">
             <h2 className="action-dashboard-heading">Action Dashboard</h2>
+            <p className="test-mode-notice">TEST MODE: Showing all manuscripts</p>
 
             <div className="action-box">
                 <h3 className="action-box-title">Referee Action</h3>
                 <div className="action-box-content">
-                    <p>Your assigned manuscripts for review:</p>
+                    <p>Available manuscripts for review:</p>
 
                     {loading ? (
                         <p>Loading manuscripts...</p>
@@ -66,7 +84,7 @@ function ActionDashboard() {
                             ))}
                         </div>
                     ) : (
-                        <p>No manuscripts assigned for review.</p>
+                        <p>No manuscripts available for review.</p>
                     )}
                 </div>
             </div>
