@@ -1,4 +1,6 @@
 const API_URL = process.env.REACT_APP_API_URL || '';
+import axios from 'axios';
+import { BACKEND_URL } from '../constants';
 
 /**
  * Fetches all referees available
@@ -34,24 +36,17 @@ export const getReferees = async () => {
  */
 export const addRefereeToManuscript = async (manuscriptId, refereeEmail) => {
     try {
-        const response = await fetch(`${API_URL}/api/manuscripts/${manuscriptId}/referees`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify({ refereeEmail }),
+        // Use axios to match other API calls in manuscriptsAPI.js
+        const { data } = await axios.put(`${BACKEND_URL}/manuscript/update_state`, {
+            _id: manuscriptId,        // MANU_ID = '_id'
+            action: 'ARF',            // ASSIGN_REF action code
+            referee: refereeEmail     // REFEREE = 'referee'
         });
-
-        if (!response.ok) {
-            const data = await response.json();
-            throw new Error(data.message || 'Failed to add referee to manuscript');
-        }
-
-        return await response.json();
+        
+        return data;
     } catch (error) {
         console.error('Error adding referee to manuscript:', error);
-        throw error;
+        throw new Error(`Failed to add referee to manuscript: ${error.message}`);
     }
 };
 
