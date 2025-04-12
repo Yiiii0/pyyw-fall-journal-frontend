@@ -521,9 +521,8 @@ const Submissions = ({ user }) => {
         await fetchManuscripts();
       } else {
         const data = await getManuscriptsByTitle(searchTitle);
-        const manuscriptsArray = Array.isArray(data) ? data : data.manuscripts || [];
-        setFilteredManuscripts(manuscriptsArray);
-        if (manuscriptsArray.length === 0) {
+        setFilteredManuscripts(data.manuscripts);
+        if (data.manuscripts.length === 0) {
           setError(`No manuscripts found matching "${searchTitle}"`);
         } else {
           setError('');

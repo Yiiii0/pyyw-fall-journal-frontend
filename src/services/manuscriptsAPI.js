@@ -29,9 +29,10 @@ export const getManuscriptsByTitle = async (title) => {
     const { data } = await axios.get(`${GET_MANUSCRIPT}?title=${encodeURIComponent(title)}`);
     // Convert the object format to array format
     if (data && typeof data === 'object') {
-      return Object.values(data).filter(manuscript => manuscript !== null);
+      const manuscriptsArray = Object.values(data).filter(manuscript => manuscript !== null);
+      return { manuscripts: manuscriptsArray };
     }
-    return [];
+    return { manuscripts: [] };
   } catch (error) {
     throw new Error(`Failed to fetch ${title}: ${error.message}`);
   }
@@ -142,7 +143,12 @@ export const getRefereeActions = async () => {
 export const getManuscripts = async () => {
   try {
     const { data } = await axios.get(GET_MANUSCRIPT);
-    return data;
+    // Convert the object format to array format
+    if (data && typeof data === 'object') {
+      const manuscriptsArray = Object.values(data).filter(manuscript => manuscript !== null);
+      return { manuscripts: manuscriptsArray };
+    }
+    return { manuscripts: [] };
   } catch (error) {
     throw new Error(`Failed to fetch manuscripts: ${error.message}`);
   }
