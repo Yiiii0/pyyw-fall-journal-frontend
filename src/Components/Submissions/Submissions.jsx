@@ -216,7 +216,8 @@ function Manuscript({ manuscript, fetchManuscripts, setError }) {
         await deleteManuscriptByTitle(manuscript.title);
         fetchManuscripts();
       } catch (error) {
-        setError(error.message);
+        console.error("Delete error:", error);
+        setError(`Failed to delete manuscript: ${error.message}`);
       }
     }
   };
@@ -564,7 +565,8 @@ const Submissions = ({ user }) => {
         await deleteManuscriptByTitle(manuscript.title);
         fetchManuscripts();
       } catch (error) {
-        setError(error.message);
+        console.error("Delete error:", error);
+        setError(`Failed to delete manuscript: ${error.message}`);
       }
     }
   };

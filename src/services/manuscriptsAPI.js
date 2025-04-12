@@ -40,7 +40,17 @@ export const getManuscriptsByTitle = async (title) => {
 
 export const deleteManuscriptByTitle = async (title) => {
   try {
-    const { data } = await axios.delete(`${MANUSCRIPTS_ENDPOINTS.READ}/${encodeURIComponent(title)}`);
+    // First, get the manuscript by title to get its ID
+    const manuscripts = await getManuscriptsByTitle(title);
+    if (!manuscripts.manuscripts || manuscripts.manuscripts.length === 0) {
+      throw new Error(`No manuscript found with title "${title}"`);
+    }
+    
+    const manuscript = manuscripts.manuscripts[0];
+    const manuscriptId = manuscript._id;
+    
+    // Delete using the ID
+    const { data } = await axios.delete(`${MANUSCRIPTS_ENDPOINTS.READ}/${manuscriptId}`);
     return data;
   } catch (error) {
     throw new Error(`Failed to delete manuscript "${title}": ${error.message}`);
