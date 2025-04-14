@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import propTypes from 'prop-types';
 import { useAuth } from '../../contexts/AuthContext';
 import { getManuscript, getManuscriptsByTitle, updateManuscript } from '../../services/manuscriptsAPI';
-import { addRefereeToManuscript as apiAddRefereeToManuscript, deleteRefereeFromManuscript as apiDeleteRefereeFromManuscript } from '../../services/refereeAPI';
+import { makePersonRefereeForManuscript } from '../../services/refereeAPI';
 import { getAllPeople, register } from '../../services/peopleAPI';
 import './Manuscripts.css';
 
@@ -204,7 +204,7 @@ function Manuscripts() {
     }
     try {
       setIsLoading(true);
-      await apiAddRefereeToManuscript(manuscriptId, refereeEmail);
+      await makePersonRefereeForManuscript(manuscriptId, refereeEmail);
       fetchManuscripts();
       setDropdownOpen(prev => ({ ...prev, [manuscriptId]: false }));
       setSelectedReferee(prev => ({ ...prev, [manuscriptId]: '' }));
@@ -215,17 +215,17 @@ function Manuscripts() {
     }
   };
 
-  const deleteRefereeFromManuscript = async (manuscriptId, refereeEmail) => {
-    try {
-      setIsLoading(true);
-      await apiDeleteRefereeFromManuscript(manuscriptId, refereeEmail);
-      fetchManuscripts();
-    } catch (err) {
-      setError(`Error removing referee: ${err.message}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // const deleteRefereeFromManuscript = async (manuscriptId, refereeEmail) => {
+  //   try {
+  //     setIsLoading(true);
+  //     await apiDeleteRefereeFromManuscript(manuscriptId, refereeEmail);
+  //     fetchManuscripts();
+  //   } catch (err) {
+  //     setError(`Error removing referee: ${err.message}`);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   const handleNewRefereeChange = (e) => {
     const { name, value } = e.target;
@@ -277,7 +277,7 @@ function Manuscripts() {
       setIsDecisionLoading(true);
       // Here you would call your API with the decision
       // For example: await updateManuscriptState(manuscriptId, decision);
-      
+
       // For now, we'll just log and refresh
       console.log(`Decision for manuscript ${manuscriptId}: ${decision}`);
       await fetchManuscripts();
@@ -424,23 +424,23 @@ function Manuscripts() {
                       <p><span className="info-label">Author Email:</span> {manuscript.author_email}</p>
                       <p><span className="info-label">Editor:</span> {manuscript.editor_email}</p>
                       <p className="manuscript-referees">
-                        <span className="info-label">Referees:</span> 
+                        <span className="info-label">Referees:</span>
                         {manuscript.referees && manuscript.referees.length > 0
                           ? manuscript.referees.map((referee, index) => (
-                              <span key={index} className="referee-item">
-                                {referee}
-                                {hasEditorRole && (
-                                  <button 
-                                    className="delete-referee-button"
-                                    onClick={() => deleteRefereeFromManuscript(manuscript._id, referee)}
-                                    disabled={isLoading}
-                                  >
-                                    {isLoading ? '...' : 'Remove'}
-                                  </button>
-                                )}
-                                {index < manuscript.referees.length - 1 ? ', ' : ''}
-                              </span>
-                            ))
+                            <span key={index} className="referee-item">
+                              {referee}
+                              {hasEditorRole && (
+                                <button
+                                  className="delete-referee-button"
+                                  // onClick={() => deleteRefereeFromManuscript(manuscript._id, referee)}
+                                  disabled={isLoading}
+                                >
+                                  {isLoading ? '...' : 'Remove'}
+                                </button>
+                              )}
+                              {index < manuscript.referees.length - 1 ? ', ' : ''}
+                            </span>
+                          ))
                           : 'None'}
                       </p>
                       <div className="abstract-section">
@@ -449,7 +449,7 @@ function Manuscripts() {
                       </div>
                       {manuscript.text && (
                         <div className="text-button-container">
-                          <button 
+                          <button
                             className="text-button"
                             onClick={() => toggleTextModal(manuscript._id)}
                           >
@@ -564,20 +564,20 @@ function Manuscripts() {
                           <span className="info-value">
                             {manuscript.referees && manuscript.referees.length > 0
                               ? manuscript.referees.map((referee, index) => (
-                                  <span key={index} className="referee-item">
-                                    {referee}
-                                    {hasEditorRole && (
-                                      <button 
-                                        className="delete-referee-button"
-                                        onClick={() => deleteRefereeFromManuscript(manuscript._id, referee)}
-                                        disabled={isLoading}
-                                      >
-                                        {isLoading ? '...' : 'Remove'}
-                                      </button>
-                                    )}
-                                    {index < manuscript.referees.length - 1 ? ', ' : ''}
-                                  </span>
-                                ))
+                                <span key={index} className="referee-item">
+                                  {referee}
+                                  {hasEditorRole && (
+                                    <button
+                                      className="delete-referee-button"
+                                      // onClick={() => deleteRefereeFromManuscript(manuscript._id, referee)}
+                                      disabled={isLoading}
+                                    >
+                                      {isLoading ? '...' : 'Remove'}
+                                    </button>
+                                  )}
+                                  {index < manuscript.referees.length - 1 ? ', ' : ''}
+                                </span>
+                              ))
                               : 'None'}
                           </span>
                         </div>
@@ -591,7 +591,7 @@ function Manuscripts() {
                         </div>
                         {manuscript.text && (
                           <div className="text-button-container">
-                            <button 
+                            <button
                               className="text-button"
                               onClick={() => toggleTextModal(manuscript._id)}
                             >
@@ -668,21 +668,21 @@ function Manuscripts() {
                               </div>
                               {hasEditorRole && (
                                 <div className="referee-decision-box">
-                                  <button 
+                                  <button
                                     className="decision-button accept-button"
                                     onClick={() => handleEditorDecision(manuscript._id, 'ACCEPT')}
                                     disabled={isDecisionLoading}
                                   >
                                     Accept
                                   </button>
-                                  <button 
+                                  <button
                                     className="decision-button revisions-button"
                                     onClick={() => handleEditorDecision(manuscript._id, 'ACCEPT_WITH_REVISIONS')}
                                     disabled={isDecisionLoading}
                                   >
                                     Revisions
                                   </button>
-                                  <button 
+                                  <button
                                     className="decision-button reject-button"
                                     onClick={() => handleEditorDecision(manuscript._id, 'REJECT')}
                                     disabled={isDecisionLoading}
@@ -870,7 +870,7 @@ function Manuscripts() {
           <div className="text-modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="text-modal-header">
               <h3>Full Text</h3>
-              <button 
+              <button
                 className="close-modal-button"
                 onClick={() => setTextModalOpen(null)}
               >

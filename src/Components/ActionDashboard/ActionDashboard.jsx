@@ -36,10 +36,16 @@ function ActionDashboard() {
                     manuscriptsArray = Object.values(data).filter(item => item !== null);
                 }
 
-                console.log("Processed manuscripts array:", manuscriptsArray); // Debug: Log the processed array
-                console.log("Manuscripts array length:", manuscriptsArray.length); // Debug: Log the array length
+                // Filter manuscripts to only include those where the current user is assigned as referee
+                if (currentUser && currentUser.email) {
+                    manuscriptsArray = manuscriptsArray.filter(manuscript => {
+                        return manuscript.referees &&
+                            Array.isArray(manuscript.referees) &&
+                            manuscript.referees.includes(currentUser.email);
+                    });
+                }
 
-                // TEST MODE: Set all manuscripts for testing
+                console.log("Filtered manuscripts for current user:", manuscriptsArray); // Debug: Log filtered array
                 setManuscripts(manuscriptsArray);
                 setError('');
             } catch (err) {
@@ -58,7 +64,6 @@ function ActionDashboard() {
     return (
         <div className="action-dashboard-container">
             <h2 className="action-dashboard-heading">Action Dashboard</h2>
-            <p className="test-mode-notice">TEST MODE: Showing all manuscripts</p>
 
             <div className="action-box">
                 <h3 className="action-box-title">Referee Action</h3>

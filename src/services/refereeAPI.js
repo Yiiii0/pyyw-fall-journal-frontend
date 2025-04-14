@@ -1,101 +1,63 @@
-const API_URL = process.env.REACT_APP_API_URL || '';
 import axios from 'axios';
 import { BACKEND_URL } from '../constants';
 
-/**
- * Fetches all referees available
- * @returns {Promise<Array>} List of referee objects
- */
-export const getReferees = async () => {
-    try {
-        const response = await fetch(`${API_URL}/api/referees`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-        });
+// RE - Referee
+const REFEREE_ENDPOINTS = {
+    UPDATE_MANUSCRIPT: `${BACKEND_URL}/manuscript/update_state`,
+    ADD_ROLE: `${BACKEND_URL}/people/add_role`,
+};
 
-        if (!response.ok) {
-            const data = await response.json();
-            throw new Error(data.message || 'Failed to fetch referees');
+// Add referee role to a person
+export const addRefereeRole = async (email) => {
+    try {
+        const { data } = await axios.put(REFEREE_ENDPOINTS.ADD_ROLE, {
+            email,
+            role: 'RE'
+        });
+        return data;
+    } catch (error) {
+        // Handle specific duplicate role error
+        if (error.response?.status === 406 &&
+            error.response?.data?.message?.includes("duplicate role")) {
+            console.log("User already has referee role, continuing with assignment");
+            // We can continue since the user already has the referee role
+            return { message: "User already has referee role" };
         }
 
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching referees:', error);
-        throw error;
+        const errorMessage = error.response?.data?.message || error.message;
+        throw new Error(`Failed to add referee role: ${errorMessage}`);
     }
 };
 
-/**
- * Assigns a referee to a specific manuscript
- * @param {string} manuscriptId - ID of the manuscript
- * @param {string} refereeEmail - Email of the referee to assign
- * @returns {Promise<Object>} Updated manuscript object
- */
+// Assign a referee to a manuscript
 export const addRefereeToManuscript = async (manuscriptId, refereeEmail) => {
     try {
-        // Use axios to match other API calls in manuscriptsAPI.js
-        const { data } = await axios.put(`${BACKEND_URL}/manuscript/update_state`, {
-            _id: manuscriptId,        // MANU_ID = '_id'
-            action: 'ARF',            // ASSIGN_REF action code
-            referee: refereeEmail     // REFEREE = 'referee'
+        const { data } = await axios.put(REFEREE_ENDPOINTS.UPDATE_MANUSCRIPT, {
+            _id: manuscriptId,
+            action: 'ARF',
+            referee: refereeEmail
         });
-        
+
         return data;
     } catch (error) {
-        console.error('Error assigning referee to manuscript:', error);
-        throw new Error(`Failed to assign referee to manuscript: ${error.message}`);
+        const errorMessage = error.response?.data?.message || error.message;
+        throw new Error(`Failed to assign referee to manuscript: ${errorMessage}`);
     }
 };
 
-/**
- * Deletes a referee from a specific manuscript
- * @param {string} manuscriptId - ID of the manuscript
- * @param {string} refereeEmail - Email of the referee to delete
- * @returns {Promise<Object>} Updated manuscript object
- */
-export const deleteRefereeFromManuscript = async (manuscriptId, refereeEmail) => {
+// Make a person a referee for a manuscript
+// This function first adds the referee role to the person and then assigns them to the manuscript
+export const makePersonRefereeForManuscript = async (manuscriptId, email) => {
     try {
-        // Use axios to match other API calls in manuscriptsAPI.js
-        const { data } = await axios.put(`${BACKEND_URL}/manuscript/update_state`, {
-            _id: manuscriptId,        // MANU_ID = '_id'
-            action: 'DRF',            // DELETE_REF action code
-            referee: refereeEmail     // REFEREE = 'referee'
-        });
-        
-        return data;
+        // Step 1: Add referee role (will continue even if user already has role)
+        await addRefereeRole(email);
+
+        // Step 2: Add person as referee to manuscript
+        const result = await addRefereeToManuscript(manuscriptId, email);
+
+        return result;
     } catch (error) {
-        console.error('Error removing referee from manuscript:', error);
-        throw new Error(`Failed to remove referee from manuscript: ${error.message}`);
-    }
-};
-
-/**
- * Creates a new referee user
- * @param {Object} refereeData - Referee data (email, password, affiliation)
- * @returns {Promise<Object>} Created referee object
- */
-export const createReferee = async (refereeData) => {
-    try {
-        const response = await fetch(`${API_URL}/api/referees`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify(refereeData),
-        });
-
-        if (!response.ok) {
-            const data = await response.json();
-            throw new Error(data.message || 'Failed to create referee');
-        }
-
-        return await response.json();
-    } catch (error) {
-        console.error('Error creating referee:', error);
-        throw error;
+        const errorMessage = error.response?.data?.message || error.message;
+        throw new Error(`Failed to make person referee for manuscript: ${errorMessage}`);
     }
 };
