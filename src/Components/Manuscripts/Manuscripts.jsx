@@ -75,6 +75,7 @@ function Manuscripts() {
   });
   const [selectedReferee, setSelectedReferee] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [textModalOpen, setTextModalOpen] = useState(null);
   const hasEditorRole = currentUser?.roles?.includes('ED');
 
   const fetchManuscripts = async () => {
@@ -266,6 +267,10 @@ function Manuscripts() {
     return words.slice(0, wordLimit).join(' ') + '...';
   };
 
+  const toggleTextModal = (manuscriptId) => {
+    setTextModalOpen(textModalOpen === manuscriptId ? null : manuscriptId);
+  };
+
   useEffect(() => {
     fetchManuscripts();
     if (hasEditorRole) {
@@ -425,6 +430,16 @@ function Manuscripts() {
                         <p><span className="info-label">Full Abstract:</span></p>
                         <p>{manuscript.abstract}</p>
                       </div>
+                      {manuscript.text && (
+                        <div className="text-button-container">
+                          <button 
+                            className="text-button"
+                            onClick={() => toggleTextModal(manuscript._id)}
+                          >
+                            View Text
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
                   <div className="manuscript-actions">
@@ -557,6 +572,16 @@ function Manuscripts() {
                           <span className="info-label">Abstract:</span>
                           <p className="abstract-text">{manuscript.abstract}</p>
                         </div>
+                        {manuscript.text && (
+                          <div className="text-button-container">
+                            <button 
+                              className="text-button"
+                              onClick={() => toggleTextModal(manuscript._id)}
+                            >
+                              View Text
+                            </button>
+                          </div>
+                        )}
                         <div className="manuscript-actions">
                           <button
                             className="edit-button"
@@ -793,6 +818,25 @@ function Manuscripts() {
               </form>
             </div>
           )}
+        </div>
+      )}
+
+      {textModalOpen && (
+        <div className="text-modal-backdrop" onClick={() => setTextModalOpen(null)}>
+          <div className="text-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="text-modal-header">
+              <h3>Full Text</h3>
+              <button 
+                className="close-modal-button"
+                onClick={() => setTextModalOpen(null)}
+              >
+                &times;
+              </button>
+            </div>
+            <div className="text-modal-body">
+              {manuscripts.find(m => m._id === textModalOpen)?.text || 'No text available.'}
+            </div>
+          </div>
         </div>
       )}
     </div>
