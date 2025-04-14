@@ -77,6 +77,7 @@ function Manuscripts() {
   const [isLoading, setIsLoading] = useState(false);
   const [textModalOpen, setTextModalOpen] = useState(null);
   const hasEditorRole = currentUser?.roles?.includes('ED');
+  const [isDecisionLoading, setIsDecisionLoading] = useState(false);
 
   const fetchManuscripts = async () => {
     try {
@@ -269,6 +270,22 @@ function Manuscripts() {
 
   const toggleTextModal = (manuscriptId) => {
     setTextModalOpen(textModalOpen === manuscriptId ? null : manuscriptId);
+  };
+
+  const handleEditorDecision = async (manuscriptId, decision) => {
+    try {
+      setIsDecisionLoading(true);
+      // Here you would call your API with the decision
+      // For example: await updateManuscriptState(manuscriptId, decision);
+      
+      // For now, we'll just log and refresh
+      console.log(`Decision for manuscript ${manuscriptId}: ${decision}`);
+      await fetchManuscripts();
+    } catch (err) {
+      setError(`Failed to update manuscript status: ${err.message}`);
+    } finally {
+      setIsDecisionLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -518,7 +535,7 @@ function Manuscripts() {
             <thead>
               <tr>
                 <th>Basic Information</th>
-                <th>Referee Review</th>
+                <th className="referee-column">Referee Review</th>
                 <th>Author Revisions</th>
                 <th>Editor Review</th>
                 <th>Copy Editing</th>
@@ -641,18 +658,45 @@ function Manuscripts() {
                         </div>
                       </div>
                     </td>
-                    <td className="process-cell">
-                      {manuscript.state === 'REV' ? (
-                        <div className="stage-content active-stage">
-                          <span className="stage-indicator">In Progress</span>
-                        </div>
-                      ) : manuscript.history && manuscript.history.includes('REV') ? (
-                        <div className="stage-content completed-stage">
-                          <span className="stage-indicator">Completed</span>
+                    <td className="process-cell referee-cell">
+                      {manuscript.referees && manuscript.referees.length > 0 ? (
+                        <div className="referee-review-container">
+                          {manuscript.referees.map((referee, index) => (
+                            <div key={index} className="referee-review-section">
+                              <div className="referee-name-box">
+                                {referee}
+                              </div>
+                              {hasEditorRole && (
+                                <div className="referee-decision-box">
+                                  <button 
+                                    className="decision-button accept-button"
+                                    onClick={() => handleEditorDecision(manuscript._id, 'ACCEPT')}
+                                    disabled={isDecisionLoading}
+                                  >
+                                    Accept
+                                  </button>
+                                  <button 
+                                    className="decision-button revisions-button"
+                                    onClick={() => handleEditorDecision(manuscript._id, 'ACCEPT_WITH_REVISIONS')}
+                                    disabled={isDecisionLoading}
+                                  >
+                                    Revisions
+                                  </button>
+                                  <button 
+                                    className="decision-button reject-button"
+                                    onClick={() => handleEditorDecision(manuscript._id, 'REJECT')}
+                                    disabled={isDecisionLoading}
+                                  >
+                                    Reject
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          ))}
                         </div>
                       ) : (
                         <div className="stage-content pending-stage">
-                          <span className="stage-indicator">Pending</span>
+                          <span className="stage-indicator">No Referees</span>
                         </div>
                       )}
                     </td>
@@ -735,7 +779,7 @@ function Manuscripts() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="7" className="no-results">No manuscripts found.</td>
+                  <td colSpan="7" className="no-manuscripts">No manuscripts found</td>
                 </tr>
               )}
             </tbody>
