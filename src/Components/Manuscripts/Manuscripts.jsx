@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import propTypes from 'prop-types';
 import { useAuth } from '../../contexts/AuthContext';
 import { getManuscript, getManuscriptsByTitle, updateManuscript } from '../../services/manuscriptsAPI';
-import { makePersonRefereeForManuscript } from '../../services/refereeAPI';
+import { makePersonRefereeForManuscript, removeRefereeFromManuscript } from '../../services/refereeAPI';
 import { getAllPeople, register } from '../../services/peopleAPI';
 import './Manuscripts.css';
 
@@ -215,17 +215,17 @@ function Manuscripts() {
     }
   };
 
-  // const deleteRefereeFromManuscript = async (manuscriptId, refereeEmail) => {
-  //   try {
-  //     setIsLoading(true);
-  //     await apiDeleteRefereeFromManuscript(manuscriptId, refereeEmail);
-  //     fetchManuscripts();
-  //   } catch (err) {
-  //     setError(`Error removing referee: ${err.message}`);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
+  const deleteRefereeFromManuscript = async (manuscriptId, refereeEmail) => {
+    try {
+      setIsLoading(true);
+      await removeRefereeFromManuscript(manuscriptId, refereeEmail);
+      fetchManuscripts();
+    } catch (err) {
+      setError(`Error removing referee: ${err.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleNewRefereeChange = (e) => {
     const { name, value } = e.target;
@@ -432,7 +432,7 @@ function Manuscripts() {
                               {hasEditorRole && (
                                 <button
                                   className="delete-referee-button"
-                                  // onClick={() => deleteRefereeFromManuscript(manuscript._id, referee)}
+                                  onClick={() => deleteRefereeFromManuscript(manuscript._id, referee)}
                                   disabled={isLoading}
                                 >
                                   {isLoading ? '...' : 'Remove'}
@@ -569,7 +569,7 @@ function Manuscripts() {
                                   {hasEditorRole && (
                                     <button
                                       className="delete-referee-button"
-                                      // onClick={() => deleteRefereeFromManuscript(manuscript._id, referee)}
+                                      onClick={() => deleteRefereeFromManuscript(manuscript._id, referee)}
                                       disabled={isLoading}
                                     >
                                       {isLoading ? '...' : 'Remove'}

@@ -45,6 +45,22 @@ export const addRefereeToManuscript = async (manuscriptId, refereeEmail) => {
     }
 };
 
+// Delete a referee from a manuscript
+export const removeRefereeFromManuscript = async (manuscriptId, refereeEmail) => {
+    try {
+        const { data } = await axios.put(REFEREE_ENDPOINTS.UPDATE_MANUSCRIPT, {
+            _id: manuscriptId,
+            action: 'DRF',
+            referee: refereeEmail
+        });
+
+        return data;
+    } catch (error) {
+        const errorMessage = error.response?.data?.message || error.message;
+        throw new Error(`Failed to remove referee from manuscript: ${errorMessage}`);
+    }
+};
+
 // Make a person a referee for a manuscript
 // This function first adds the referee role to the person and then assigns them to the manuscript
 export const makePersonRefereeForManuscript = async (manuscriptId, email) => {
