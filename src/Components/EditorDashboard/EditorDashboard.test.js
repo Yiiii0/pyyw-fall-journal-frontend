@@ -6,27 +6,56 @@ import EditorDashboard from './EditorDashboard';
 
 describe('EditorDashboard Component', () => {
   beforeEach(() => {
+    localStorage.setItem("user", JSON.stringify({ email: "test@example.com" }));
+    global.fetch = jest.fn();
+  });
+
+  afterEach(() => {
+    global.fetch.mockClear();
+    localStorage.clear();
+  });
+
+  test('renders the Editor Dashboard heading when authorized', async () => {
+    const fakeResponse = { message: 'Authorized' };
+    global.fetch.mockResolvedValueOnce({
+      status: 200,
+      json: async () => fakeResponse,
+    });
+
     render(
       <BrowserRouter>
         <EditorDashboard />
       </BrowserRouter>
     );
-  });
 
-  test('renders the Editor Dashboard heading', () => {
-    const headingElement = screen.getByText(/Editor Dashboard/i);
+    const headingElement = await screen.findByText(/Editor Dashboard/i);
     expect(headingElement).toBeInTheDocument();
-  });
 
-  test('renders the Manuscripts link', () => {
     const manuscriptsLink = screen.getByRole('link', { name: /Manuscripts/i });
     expect(manuscriptsLink).toBeInTheDocument();
     expect(manuscriptsLink).toHaveAttribute('href', '/manuscripts');
-  });
 
-  test('renders the People link', () => {
     const peopleLink = screen.getByRole('link', { name: /People/i });
     expect(peopleLink).toBeInTheDocument();
     expect(peopleLink).toHaveAttribute('href', '/people');
+  });
+
+  test('renders no permission message when unauthorized', async () => {
+    const fakeResponse = {
+      error: "User test@example.com lacks required roles: ['ED', 'ME']"
+    };
+    global.fetch.mockResolvedValueOnce({
+      status: 403,
+      json: async () => fakeResponse,
+    });
+
+    render(
+      <BrowserRouter>
+        <EditorDashboard />
+      </BrowserRouter>
+    );
+
+    const errorElement = await screen.findByText(/You do not have permission to view this page/i);
+    expect(errorElement).toBeInTheDocument();
   });
 });
