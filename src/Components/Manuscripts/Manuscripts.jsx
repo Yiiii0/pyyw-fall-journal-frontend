@@ -532,9 +532,12 @@ function Manuscripts() {
       ) : (
         <div className="manuscripts-table-container">
           <table className="manuscripts-table">
+            <colgroup>
+              <col style={{width: "350px"}} />
+            </colgroup>
             <thead>
               <tr>
-                <th>Basic Information</th>
+                <th className="info-column">Basic Information</th>
                 <th className="referee-column">Referee Review</th>
                 <th>Author Revisions</th>
                 <th>Editor Review</th>
@@ -674,13 +677,6 @@ function Manuscripts() {
                                     disabled={isDecisionLoading}
                                   >
                                     Accept
-                                  </button>
-                                  <button
-                                    className="decision-button revisions-button"
-                                    onClick={() => handleEditorDecision(manuscript._id, 'ACCEPT_WITH_REVISIONS')}
-                                    disabled={isDecisionLoading}
-                                  >
-                                    Revisions
                                   </button>
                                   <button
                                     className="decision-button reject-button"
