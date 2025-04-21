@@ -749,7 +749,7 @@ button:hover {
 .referee-column, .referee-cell {
   min-width: 150px;
   width: auto;
-  max-width: 300px;
+  max-width: none;
   overflow: visible;
   text-align: center;
 }
@@ -780,6 +780,7 @@ button:hover {
   text-align: center;
   margin: 0;
   margin-bottom: 5px;
+  position: relative;
 }
 
 .referee-decision-box {
@@ -819,19 +820,140 @@ button:hover {
   opacity: 0.9;
 }
 
-.accept-button, .reject-button {
+.accept-button, .revisions-button, .reject-button {
   background-color: var(--primary);
 }
 
-.accept-button:hover, .reject-button:hover {
+.accept-button:hover, .revisions-button:hover, .reject-button:hover {
   background-color: var(--primary-hover);
-}
-
-.revisions-button {
-  display: none;
 }
 
 .process-cell:not(.referee-cell) {
   width: 150px !important;
   text-align: center;
+}
+
+.simulate-action-button {
+  font-size: 0.7rem;
+  padding: 4px 6px;
+  margin-top: 5px;
+  background-color: #4a5568;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  box-shadow: none;
+  display: block;
+  width: 100%;
+}
+
+.simulate-action-button:hover {
+  background-color: #2d3748;
+  transform: none;
+  box-shadow: none;
+}
+
+.stage-content.pending-stage {
+  background-color: rgba(209, 213, 219, 0.15);
+  border-left: 4px solid #d1d5db;
+  padding: 0.75rem 0.5rem;
+  border-radius: 6px;
+  margin: 0.5rem 0;
+  text-align: center;
+}
+
+.stage-content.pending-stage .stage-indicator {
+  color: #6b7280;
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+/* Referee decision styles */
+.decision-made {
+  margin: 10px 0;
+  text-align: center;
+}
+
+.decision-indicator {
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: bold;
+  display: inline-block;
+  min-width: 120px;
+}
+
+.decision-accept {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.decision-accept_with_revisions {
+  background-color: #FF9800;
+  color: white;
+}
+
+.decision-reject {
+  background-color: #F44336;
+  color: white;
+}
+
+/* Referee status message styles */
+.referee-status-message {
+  margin: 10px 0;
+  padding: 8px 12px;
+  border-radius: 4px;
+  text-align: center;
+  background-color: #f1f1f1;
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.referee-status-message.warning {
+  background-color: #FFF3CD;
+  color: #856404;
+  border: 1px solid #FFEEBA;
+}
+
+.referee-status-message.success {
+  background-color: #D4EDDA;
+  color: #155724;
+  border: 1px solid #C3E6CB;
+}
+
+/* 决策摘要样式 */
+.decision-summary {
+  margin: 10px 0;
+  padding: 10px;
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 4px;
+}
+
+.decision-summary strong {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.decision-message {
+  font-weight: 500;
+  margin: 10px 0;
+}
+
+.reset-decisions-button {
+  margin-top: 10px;
+  padding: 5px 10px;
+  background-color: #f8f9fa;
+  color: #495057;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+  box-shadow: none;
+}
+
+.reset-decisions-button:hover {
+  background-color: #e9ecef;
+  color: #212529;
+  transform: none;
+  box-shadow: none;
 }
