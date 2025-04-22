@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import propTypes from 'prop-types';
 import { useAuth } from '../../contexts/AuthContext';
-import { getManuscript, getManuscriptsByTitle, updateManuscript } from '../../services/manuscriptsAPI';
+import { getManuscript, getManuscriptsByTitle, updateManuscript, updateManuscriptState } from '../../services/manuscriptsAPI';
 import { makePersonRefereeForManuscript, removeRefereeFromManuscript } from '../../services/refereeAPI';
 import { getAllPeople, register } from '../../services/peopleAPI';
 import './Manuscripts.css';
@@ -78,6 +78,21 @@ function Manuscripts() {
   const [textModalOpen, setTextModalOpen] = useState(null);
   const hasEditorRole = currentUser?.roles?.includes('ED');
   const [isDecisionLoading, setIsDecisionLoading] = useState(false);
+  const [refereeActions, setRefereeActions] = useState({});
+  const [refereeDecisions, setRefereeDecisions] = useState({});
+
+  // Load referee decisions from localStorage on component mount
+  useEffect(() => {
+    const savedDecisions = localStorage.getItem('refereeDecisions');
+    if (savedDecisions) {
+      setRefereeDecisions(JSON.parse(savedDecisions));
+    }
+  }, []);
+
+  // Save referee decisions to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('refereeDecisions', JSON.stringify(refereeDecisions));
+  }, [refereeDecisions]);
 
   const fetchManuscripts = async () => {
     try {
@@ -272,14 +287,54 @@ function Manuscripts() {
     setTextModalOpen(textModalOpen === manuscriptId ? null : manuscriptId);
   };
 
-  const handleEditorDecision = async (manuscriptId, decision) => {
+  const handleEditorDecision = async (manuscriptId, decision, refereeEmail) => {
     try {
       setIsDecisionLoading(true);
-      // Here you would call your API with the decision
-      // For example: await updateManuscriptState(manuscriptId, decision);
-
-      // For now, we'll just log and refresh
-      console.log(`Decision for manuscript ${manuscriptId}: ${decision}`);
+      
+      // 记录referee的决定
+      const newDecisions = {
+        ...refereeDecisions,
+        [manuscriptId]: {
+          ...(refereeDecisions[manuscriptId] || {}),
+          [refereeEmail]: decision
+        }
+      };
+      setRefereeDecisions(newDecisions);
+      
+      // 获取当前manuscript
+      const manuscript = manuscripts.find(m => m._id === manuscriptId);
+      if (!manuscript || !manuscript.referees || manuscript.referees.length === 0) {
+        throw new Error("未找到manuscript或无referee信息");
+      }
+      
+      // 检查是否所有referee都已做出决定
+      const allReviewsSubmitted = manuscript.referees.every(ref => 
+        newDecisions[manuscriptId]?.[ref] !== undefined
+      );
+      
+      // 检查是否所有referee都接受了
+      const allAccepted = manuscript.referees.every(ref => 
+        newDecisions[manuscriptId]?.[ref] === 'ACCEPT'
+      );
+      
+      let action;
+      if (allReviewsSubmitted && allAccepted) {
+        // 所有referee都接受，进入Copy Editing阶段
+        action = 'ACC';
+      } else if (decision === 'ACCEPT_WITH_REVISIONS') {
+        // 任一referee要求修改，进入Author Revision阶段
+        action = 'AWR';
+      } else if (decision === 'REJECT') {
+        // 任一referee拒绝，拒绝manuscript
+        action = 'REJ';
+      } else {
+        // 只是提交了review，不改变状态
+        action = 'SBR'; // Submit Review
+      }
+      
+      // 执行状态更新
+      await updateManuscriptState(manuscriptId, action, { referee: refereeEmail });
+      
       await fetchManuscripts();
     } catch (err) {
       setError(`Failed to update manuscript status: ${err.message}`);
@@ -288,12 +343,149 @@ function Manuscripts() {
     }
   };
 
+  const simulateRefereeAction = async (manuscriptId, refereeEmail) => {
+    try {
+      setIsLoading(true);
+      setRefereeActions(prev => ({
+        ...prev,
+        [manuscriptId]: [...(prev[manuscriptId] || []), refereeEmail]
+      }));
+      
+      const updatedManuscripts = manuscripts.map(manuscript => {
+        if (manuscript._id === manuscriptId) {
+          return {
+            ...manuscript,
+            referee_actions: [...(manuscript.referee_actions || []), refereeEmail]
+          };
+        }
+        return manuscript;
+      });
+      
+      setManuscripts(updatedManuscripts);
+    } catch (err) {
+      setError(`Failed to simulate referee action: ${err.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const hasRefereeAction = (manuscript, refereeEmail) => {
+    if (manuscript.referee_actions && manuscript.referee_actions.includes(refereeEmail)) {
+      return true;
+    }
+    
+    if (refereeActions[manuscript._id] && refereeActions[manuscript._id].includes(refereeEmail)) {
+      return true;
+    }
+    
+    return false;
+  };
+
+  const allRefereesAccepted = (manuscript) => {
+    if (!manuscript.referees || manuscript.referees.length === 0) {
+      return false;
+    }
+    
+    const decisions = refereeDecisions[manuscript._id] || {};
+    return manuscript.referees.every(referee => 
+      decisions[referee] === 'ACCEPT'
+    );
+  };
+
+  const hasRefereeDecision = (manuscriptId, refereeEmail) => {
+    return refereeDecisions[manuscriptId] && 
+           refereeDecisions[manuscriptId][refereeEmail];
+  };
+
+  const getRefereeDecision = (manuscriptId, refereeEmail) => {
+    return refereeDecisions[manuscriptId]?.[refereeEmail] || null;
+  };
+
+  // 检查所有的referee是否做出了决定
+  const allRefereesReviewed = (manuscript) => {
+    if (!manuscript.referees || manuscript.referees.length === 0) {
+      return false;
+    }
+    
+    const decisions = refereeDecisions[manuscript._id] || {};
+    return manuscript.referees.every(referee => 
+      decisions[referee] !== undefined
+    );
+  };
+
+  // 获取未做出决定的referee数量
+  const getPendingRefereeCount = (manuscript) => {
+    if (!manuscript.referees) return 0;
+    
+    const decisions = refereeDecisions[manuscript._id] || {};
+    return manuscript.referees.filter(referee => 
+      decisions[referee] === undefined
+    ).length;
+  };
+
+  // 在组件加载时初始化状态
   useEffect(() => {
     fetchManuscripts();
     if (hasEditorRole) {
       fetchPeople();
     }
   }, [hasEditorRole]);
+
+  // 当manuscript数据更新时，检查是否需要自动调整状态
+  useEffect(() => {
+    // 检查每个manuscript是否所有referee都已做出决定，且都为ACCEPT
+    manuscripts.forEach(manuscript => {
+      if (manuscript.state === 'REV' && manuscript.referees && manuscript.referees.length > 0) {
+        const decisions = refereeDecisions[manuscript._id] || {};
+        
+        // 检查是否所有referee都已做出决定
+        const allReviewsSubmitted = manuscript.referees.every(ref => 
+          decisions[ref] !== undefined
+        );
+        
+        // 检查是否所有referee都接受了
+        const allAccepted = manuscript.referees.every(ref => 
+          decisions[ref] === 'ACCEPT'
+        );
+        
+        // 如果所有referee都接受，自动更新状态
+        if (allReviewsSubmitted && allAccepted) {
+          (async () => {
+            try {
+              await updateManuscriptState(manuscript._id, 'ACC');
+              fetchManuscripts();
+            } catch (err) {
+              console.error("自动状态更新失败:", err);
+            }
+          })();
+        }
+      }
+    });
+  }, [manuscripts, refereeDecisions]);
+
+  // 检查是否所有referee都已完成决策
+  const checkAllDecisions = (manuscript) => {
+    if (!manuscript.referees || manuscript.referees.length === 0) {
+      return { complete: false, unanimous: false, decision: null };
+    }
+    
+    const decisions = refereeDecisions[manuscript._id] || {};
+    const complete = manuscript.referees.every(ref => decisions[ref] !== undefined);
+    
+    if (!complete) return { complete, unanimous: false, decision: null };
+    
+    const firstDecision = decisions[manuscript.referees[0]];
+    const unanimous = manuscript.referees.every(ref => decisions[ref] === firstDecision);
+    
+    return { 
+      complete, 
+      unanimous, 
+      decision: unanimous ? firstDecision : null,
+      acceptCount: manuscript.referees.filter(ref => decisions[ref] === 'ACCEPT').length,
+      rejectCount: manuscript.referees.filter(ref => decisions[ref] === 'REJECT').length,
+      revisionCount: manuscript.referees.filter(ref => decisions[ref] === 'ACCEPT_WITH_REVISIONS').length
+    };
+  };
 
   return (
     <div className="manuscripts-wrapper">
@@ -664,28 +856,111 @@ function Manuscripts() {
                     <td className="process-cell referee-cell">
                       {manuscript.referees && manuscript.referees.length > 0 ? (
                         <div className="referee-review-container">
+                          {getPendingRefereeCount(manuscript) > 0 && (
+                            <div className="referee-status-message">
+                              Waiting for {getPendingRefereeCount(manuscript)} referees actions.
+                            </div>
+                          )}
+                          
+                          {allRefereesReviewed(manuscript) && (
+                            <div className={`referee-status-message ${allRefereesAccepted(manuscript) ? 'success' : 'warning'}`}>
+                              <div className="decision-summary">
+                                <strong>Abstract:</strong>
+                                {(() => {
+                                  const decisions = checkAllDecisions(manuscript);
+                                  return (
+                                    <div>
+                                      <div>Accept: {decisions.acceptCount} </div>
+                                      <div>Revision: {decisions.revisionCount} </div>
+                                      <div>Reject: {decisions.rejectCount} </div>
+                                    </div>
+                                  );
+                                })()}
+                              </div>
+                              
+                              {allRefereesAccepted(manuscript) ? (
+                                <div className="decision-message">All referee accepted this manuscript!</div>
+                              ) : (
+                                <div className="decision-message">
+                                  Some referees have not accepted, which may require author revisions or editor decisions.
+                                </div>
+                              )}
+                              
+                              {/* 添加重置决策的按钮，仅对编辑显示 */}
+                              {hasEditorRole && (
+                                <button 
+                                  className="reset-decisions-button"
+                                  onClick={() => {
+                                    if (window.confirm('Are you sure to reset all referee decisions? This will clear all recorded decisions.')) {
+                                      const newDecisions = { ...refereeDecisions };
+                                      delete newDecisions[manuscript._id];
+                                      setRefereeDecisions(newDecisions);
+                                    }
+                                  }}
+                                >
+                                  Reset all decisions
+                                </button>
+                              )}
+                            </div>
+                          )}
+                          
                           {manuscript.referees.map((referee, index) => (
                             <div key={index} className="referee-review-section">
                               <div className="referee-name-box">
                                 {referee}
+                                {/* 添加模拟Referee操作的按钮，仅在开发/测试环境显示 */}
+                                {hasEditorRole && !hasRefereeAction(manuscript, referee) && (
+                                  <button
+                                    className="simulate-action-button"
+                                    onClick={() => simulateRefereeAction(manuscript._id, referee)}
+                                    disabled={isLoading}
+                                  >
+                                    Simulate Referee Action
+                                  </button>
+                                )}
                               </div>
                               {hasEditorRole && (
-                                <div className="referee-decision-box">
-                                  <button
-                                    className="decision-button accept-button"
-                                    onClick={() => handleEditorDecision(manuscript._id, 'ACCEPT')}
-                                    disabled={isDecisionLoading}
-                                  >
-                                    Accept
-                                  </button>
-                                  <button
-                                    className="decision-button reject-button"
-                                    onClick={() => handleEditorDecision(manuscript._id, 'REJECT')}
-                                    disabled={isDecisionLoading}
-                                  >
-                                    Reject
-                                  </button>
-                                </div>
+                                hasRefereeAction(manuscript, referee) ? (
+                                  <div className="referee-decision-box">
+                                    {!hasRefereeDecision(manuscript._id, referee) ? (
+                                      <>
+                                        <button
+                                          className="decision-button accept-button"
+                                          onClick={() => handleEditorDecision(manuscript._id, 'ACCEPT', referee)}
+                                          disabled={isDecisionLoading}
+                                        >
+                                          Accept
+                                        </button>
+                                        <button
+                                          className="decision-button revisions-button"
+                                          onClick={() => handleEditorDecision(manuscript._id, 'ACCEPT_WITH_REVISIONS', referee)}
+                                          disabled={isDecisionLoading}
+                                        >
+                                          Revisions
+                                        </button>
+                                        <button
+                                          className="decision-button reject-button"
+                                          onClick={() => handleEditorDecision(manuscript._id, 'REJECT', referee)}
+                                          disabled={isDecisionLoading}
+                                        >
+                                          Reject
+                                        </button>
+                                      </>
+                                    ) : (
+                                      <div className="decision-made">
+                                        <span className={`decision-indicator decision-${getRefereeDecision(manuscript._id, referee).toLowerCase()}`}>
+                                          {getRefereeDecision(manuscript._id, referee) === 'ACCEPT' ? 'Accepted' : 
+                                           getRefereeDecision(manuscript._id, referee) === 'ACCEPT_WITH_REVISIONS' ? 'Requested Revisions' : 
+                                           'Rejected'}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <div className="stage-content pending-stage">
+                                    <span className="stage-indicator">Waiting for referee action</span>
+                                  </div>
+                                )
                               )}
                             </div>
                           ))}
