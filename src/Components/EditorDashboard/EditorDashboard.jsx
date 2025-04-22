@@ -16,16 +16,15 @@ const EditorDashboard = () => {
         }
 
         const { email } = JSON.parse(userData);
-        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/check-editor-auth`, {
-          method: 'POST',
+        const response = await fetch(`http://127.0.0.1:8000/dev/editor_dashboard?email=${encodeURIComponent(email)}`, {
+          method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email }),
+          }
         });
 
         if (response.ok) {
-          const data = await response.json();
+          await response.json();
           setAuthorized(true);
           setError(null);
         } else {
@@ -34,6 +33,7 @@ const EditorDashboard = () => {
           setError(errorData.error || "You do not have permission to view this page");
         }
       } catch (err) {
+        console.error("Fetch error:", err);
         setAuthorized(false);
         setError("An error occurred while checking authorization");
       }

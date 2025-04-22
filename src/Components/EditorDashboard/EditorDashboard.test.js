@@ -59,7 +59,7 @@ describe('EditorDashboard Component', () => {
       </BrowserRouter>
     );
 
-    const errorElement = await screen.findByText(/You do not have permission to view this page/i);
+    const errorElement = await screen.findByText(/User test@example.com lacks required roles/i);
     expect(errorElement).toBeInTheDocument();
   });
 });
