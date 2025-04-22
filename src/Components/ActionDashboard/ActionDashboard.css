@@ -132,6 +132,7 @@
 .manuscripts-list .manuscript-actions {
     display: flex;
     justify-content: flex-end;
+    gap: 1rem;
 }
 
 .review-button {
@@ -148,4 +149,28 @@
 .review-button:hover {
     background-color: var(--primary-hover);
     transform: translateY(-1px);
+}
+
+.withdraw-button {
+    background-color: #f44336;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-block;
+}
+
+.withdraw-button:hover {
+    background-color: #d32f2f;
+    transform: translateY(-1px);
+}
+
+.withdraw-button:disabled {
+    background-color: #e0e0e0;
+    color: #9e9e9e;
+    cursor: not-allowed;
+    transform: none;
 }
