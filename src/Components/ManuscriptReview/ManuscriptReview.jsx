@@ -9,6 +9,8 @@ function ManuscriptReview() {
     const [manuscript, setManuscript] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [reviewAction, setReviewAction] = useState('');
+    const [revisionComments, setRevisionComments] = useState('');
 
     useEffect(() => {
         const fetchManuscript = async () => {
@@ -26,11 +28,31 @@ function ManuscriptReview() {
         fetchManuscript();
     }, [id]);
 
-    const handleAction = async (action) => {
+    const handleSelectAction = (action) => {
+        setReviewAction(action);
+        if (action !== 'AWR') {
+            // Clear revision comments if not doing "Accept with Revisions"
+            setRevisionComments('');
+        }
+    };
+
+    const handleSubmitAction = async () => {
         try {
-            // Assuming we have actions defined as 'ACC' for accept and 'REJ' for reject
-            await updateManuscriptState(manuscript.title, action);
-            alert(`Manuscript ${action === 'ACC' ? 'accepted' : 'rejected'} successfully!`);
+            if (reviewAction === 'AWR' && revisionComments.trim() === '') {
+                setError('Please provide revision comments.');
+                return;
+            }
+
+            // Determine action message for alert
+            const actionMessage = reviewAction === 'ACC' ? 'accepted' :
+                reviewAction === 'REJ' ? 'rejected' :
+                    'accepted with revisions';
+
+            // Include revision comments if applicable
+            const payload = reviewAction === 'AWR' ? { comments: revisionComments } : undefined;
+
+            await updateManuscriptState(manuscript.title, reviewAction, payload);
+            alert(`Manuscript ${actionMessage} successfully!`);
             navigate('/action-dashboard');
         } catch (err) {
             setError(err.message);
@@ -64,19 +86,53 @@ function ManuscriptReview() {
                     </div>
                 </div>
 
-                <div className="review-actions">
-                    <button
-                        className="accept-button"
-                        onClick={() => handleAction('ACC')}
-                    >
-                        Accept
-                    </button>
-                    <button
-                        className="reject-button"
-                        onClick={() => handleAction('REJ')}
-                    >
-                        Reject
-                    </button>
+                <div className="review-action-selection">
+                    <h4>Your Decision</h4>
+                    <div className="review-actions">
+                        <button
+                            className={`action-button accept-button ${reviewAction === 'ACC' ? 'selected' : ''}`}
+                            onClick={() => handleSelectAction('ACC')}
+                        >
+                            Accept
+                        </button>
+                        <button
+                            className={`action-button revisions-button ${reviewAction === 'AWR' ? 'selected' : ''}`}
+                            onClick={() => handleSelectAction('AWR')}
+                        >
+                            Accept with Revisions
+                        </button>
+                        <button
+                            className={`action-button reject-button ${reviewAction === 'REJ' ? 'selected' : ''}`}
+                            onClick={() => handleSelectAction('REJ')}
+                        >
+                            Reject
+                        </button>
+                    </div>
+
+                    {reviewAction === 'AWR' && (
+                        <div className="revision-comments-container">
+                            <h4>Revision Comments</h4>
+                            <p className="revision-instructions">Please provide specific feedback and suggestions for the author:</p>
+                            <textarea
+                                className="revision-comments"
+                                value={revisionComments}
+                                onChange={(e) => setRevisionComments(e.target.value)}
+                                placeholder="Explain what changes or improvements are needed..."
+                                required
+                            />
+                        </div>
+                    )}
+
+                    {reviewAction && (
+                        <div className="submit-container">
+                            <button
+                                className="submit-action-button"
+                                onClick={handleSubmitAction}
+                            >
+                                Submit Decision
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

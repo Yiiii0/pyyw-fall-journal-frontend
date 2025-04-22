@@ -50,15 +50,20 @@
     margin-bottom: 1.5rem;
 }
 
+.review-action-selection {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
 .review-actions {
     display: flex;
     gap: 1rem;
-    margin-top: 2rem;
+    margin-top: 1rem;
     justify-content: center;
 }
 
-.accept-button,
-.reject-button {
+.action-button {
     padding: 1rem 2rem;
     border: none;
     border-radius: 8px;
@@ -66,6 +71,12 @@
     font-weight: 500;
     cursor: pointer;
     transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.action-button.selected {
+    border: 2px solid #000;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .accept-button {
@@ -73,13 +84,81 @@
     color: white;
 }
 
+.accept-button:hover,
+.accept-button.selected {
+    background-color: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.revisions-button {
+    background-color: #ff9800;
+    color: white;
+}
+
+.revisions-button:hover,
+.revisions-button.selected {
+    background-color: #e68a00;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
 .reject-button {
     background-color: #f44336;
     color: white;
 }
 
-.accept-button:hover,
-.reject-button:hover {
+.reject-button:hover,
+.reject-button.selected {
+    background-color: #e53935;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.revision-comments-container {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background-color: #fff9c4;
+    border-radius: 8px;
+    border-left: 4px solid #ffc107;
+}
+
+.revision-instructions {
+    margin-bottom: 1rem;
+    font-style: italic;
+    color: #5d4037;
+}
+
+.revision-comments {
+    width: 100%;
+    min-height: 150px;
+    padding: 1rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    resize: vertical;
+    box-sizing: border-box;
+}
+
+.submit-container {
+    margin-top: 2rem;
+    text-align: center;
+}
+
+.submit-action-button {
+    padding: 1rem 2.5rem;
+    background-color: #2196f3;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.submit-action-button:hover {
+    background-color: #1976d2;
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
