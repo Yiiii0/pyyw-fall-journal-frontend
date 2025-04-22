@@ -6,7 +6,7 @@ import EditorDashboard from './EditorDashboard';
 
 describe('EditorDashboard Component', () => {
   beforeEach(() => {
-    localStorage.setItem("user", JSON.stringify({ email: "test@example.com" }));
+    localStorage.setItem("userData", JSON.stringify({ email: "test@example.com" }));
     global.fetch = jest.fn();
   });
 
@@ -18,8 +18,10 @@ describe('EditorDashboard Component', () => {
   test('renders the Editor Dashboard heading when authorized', async () => {
     const fakeResponse = { message: 'Authorized' };
     global.fetch.mockResolvedValueOnce({
+      ok: true,
       status: 200,
       json: async () => fakeResponse,
+      text: async () => JSON.stringify(fakeResponse),
     });
 
     render(
@@ -45,8 +47,10 @@ describe('EditorDashboard Component', () => {
       error: "User test@example.com lacks required roles: ['ED', 'ME']"
     };
     global.fetch.mockResolvedValueOnce({
+      ok: false,
       status: 403,
       json: async () => fakeResponse,
+      text: async () => JSON.stringify(fakeResponse),
     });
 
     render(
