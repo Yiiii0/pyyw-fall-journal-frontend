@@ -111,12 +111,9 @@ function Navbar() {
         <div className="auth-section">
           {currentUser ? (
             <div className="user-info">
-              <div className="user-email">
-                <span className="welcome-text">Welcome,</span>
-                <span className="user-name">
-                  {currentUser.name || currentUser.email}
-                </span>
-              </div>
+              <Link to="/profile" className="logout-button">
+                My Profile
+              </Link>
               <button onClick={handleLogout} className="logout-button">
                 Logout
               </button>
