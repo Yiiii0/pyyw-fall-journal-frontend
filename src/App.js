@@ -18,6 +18,7 @@ import About from './Components/About';
 import Login from './Components/Auth/Login';
 import Register from './Components/Auth/Register';
 import Masthead from './Components/Masthead/Masthead';
+import Profile from './Components/Profile/Profile';
 
 import EditorDashboard from './Components/EditorDashboard/EditorDashboard';
 import ActionDashboard from './Components/ActionDashboard';
@@ -90,6 +91,12 @@ function AppContent() {
         <Route path="/referee/review/:id" element={
           <ProtectedRoute>
             <ManuscriptReview />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/profile" element={
+          <ProtectedRoute>
+            <Profile />
           </ProtectedRoute>
         } />
       </Routes>

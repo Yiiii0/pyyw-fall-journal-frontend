@@ -110,14 +110,16 @@ function Navbar() {
 
         <div className="auth-section">
           {currentUser ? (
-            <div className="user-info">
-              <Link to="/profile" className="logout-button">
-                My Profile
-              </Link>
+            <>
+              <div className="user-info">
+                <button onClick={() => navigate('/profile')} className="logout-button">
+                  My Profile
+                </button>
+              </div>
               <button onClick={handleLogout} className="logout-button">
                 Logout
               </button>
-            </div>
+            </>
           ) : (
             <Link to="/login" className="login-button">
               Sign In
