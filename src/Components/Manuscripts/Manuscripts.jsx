@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import propTypes from 'prop-types';
 import { useAuth } from '../../contexts/AuthContext';
 import { getManuscript, getManuscriptsByTitle, updateManuscript, updateManuscriptState } from '../../services/manuscriptsAPI';
-import { makePersonRefereeForManuscript, removeRefereeFromManuscript } from '../../services/refereeAPI';
+import { addRefereeToManuscript as assignReferee, removeRefereeFromManuscript } from '../../services/refereeAPI';
 import { getAllPeople, register } from '../../services/peopleAPI';
 import './Manuscripts.css';
 
@@ -219,7 +219,7 @@ function Manuscripts() {
     }
     try {
       setIsLoading(true);
-      await makePersonRefereeForManuscript(manuscriptId, refereeEmail);
+      await assignReferee(manuscriptId, refereeEmail);
       fetchManuscripts();
       setDropdownOpen(prev => ({ ...prev, [manuscriptId]: false }));
       setSelectedReferee(prev => ({ ...prev, [manuscriptId]: '' }));
@@ -291,7 +291,7 @@ function Manuscripts() {
     try {
       setIsDecisionLoading(true);
       
-      // 记录referee的决定
+      // record the referee's decision
       const newDecisions = {
         ...refereeDecisions,
         [manuscriptId]: {
@@ -301,38 +301,38 @@ function Manuscripts() {
       };
       setRefereeDecisions(newDecisions);
       
-      // 获取当前manuscript
+      // get the current manuscript
       const manuscript = manuscripts.find(m => m._id === manuscriptId);
       if (!manuscript || !manuscript.referees || manuscript.referees.length === 0) {
-        throw new Error("未找到manuscript或无referee信息");
+        throw new Error("manuscript not found or no referee information");
       }
       
-      // 检查是否所有referee都已做出决定
+      // check if all referees have made decisions
       const allReviewsSubmitted = manuscript.referees.every(ref => 
         newDecisions[manuscriptId]?.[ref] !== undefined
       );
       
-      // 检查是否所有referee都接受了
+      // check if all referees have accepted
       const allAccepted = manuscript.referees.every(ref => 
         newDecisions[manuscriptId]?.[ref] === 'ACCEPT'
       );
       
       let action;
       if (allReviewsSubmitted && allAccepted) {
-        // 所有referee都接受，进入Copy Editing阶段
+        // all referees have accepted, enter the Copy Editing stage
         action = 'ACC';
       } else if (decision === 'ACCEPT_WITH_REVISIONS') {
-        // 任一referee要求修改，进入Author Revision阶段
+        // any referee requires revisions, enter the Author Revision stage
         action = 'AWR';
       } else if (decision === 'REJECT') {
-        // 任一referee拒绝，拒绝manuscript
+        // any referee rejects, reject the manuscript
         action = 'REJ';
       } else {
-        // 只是提交了review，不改变状态
+        // only submitted review, no change in state
         action = 'SBR'; // Submit Review
       }
       
-      // 执行状态更新
+      // execute the state update
       await updateManuscriptState(manuscriptId, action, { referee: refereeEmail });
       
       await fetchManuscripts();
@@ -401,7 +401,7 @@ function Manuscripts() {
     return refereeDecisions[manuscriptId]?.[refereeEmail] || null;
   };
 
-  // 检查所有的referee是否做出了决定
+  // check if all referees have made decisions
   const allRefereesReviewed = (manuscript) => {
     if (!manuscript.referees || manuscript.referees.length === 0) {
       return false;
@@ -413,7 +413,7 @@ function Manuscripts() {
     );
   };
 
-  // 获取未做出决定的referee数量
+  // get the number of referees who have not made decisions
   const getPendingRefereeCount = (manuscript) => {
     if (!manuscript.referees) return 0;
     
@@ -423,7 +423,7 @@ function Manuscripts() {
     ).length;
   };
 
-  // 在组件加载时初始化状态
+  // initialize the state when the component is loaded
   useEffect(() => {
     fetchManuscripts();
     if (hasEditorRole) {
@@ -431,31 +431,31 @@ function Manuscripts() {
     }
   }, [hasEditorRole]);
 
-  // 当manuscript数据更新时，检查是否需要自动调整状态
+  // when manuscript data is updated, check if it needs to be automatically adjusted
   useEffect(() => {
-    // 检查每个manuscript是否所有referee都已做出决定，且都为ACCEPT
+    // check if each manuscript has all referees made decisions and all are ACCEPT
     manuscripts.forEach(manuscript => {
       if (manuscript.state === 'REV' && manuscript.referees && manuscript.referees.length > 0) {
         const decisions = refereeDecisions[manuscript._id] || {};
         
-        // 检查是否所有referee都已做出决定
+        // check if all referees have made decisions
         const allReviewsSubmitted = manuscript.referees.every(ref => 
           decisions[ref] !== undefined
         );
         
-        // 检查是否所有referee都接受了
+        // check if all referees have accepted
         const allAccepted = manuscript.referees.every(ref => 
           decisions[ref] === 'ACCEPT'
         );
         
-        // 如果所有referee都接受，自动更新状态
+        // if all referees have accepted, automatically update the state
         if (allReviewsSubmitted && allAccepted) {
           (async () => {
             try {
               await updateManuscriptState(manuscript._id, 'ACC');
               fetchManuscripts();
             } catch (err) {
-              console.error("自动状态更新失败:", err);
+              console.error("failed to automatically update the state:", err);
             }
           })();
         }
@@ -463,7 +463,7 @@ function Manuscripts() {
     });
   }, [manuscripts, refereeDecisions]);
 
-  // 检查是否所有referee都已完成决策
+  // check if all referees have made decisions
   const checkAllDecisions = (manuscript) => {
     if (!manuscript.referees || manuscript.referees.length === 0) {
       return { complete: false, unanimous: false, decision: null };
@@ -886,7 +886,7 @@ function Manuscripts() {
                                 </div>
                               )}
                               
-                              {/* 添加重置决策的按钮，仅对编辑显示 */}
+                              {/* add a button to reset decisions, only show in editor role */}
                               {hasEditorRole && (
                                 <button 
                                   className="reset-decisions-button"
@@ -908,7 +908,7 @@ function Manuscripts() {
                             <div key={index} className="referee-review-section">
                               <div className="referee-name-box">
                                 {referee}
-                                {/* 添加模拟Referee操作的按钮，仅在开发/测试环境显示 */}
+                                {/* add a button to simulate referee action, only show in development/test environment */}
                                 {hasEditorRole && !hasRefereeAction(manuscript, referee) && (
                                   <button
                                     className="simulate-action-button"

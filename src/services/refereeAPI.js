@@ -11,7 +11,7 @@ const REFEREE_ENDPOINTS = {
 export const addRefereeRole = async (email) => {
     try {
         const { data } = await axios.put(REFEREE_ENDPOINTS.ADD_ROLE, {
-            email,
+            id: email,
             role: 'RE'
         });
         return data;
@@ -62,15 +62,11 @@ export const removeRefereeFromManuscript = async (manuscriptId, refereeEmail) =>
 };
 
 // Make a person a referee for a manuscript
-// This function first adds the referee role to the person and then assigns them to the manuscript
+// This function directly assigns the person as a referee to the manuscript
 export const makePersonRefereeForManuscript = async (manuscriptId, email) => {
     try {
-        // Step 1: Add referee role (will continue even if user already has role)
-        await addRefereeRole(email);
-
-        // Step 2: Add person as referee to manuscript
+        // Directly add person as referee to manuscript without checking/adding the role
         const result = await addRefereeToManuscript(manuscriptId, email);
-
         return result;
     } catch (error) {
         const errorMessage = error.response?.data?.message || error.message;

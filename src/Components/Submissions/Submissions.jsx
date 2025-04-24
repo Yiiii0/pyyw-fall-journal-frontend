@@ -31,8 +31,9 @@ function AddManuscriptForm({ visible, cancel, fetchManuscripts, setError, curren
   const [editorEmail, setEditorEmail] = useState('');
 
   useEffect(() => {
-    if (currentUser && currentUser.email) {
-      setEditorEmail(currentUser.email);
+    if (currentUser) {
+      const userIdentifier = currentUser.id || currentUser.email;
+      setEditorEmail(userIdentifier);
     }
   }, [currentUser]);
 
@@ -91,6 +92,7 @@ AddManuscriptForm.propTypes = {
   fetchManuscripts: propTypes.func.isRequired,
   setError: propTypes.func.isRequired,
   currentUser: propTypes.shape({
+    id: propTypes.string,
     email: propTypes.string,
     name: propTypes.string,
   }),
@@ -720,6 +722,7 @@ const Submissions = ({ user }) => {
 
 Submissions.propTypes = {
   user: propTypes.shape({
+    id: propTypes.string,
     email: propTypes.string,
     name: propTypes.string,
   }),

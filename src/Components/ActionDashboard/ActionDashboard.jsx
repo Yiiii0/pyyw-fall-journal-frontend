@@ -17,6 +17,7 @@ function ActionDashboard() {
             setLoading(true);
             const data = await getManuscripts();
             console.log("API Response:", data); // Debug: Log the complete API response
+            console.log("Current User:", currentUser); // Debug: Log the currentUser object
 
             // Check the data structure
             let manuscriptsArray = [];
@@ -39,11 +40,27 @@ function ActionDashboard() {
             }
 
             // Filter manuscripts to only include those where the current user is assigned as referee
-            if (currentUser && currentUser.email) {
+            if (currentUser) {
+                // 用户可能有多个标识符：id, email 等
+                const possibleIdentifiers = [
+                    currentUser.id,
+                    currentUser.email,
+                    currentUser.username
+                ].filter(Boolean); // 过滤掉 undefined/null 值
+                
+                console.log("User possible identifiers:", possibleIdentifiers); // Debug
+                
                 manuscriptsArray = manuscriptsArray.filter(manuscript => {
-                    return manuscript.referees &&
-                        Array.isArray(manuscript.referees) &&
-                        manuscript.referees.includes(currentUser.email);
+                    console.log("Manuscript referees:", manuscript.referees); // Debug
+                    
+                    if (!manuscript.referees || !Array.isArray(manuscript.referees)) {
+                        return false;
+                    }
+                    
+                    // 检查 manuscript 的 referees 数组中是否包含用户的任意一个标识符
+                    return possibleIdentifiers.some(id => 
+                        manuscript.referees.includes(id)
+                    );
                 });
             }
 
@@ -59,13 +76,13 @@ function ActionDashboard() {
     };
 
     useEffect(() => {
-        if (currentUser && currentUser.email) {
+        if (currentUser && (currentUser.id || currentUser.email)) {
             fetchManuscripts();
         }
     }, [currentUser]);
 
     const handleWithdraw = async (manuscriptId) => {
-        if (!currentUser || !currentUser.email) {
+        if (!currentUser || (!currentUser.id && !currentUser.email)) {
             setError("User information not available");
             return;
         }
@@ -80,7 +97,8 @@ function ActionDashboard() {
 
         try {
             setWithdrawing(true);
-            await removeRefereeFromManuscript(manuscriptId, currentUser.email);
+            const userIdentifier = currentUser.id || currentUser.email;
+            await removeRefereeFromManuscript(manuscriptId, userIdentifier);
             await fetchManuscripts(); // Refresh the manuscripts list
 
             // Show success message

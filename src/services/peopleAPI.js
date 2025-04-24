@@ -45,7 +45,7 @@ export const deletePerson = async (email) => {
 export const updatePerson = async (email, name, affiliation) => {
   try {
     const response = await axios.put(PEOPLE_ENDPOINTS.UPDATE, {
-      email,
+      id: email,
       name,
       affiliation,
     });
@@ -68,7 +68,7 @@ export const getRoles = async () => {
 export const addRole = async (email, role) => {
   try {
     const response = await axios.put(PEOPLE_ENDPOINTS.ADD_ROLE, {
-      email,
+      id: email,
       role,
     });
     return response.data;
@@ -81,7 +81,7 @@ export const addRole = async (email, role) => {
 export const deleteRole = async (email, role) => {
   try {
     const response = await axios.delete(PEOPLE_ENDPOINTS.DELETE_ROLE, {
-      data: { email, role },
+      data: { id: email, role },
     });
     return response.data;
   } catch (error) {

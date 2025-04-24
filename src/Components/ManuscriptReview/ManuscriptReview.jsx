@@ -51,7 +51,7 @@ function ManuscriptReview() {
             // Include revision comments if applicable
             const payload = reviewAction === 'AWR' ? { comments: revisionComments } : undefined;
 
-            await updateManuscriptState(manuscript.title, reviewAction, payload);
+            await updateManuscriptState(manuscript._id, reviewAction, payload);
             alert(`Manuscript ${actionMessage} successfully!`);
             navigate('/action-dashboard');
         } catch (err) {
