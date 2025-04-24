@@ -78,7 +78,6 @@ function Manuscripts() {
   const [textModalOpen, setTextModalOpen] = useState(null);
   const hasEditorRole = currentUser?.roles?.includes('ED');
   const [isDecisionLoading, setIsDecisionLoading] = useState(false);
-  const [refereeActions, setRefereeActions] = useState({});
   const [refereeDecisions, setRefereeDecisions] = useState({});
 
   // Load referee decisions from localStorage on component mount
@@ -94,11 +93,47 @@ function Manuscripts() {
     localStorage.setItem('refereeDecisions', JSON.stringify(refereeDecisions));
   }, [refereeDecisions]);
 
+  const formatManuscriptsWithComments = (manuscriptsArray) => {
+    return manuscriptsArray.map(manuscript => {
+      if (manuscript.comments) {
+        if (typeof manuscript.comments === 'string') {
+          manuscript.comments = [{
+            text: manuscript.comments,
+            author: manuscript.editor_email || 'Editor',
+            date: new Date().toISOString()
+          }];
+        } else if (Array.isArray(manuscript.comments)) {
+          manuscript.comments = manuscript.comments.map(comment => {
+            if (typeof comment === 'string') {
+              return {
+                text: comment,
+                author: manuscript.editor_email || 'Editor',
+                date: new Date().toISOString()
+              };
+            }
+            return comment;
+          });
+        }
+      }
+      return manuscript;
+    });
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'No date';
+    try {
+      return new Date(dateString).toLocaleDateString();
+    } catch (e) {
+      return 'Invalid date';
+    }
+  };
+
   const fetchManuscripts = async () => {
     try {
       const data = await getManuscript();
       const manuscriptsArray = Array.isArray(data) ? data : ManuscriptsObjectToArray(data);
-      setManuscripts(manuscriptsArray);
+      const processedManuscripts = formatManuscriptsWithComments(manuscriptsArray);
+      setManuscripts(processedManuscripts);
       setError('');
     } catch (err) {
       setError(`There was a problem retrieving the list of manuscripts. ${err.message}`);
@@ -127,7 +162,8 @@ function Manuscripts() {
     try {
       const data = await getManuscriptsByTitle(searchTitle);
       const manuscriptsArray = Array.isArray(data) ? data : ManuscriptsObjectToArray(data);
-      setManuscripts(manuscriptsArray);
+      const processedManuscripts = formatManuscriptsWithComments(manuscriptsArray);
+      setManuscripts(processedManuscripts);
       setError('');
     } catch (err) {
       setError(`There was a problem retrieving the manuscript with title "${searchTitle}". ${err.message}`);
@@ -343,38 +379,8 @@ function Manuscripts() {
     }
   };
 
-  const simulateRefereeAction = async (manuscriptId, refereeEmail) => {
-    try {
-      setIsLoading(true);
-      setRefereeActions(prev => ({
-        ...prev,
-        [manuscriptId]: [...(prev[manuscriptId] || []), refereeEmail]
-      }));
-      
-      const updatedManuscripts = manuscripts.map(manuscript => {
-        if (manuscript._id === manuscriptId) {
-          return {
-            ...manuscript,
-            referee_actions: [...(manuscript.referee_actions || []), refereeEmail]
-          };
-        }
-        return manuscript;
-      });
-      
-      setManuscripts(updatedManuscripts);
-    } catch (err) {
-      setError(`Failed to simulate referee action: ${err.message}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const hasRefereeAction = (manuscript, refereeEmail) => {
     if (manuscript.referee_actions && manuscript.referee_actions.includes(refereeEmail)) {
-      return true;
-    }
-    
-    if (refereeActions[manuscript._id] && refereeActions[manuscript._id].includes(refereeEmail)) {
       return true;
     }
     
@@ -600,123 +606,155 @@ function Manuscripts() {
       {isSimpleView ? (
         <div className="manuscripts-grid">
           {manuscripts.length > 0 ? (
-            manuscripts.map((manuscript) => (
-              <div key={manuscript._id} className="manuscript-card">
-                <div className="manuscript-simple-content">
-                  <StatusBadge state={manuscript.state} />
-                  <h3 className="manuscript-title">{manuscript.title}</h3>
-                  <p className="manuscript-author">
-                    <span className="info-label">Author:</span> {manuscript.author}
-                  </p>
-                  <p className="manuscript-abstract">
-                    {truncateText(manuscript.abstract, 50)}
-                  </p>
-                  {expandedManuscripts.has(manuscript._id) && (
-                    <div className="manuscript-details">
-                      <p><span className="info-label">Author Email:</span> {manuscript.author_email}</p>
-                      <p><span className="info-label">Editor:</span> {manuscript.editor_email}</p>
-                      <p className="manuscript-referees">
-                        <span className="info-label">Referees:</span>
-                        {manuscript.referees && manuscript.referees.length > 0
-                          ? manuscript.referees.map((referee, index) => (
-                            <span key={index} className="referee-item">
-                              {referee}
-                              {hasEditorRole && (
-                                <button
-                                  className="delete-referee-button"
-                                  onClick={() => deleteRefereeFromManuscript(manuscript._id, referee)}
-                                  disabled={isLoading}
-                                >
-                                  {isLoading ? '...' : 'Remove'}
-                                </button>
-                              )}
-                              {index < manuscript.referees.length - 1 ? ', ' : ''}
-                            </span>
-                          ))
-                          : 'None'}
-                      </p>
-                      <div className="abstract-section">
-                        <p><span className="info-label">Full Abstract:</span></p>
-                        <p>{manuscript.abstract}</p>
-                      </div>
-                      {manuscript.text && (
-                        <div className="text-button-container">
-                          <button
-                            className="text-button"
-                            onClick={() => toggleTextModal(manuscript._id)}
-                          >
-                            View Text
-                          </button>
+            manuscripts.map((manuscript) => {
+              // 检查是否有评论
+              const hasComments = manuscript.comments && 
+                ((Array.isArray(manuscript.comments) && manuscript.comments.length > 0) || 
+                 (typeof manuscript.comments === 'string' && manuscript.comments.trim() !== ''));
+              
+              return (
+                <div key={manuscript._id} className={`manuscript-card ${hasComments ? 'has-comments' : ''}`}>
+                  <div className="manuscript-simple-content">
+                    <StatusBadge state={manuscript.state} />
+                    <h3 className="manuscript-title">
+                      {manuscript.title}
+                      {hasComments && <span className="comments-indicator" title="Has revision comments">💬</span>}
+                    </h3>
+                    <p className="manuscript-author">
+                      <span className="info-label">Author:</span> {manuscript.author}
+                    </p>
+                    <p className="manuscript-abstract">
+                      {truncateText(manuscript.abstract, 50)}
+                    </p>
+                    {expandedManuscripts.has(manuscript._id) && (
+                      <div className="manuscript-details">
+                        <p><span className="info-label">Author Email:</span> {manuscript.author_email}</p>
+                        <p><span className="info-label">Editor:</span> {manuscript.editor_email}</p>
+                        <p className="manuscript-referees">
+                          <span className="info-label">Referees:</span>
+                          {manuscript.referees && manuscript.referees.length > 0
+                            ? manuscript.referees.map((referee, index) => (
+                              <span key={index} className="referee-item">
+                                {referee}
+                                {hasEditorRole && (
+                                  <button
+                                    className="delete-referee-button"
+                                    onClick={() => deleteRefereeFromManuscript(manuscript._id, referee)}
+                                    disabled={isLoading}
+                                  >
+                                    {isLoading ? '...' : 'Remove'}
+                                  </button>
+                                )}
+                                {index < manuscript.referees.length - 1 ? ', ' : ''}
+                              </span>
+                            ))
+                            : 'None'}
+                        </p>
+                        {manuscript.comments && (
+                          <div className="comments-container">
+                            <h5 className="comments-title">Revision Comments:</h5>
+                            {Array.isArray(manuscript.comments) && manuscript.comments.length > 0 ? (
+                              <ul className="comments-list">
+                                {manuscript.comments.map((comment, index) => (
+                                  <li key={index} className="comment-item">
+                                    <div className="comment-header">
+                                      <span className="comment-author">{comment.author || 'Anonymous'}</span>
+                                      <span className="comment-date">{formatDate(comment.date)}</span>
+                                    </div>
+                                    <p className="comment-text">{comment.text}</p>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : typeof manuscript.comments === 'string' ? (
+                              <p className="comment-text">{manuscript.comments}</p>
+                            ) : (
+                              <p className="no-comments-placeholder">No structured comments available</p>
+                            )}
+                          </div>
+                        )}
+                        <div className="abstract-section">
+                          <p><span className="info-label">Full Abstract:</span></p>
+                          <p>{manuscript.abstract}</p>
                         </div>
-                      )}
-                    </div>
-                  )}
-                  <div className="manuscript-actions">
-                    <button
-                      className="expand-button"
-                      onClick={() => toggleManuscriptExpansion(manuscript._id)}
-                    >
-                      {expandedManuscripts.has(manuscript._id) ? 'Show Less' : 'Show More'}
-                    </button>
-                    <button
-                      className="edit-button"
-                      onClick={() => handleEditClick(manuscript)}
-                    >
-                      Edit
-                    </button>
-
-                    {hasEditorRole && (
-                      <div className="referee-dropdown-container">
-                        <button
-                          className="add-referee-button"
-                          onClick={() => toggleDropdown(manuscript._id)}
-                        >
-                          Assign Referee
-                        </button>
-                        {dropdownOpen[manuscript._id] && (
-                          <div className="referee-dropdown">
-                            <select
-                              value={selectedReferee[manuscript._id] || ''}
-                              onChange={(e) => handleRefereeSelect(manuscript._id, e.target.value)}
-                              className="referee-select"
+                        {manuscript.text && (
+                          <div className="text-button-container">
+                            <button
+                              className="text-button"
+                              onClick={() => toggleTextModal(manuscript._id)}
                             >
-                              <option value="">Select a referee</option>
-                              {people.map(person => {
-                                const match = person.match(/(.*) \((.*)\)/);
-                                if (match) {
-                                  const [, name, email] = match;
-                                  return (
-                                    <option key={email} value={email}>
-                                      {name} ({email})
-                                    </option>
-                                  );
-                                }
-                                return null;
-                              })}
-                            </select>
-                            <div className="dropdown-actions">
-                              <button
-                                onClick={() => addRefereeToManuscript(manuscript._id)}
-                                className="confirm-referee-button"
-                                disabled={isLoading || !selectedReferee[manuscript._id]}
-                              >
-                                {isLoading ? 'Assigning...' : 'Confirm'}
-                              </button>
-                              <button
-                                onClick={() => toggleDropdown(manuscript._id)}
-                                className="cancel-referee-button"
-                              >
-                                Cancel
-                              </button>
-                            </div>
+                              View Text
+                            </button>
                           </div>
                         )}
                       </div>
                     )}
+                    <div className="manuscript-actions">
+                      <button
+                        className="expand-button"
+                        onClick={() => toggleManuscriptExpansion(manuscript._id)}
+                      >
+                        {expandedManuscripts.has(manuscript._id) ? 'Show Less' : 'Show More'}
+                      </button>
+                      <button
+                        className="edit-button"
+                        onClick={() => handleEditClick(manuscript)}
+                      >
+                        Edit
+                      </button>
+
+                      {hasEditorRole && (
+                        <div className="referee-dropdown-container">
+                          <button
+                            className="add-referee-button"
+                            onClick={() => toggleDropdown(manuscript._id)}
+                          >
+                            Assign Referee
+                          </button>
+                          {dropdownOpen[manuscript._id] && (
+                            <div className="referee-dropdown">
+                              <select
+                                value={selectedReferee[manuscript._id] || ''}
+                                onChange={(e) => handleRefereeSelect(manuscript._id, e.target.value)}
+                                className="referee-select"
+                              >
+                                <option value="">Select a referee</option>
+                                {people.map(person => {
+                                  const match = person.match(/(.*) \((.*)\)/);
+                                  if (match) {
+                                    const [, name, email] = match;
+                                    return (
+                                      <option key={email} value={email}>
+                                        {name} ({email})
+                                      </option>
+                                    );
+                                  }
+                                  return null;
+                                })}
+                              </select>
+                              <div className="dropdown-actions">
+                                <button
+                                  onClick={() => addRefereeToManuscript(manuscript._id)}
+                                  className="confirm-referee-button"
+                                  disabled={isLoading || !selectedReferee[manuscript._id]}
+                                >
+                                  {isLoading ? 'Assigning...' : 'Confirm'}
+                                </button>
+                                <button
+                                  onClick={() => toggleDropdown(manuscript._id)}
+                                  className="cancel-referee-button"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           ) : (
             <div className="no-manuscripts">No manuscripts found</div>
           )}
@@ -886,38 +924,50 @@ function Manuscripts() {
                                 </div>
                               )}
                               
-                              {/* add a button to reset decisions, only show in editor role */}
-                              {hasEditorRole && (
-                                <button 
-                                  className="reset-decisions-button"
-                                  onClick={() => {
-                                    if (window.confirm('Are you sure to reset all referee decisions? This will clear all recorded decisions.')) {
-                                      const newDecisions = { ...refereeDecisions };
-                                      delete newDecisions[manuscript._id];
-                                      setRefereeDecisions(newDecisions);
-                                    }
-                                  }}
-                                >
-                                  Reset all decisions
-                                </button>
+                              {manuscript.comments && (
+                                <div className="comments-container">
+                                  <h5 className="comments-title">Revision Comments:</h5>
+                                  {Array.isArray(manuscript.comments) && manuscript.comments.length > 0 ? (
+                                    <ul className="comments-list">
+                                      {manuscript.comments.map((comment, index) => (
+                                        <li key={index} className="comment-item">
+                                          <div className="comment-header">
+                                            <span className="comment-author">{comment.author || 'Anonymous'}</span>
+                                            <span className="comment-date">{formatDate(comment.date)}</span>
+                                          </div>
+                                          <p className="comment-text">{comment.text}</p>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  ) : typeof manuscript.comments === 'string' ? (
+                                    <p className="comment-text">{manuscript.comments}</p>
+                                  ) : (
+                                    <p className="no-comments-placeholder">No structured comments available</p>
+                                  )}
+                                </div>
                               )}
                             </div>
+                          )}
+                          
+                          {hasEditorRole && (
+                            <button 
+                              className="reset-decisions-button"
+                              onClick={() => {
+                                if (window.confirm('Are you sure to reset all referee decisions? This will clear all recorded decisions.')) {
+                                  const newDecisions = { ...refereeDecisions };
+                                  delete newDecisions[manuscript._id];
+                                  setRefereeDecisions(newDecisions);
+                                }
+                              }}
+                            >
+                              Reset all decisions
+                            </button>
                           )}
                           
                           {manuscript.referees.map((referee, index) => (
                             <div key={index} className="referee-review-section">
                               <div className="referee-name-box">
                                 {referee}
-                                {/* add a button to simulate referee action, only show in development/test environment */}
-                                {hasEditorRole && !hasRefereeAction(manuscript, referee) && (
-                                  <button
-                                    className="simulate-action-button"
-                                    onClick={() => simulateRefereeAction(manuscript._id, referee)}
-                                    disabled={isLoading}
-                                  >
-                                    Simulate Referee Action
-                                  </button>
-                                )}
                               </div>
                               {hasEditorRole && (
                                 hasRefereeAction(manuscript, referee) ? (

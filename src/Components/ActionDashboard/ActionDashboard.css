@@ -174,3 +174,159 @@
     cursor: not-allowed;
     transform: none;
 }
+
+/* 添加新的评论相关样式 */
+.manuscript-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.manuscript-state {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.state-SUB { background-color: #e0e0e0; }
+.state-REV { background-color: #b3e0ff; }
+.state-REJ { background-color: #ffb3b3; }
+.state-CED { background-color: #c6e2c6; }
+.state-AUR { background-color: #ffe0b3; }
+.state-WIT { background-color: #d9d9d9; }
+.state-EDR { background-color: #d9b3ff; }
+.state-ARV { background-color: #ffcc99; }
+.state-FMT { background-color: #b3ffe0; }
+.state-PUB { background-color: #99ff99; }
+
+.toggle-details-button {
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 5px 10px;
+  margin: 10px 0;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.toggle-details-button:hover {
+  background-color: #e0e0e0;
+}
+
+.manuscript-details {
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  padding: 15px;
+  margin: 10px 0 15px;
+  background-color: #f9f9f9;
+}
+
+.details-section h5,
+.comments-section h5 {
+  font-size: 16px;
+  margin: 0 0 10px;
+  color: #333;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 5px;
+}
+
+.comments-section {
+  margin-top: 15px;
+  border-top: 1px solid #e0e0e0;
+  padding-top: 15px;
+}
+
+.comments-section h5 {
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  margin-bottom: 12px;
+  color: #2c3e50;
+}
+
+.comments-section h5::before {
+  content: "";
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%234b6584'%3E%3Cpath fill-rule='evenodd' d='M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z' clip-rule='evenodd'/%3E%3C/svg%3E");
+  background-size: contain;
+  margin-right: 8px;
+}
+
+.comments-list {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.comment-item {
+  padding: 12px;
+  border-radius: 6px;
+  background-color: #fff;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.comment-header {
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.comment-author {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.comment-date {
+  font-size: 13px;
+  color: #7f8c8d;
+}
+
+.comment-text {
+  line-height: 1.6;
+  color: #333;
+  white-space: pre-line; /* Preserve new lines in comments */
+}
+
+/* Add a notification badge for manuscripts with comments */
+.manuscript-item.has-comments .manuscript-title::after {
+  content: "•";
+  color: #e74c3c;
+  font-size: 20px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+/* Highlight the toggle button for manuscripts with comments */
+.manuscript-item.has-comments .toggle-details-button {
+  position: relative;
+  border-color: #3498db;
+  color: #3498db;
+}
+
+.manuscript-item.has-comments .toggle-details-button::after {
+  content: "New comments";
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #e74c3c;
+  color: white;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: bold;
+}
+
+/* Empty comments placeholder */
+.no-comments-placeholder {
+  text-align: center;
+  padding: 15px;
+  color: #7f8c8d;
+  font-style: italic;
+}

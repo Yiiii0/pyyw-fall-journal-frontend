@@ -834,24 +834,7 @@ button:hover {
 }
 
 .simulate-action-button {
-  font-size: 0.7rem;
-  padding: 4px 6px;
-  margin-top: 5px;
-  background-color: #4a5568;
-  color: white;
-  border: none;
-  border-radius: 3px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  box-shadow: none;
-  display: block;
-  width: 100%;
-}
-
-.simulate-action-button:hover {
-  background-color: #2d3748;
-  transform: none;
-  box-shadow: none;
+  display: none;
 }
 
 .stage-content.pending-stage {
@@ -956,4 +939,115 @@ button:hover {
   color: #212529;
   transform: none;
   box-shadow: none;
+}
+
+/* 添加评论相关样式 */
+.comments-container {
+  margin-top: 15px;
+  border-top: 1px solid #e0e0e0;
+  padding-top: 10px;
+}
+
+.comments-title {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #2c3e50;
+}
+
+.comments-title::before {
+  content: "";
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%234b6584'%3E%3Cpath fill-rule='evenodd' d='M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z' clip-rule='evenodd'/%3E%3C/svg%3E");
+  background-size: contain;
+  margin-right: 6px;
+}
+
+.comments-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.comment-item {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  background-color: white;
+  margin-bottom: 4px;
+}
+
+.comment-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  font-size: 12px;
+}
+
+.comment-author {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.comment-date {
+  color: #7f8c8d;
+}
+
+.comment-text {
+  margin: 0;
+  line-height: 1.4;
+  font-size: 13px;
+  color: #333;
+  white-space: pre-line; /* 保留换行符 */
+}
+
+.no-comments-placeholder {
+  text-align: center;
+  padding: 8px;
+  color: #7f8c8d;
+  font-style: italic;
+  font-size: 13px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+/* 为有评论的卡片添加视觉区分 */
+.manuscript-card.has-comments {
+  border-left: 3px solid #3498db;
+}
+
+.comments-indicator {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 16px;
+  color: #3498db;
+  cursor: help;
+  vertical-align: middle;
+}
+
+/* 修改卡片视图中评论容器的样式 */
+.manuscript-card .comments-container {
+  margin: 10px 0;
+  padding: 10px;
+  background-color: #f8f9f8;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+}
+
+.manuscript-card .comments-title {
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #2c3e50;
 }

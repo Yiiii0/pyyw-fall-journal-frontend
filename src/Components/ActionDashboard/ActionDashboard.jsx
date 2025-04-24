@@ -10,6 +10,7 @@ function ActionDashboard() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [withdrawing, setWithdrawing] = useState(false);
+    const [expandedManuscripts, setExpandedManuscripts] = useState({});
     const { currentUser } = useAuth();
 
     const fetchManuscripts = async () => {
@@ -38,6 +39,35 @@ function ActionDashboard() {
                 // Case 4: data is a plain object (key-value pairs of manuscripts)
                 manuscriptsArray = Object.values(data).filter(item => item !== null);
             }
+
+            // Process comments for each manuscript
+            manuscriptsArray = manuscriptsArray.map(manuscript => {
+                // Process comments if they exist
+                if (manuscript.comments) {
+                    // If comments is a string, convert it to a structured format
+                    if (typeof manuscript.comments === 'string') {
+                        manuscript.comments = [{
+                            text: manuscript.comments,
+                            author: manuscript.editor_email || 'Editor',
+                            date: new Date().toISOString()
+                        }];
+                    }
+                    // If it's already an array, make sure it has the right structure
+                    else if (Array.isArray(manuscript.comments)) {
+                        manuscript.comments = manuscript.comments.map(comment => {
+                            if (typeof comment === 'string') {
+                                return {
+                                    text: comment,
+                                    author: manuscript.editor_email || 'Editor',
+                                    date: new Date().toISOString()
+                                };
+                            }
+                            return comment;
+                        });
+                    }
+                }
+                return manuscript;
+            });
 
             // Filter manuscripts to only include those where the current user is assigned as referee
             if (currentUser) {
@@ -111,6 +141,40 @@ function ActionDashboard() {
         }
     };
 
+    const toggleManuscriptDetails = (manuscriptId) => {
+        setExpandedManuscripts(prev => ({
+            ...prev,
+            [manuscriptId]: !prev[manuscriptId]
+        }));
+    };
+
+    // Helper function to get state display name
+    const getStateDisplayName = (stateCode) => {
+        const states = {
+            'SUB': 'Submitted',
+            'REV': 'In Review',
+            'REJ': 'Rejected',
+            'CED': 'Copy Editing',
+            'AUR': 'Author Review',
+            'WIT': 'Withdrawn',
+            'EDR': 'Editor Review',
+            'ARV': 'Author Revision',
+            'FMT': 'Formatting',
+            'PUB': 'Published'
+        };
+        return states[stateCode] || stateCode;
+    };
+
+    // Helper to format date string
+    const formatDate = (dateString) => {
+        if (!dateString) return 'No date';
+        try {
+            return new Date(dateString).toLocaleDateString();
+        } catch (e) {
+            return 'Invalid date';
+        }
+    };
+
     return (
         <div className="action-dashboard-container">
             <h2 className="action-dashboard-heading">Action Dashboard</h2>
@@ -126,24 +190,86 @@ function ActionDashboard() {
                         <div className="error-message">{error}</div>
                     ) : manuscripts.length > 0 ? (
                         <div className="manuscripts-list">
-                            {manuscripts.map(manuscript => (
-                                <div className="manuscript-item" key={manuscript._id}>
-                                    <h4 className="manuscript-title">{manuscript.title}</h4>
-                                    <p className="manuscript-author">Author: {manuscript.author}</p>
-                                    <div className="manuscript-actions">
-                                        <Link to={`/referee/review/${manuscript._id}`} className="review-button">
-                                            Review
-                                        </Link>
-                                        <button
-                                            className="withdraw-button"
-                                            onClick={() => handleWithdraw(manuscript._id)}
-                                            disabled={withdrawing}
+                            {manuscripts.map(manuscript => {
+                                // Check if manuscript has comments to apply special styling
+                                const hasComments = manuscript.comments && 
+                                    ((Array.isArray(manuscript.comments) && manuscript.comments.length > 0) || 
+                                     (typeof manuscript.comments === 'string' && manuscript.comments.trim() !== ''));
+                                
+                                return (
+                                    <div 
+                                        className={`manuscript-item ${hasComments ? 'has-comments' : ''}`} 
+                                        key={manuscript._id}
+                                    >
+                                        <div className="manuscript-header">
+                                            <h4 className="manuscript-title">{manuscript.title}</h4>
+                                            <span className={`manuscript-state state-${manuscript.state}`}>
+                                                {getStateDisplayName(manuscript.state)}
+                                            </span>
+                                        </div>
+                                        <p className="manuscript-author">Author: {manuscript.author}</p>
+                                        
+                                        <button 
+                                            className="toggle-details-button"
+                                            onClick={() => toggleManuscriptDetails(manuscript._id)}
                                         >
-                                            {withdrawing ? "Withdrawing..." : "Withdraw"}
+                                            {expandedManuscripts[manuscript._id] ? 'Hide Details' : 'Show Details'}
                                         </button>
+                                        
+                                        {expandedManuscripts[manuscript._id] && (
+                                            <div className="manuscript-details">
+                                                <div className="details-section">
+                                                    <h5>Abstract</h5>
+                                                    <p>{manuscript.abstract}</p>
+                                                </div>
+                                                
+                                                {manuscript.comments ? (
+                                                    <div className="comments-section">
+                                                        <h5>Revision Comments</h5>
+                                                        {Array.isArray(manuscript.comments) && manuscript.comments.length > 0 ? (
+                                                            <ul className="comments-list">
+                                                                {manuscript.comments.map((comment, index) => (
+                                                                    <li key={index} className="comment-item">
+                                                                        <div className="comment-header">
+                                                                            <span className="comment-author">{comment.author || 'Anonymous'}</span>
+                                                                            <span className="comment-date">
+                                                                                {formatDate(comment.date)}
+                                                                            </span>
+                                                                        </div>
+                                                                        <p className="comment-text">{comment.text}</p>
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                        ) : typeof manuscript.comments === 'string' ? (
+                                                            <p className="comment-text">{manuscript.comments}</p>
+                                                        ) : (
+                                                            <p className="no-comments-placeholder">No structured comments available</p>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <div className="comments-section">
+                                                        <h5>Revision Comments</h5>
+                                                        <p className="no-comments-placeholder">No comments yet</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                        
+                                        <div className="manuscript-actions">
+                                            <Link to={`/referee/review/${manuscript._id}`} className="review-button">
+                                                Review
+                                            </Link>
+                                            <button
+                                                className="withdraw-button"
+                                                onClick={() => handleWithdraw(manuscript._id)}
+                                                disabled={withdrawing}
+                                            >
+                                                {withdrawing ? "Withdrawing..." : "Withdraw"}
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     ) : (
                         <p>No manuscripts available for review.</p>
