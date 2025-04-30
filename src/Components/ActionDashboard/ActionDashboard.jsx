@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './ActionDashboard.css';
 import { getManuscripts } from '../../services/manuscriptsAPI';
+import { getCommentsByManuscript } from '../../services/commentsAPI';
 import { removeRefereeFromManuscript } from '../../services/refereeAPI';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -12,6 +13,18 @@ function ActionDashboard() {
     const [withdrawing, setWithdrawing] = useState(false);
     const [expandedManuscripts, setExpandedManuscripts] = useState({});
     const { currentUser } = useAuth();
+    const [manuscriptComments, setManuscriptComments] = useState({});
+
+    // Helper function to fetch comments for a manuscript
+    const fetchComments = async (manuscriptId) => {
+        try {
+            const comments = await getCommentsByManuscript(manuscriptId);
+            return comments;
+        } catch (err) {
+            console.error(`Error fetching comments for manuscript ${manuscriptId}:`, err);
+            return [];
+        }
+    };
 
     const fetchManuscripts = async () => {
         try {
@@ -96,6 +109,20 @@ function ActionDashboard() {
 
             console.log("Filtered manuscripts for current user:", manuscriptsArray); // Debug: Log filtered array
             setManuscripts(manuscriptsArray);
+            
+            // Fetch comments for each manuscript
+            const commentsPromises = manuscriptsArray.map(async (manuscript) => {
+                const comments = await fetchComments(manuscript._id);
+                return { manuscriptId: manuscript._id, comments };
+            });
+            
+            const commentsResults = await Promise.all(commentsPromises);
+            const commentsMap = {};
+            commentsResults.forEach(({ manuscriptId, comments }) => {
+                commentsMap[manuscriptId] = comments;
+            });
+            
+            setManuscriptComments(commentsMap);
             setError('');
         } catch (err) {
             console.error("Error fetching manuscripts:", err); // Debug: Log any errors
@@ -175,6 +202,28 @@ function ActionDashboard() {
         }
     };
 
+    // Helper function to combine manuscript comments from both sources
+    const getAllComments = (manuscript) => {
+        // Get existing comments from the manuscript object
+        const existingComments = manuscript.comments || [];
+        const formattedExisting = Array.isArray(existingComments) ? existingComments : 
+            (typeof existingComments === 'string' && existingComments.trim() !== '') ? 
+            [{ text: existingComments, author: manuscript.editor_email || 'Editor', date: new Date().toISOString() }] : [];
+        
+        // Get comments from the comments API
+        const apiComments = manuscriptComments[manuscript._id] || [];
+        
+        // Format API comments to match the structure
+        const formattedApiComments = apiComments.map(comment => ({
+            text: comment.text,
+            author: comment.editor_id, // Using editor_id as the author
+            date: comment.timestamp || new Date().toISOString()
+        }));
+        
+        // Combine both sources
+        return [...formattedExisting, ...formattedApiComments];
+    };
+
     return (
         <div className="action-dashboard-container">
             <h2 className="action-dashboard-heading">Action Dashboard</h2>
@@ -191,10 +240,10 @@ function ActionDashboard() {
                     ) : manuscripts.length > 0 ? (
                         <div className="manuscripts-list">
                             {manuscripts.map(manuscript => {
+                                // Get all comments for this manuscript
+                                const allComments = getAllComments(manuscript);
                                 // Check if manuscript has comments to apply special styling
-                                const hasComments = manuscript.comments && 
-                                    ((Array.isArray(manuscript.comments) && manuscript.comments.length > 0) || 
-                                     (typeof manuscript.comments === 'string' && manuscript.comments.trim() !== ''));
+                                const hasComments = allComments.length > 0;
                                 
                                 return (
                                     <div 
@@ -223,28 +272,22 @@ function ActionDashboard() {
                                                     <p>{manuscript.abstract}</p>
                                                 </div>
                                                 
-                                                {manuscript.comments ? (
+                                                {allComments.length > 0 ? (
                                                     <div className="comments-section">
                                                         <h5>Revision Comments</h5>
-                                                        {Array.isArray(manuscript.comments) && manuscript.comments.length > 0 ? (
-                                                            <ul className="comments-list">
-                                                                {manuscript.comments.map((comment, index) => (
-                                                                    <li key={index} className="comment-item">
-                                                                        <div className="comment-header">
-                                                                            <span className="comment-author">{comment.author || 'Anonymous'}</span>
-                                                                            <span className="comment-date">
-                                                                                {formatDate(comment.date)}
-                                                                            </span>
-                                                                        </div>
-                                                                        <p className="comment-text">{comment.text}</p>
-                                                                    </li>
-                                                                ))}
-                                                            </ul>
-                                                        ) : typeof manuscript.comments === 'string' ? (
-                                                            <p className="comment-text">{manuscript.comments}</p>
-                                                        ) : (
-                                                            <p className="no-comments-placeholder">No structured comments available</p>
-                                                        )}
+                                                        <ul className="comments-list">
+                                                            {allComments.map((comment, index) => (
+                                                                <li key={index} className="comment-item">
+                                                                    <div className="comment-header">
+                                                                        <span className="comment-author">{comment.author || 'Anonymous'}</span>
+                                                                        <span className="comment-date">
+                                                                            {formatDate(comment.date)}
+                                                                        </span>
+                                                                    </div>
+                                                                    <p className="comment-text">{comment.text}</p>
+                                                                </li>
+                                                            ))}
+                                                        </ul>
                                                     </div>
                                                 ) : (
                                                     <div className="comments-section">

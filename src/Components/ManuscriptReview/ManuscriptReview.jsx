@@ -1,16 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getManuscriptById, updateManuscriptState } from '../../services/manuscriptsAPI';
+import { createComment } from '../../services/commentsAPI';
+import { useAuth } from '../../contexts/AuthContext';
 import './ManuscriptReview.css';
 
 function ManuscriptReview() {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { currentUser } = useAuth();
     const [manuscript, setManuscript] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [reviewAction, setReviewAction] = useState('');
     const [revisionComments, setRevisionComments] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+
+    // 确保在localStorage中存储用户信息的备份
+    useEffect(() => {
+        if (currentUser && !localStorage.getItem('user')) {
+            localStorage.setItem('user', JSON.stringify(currentUser));
+            console.log('Saved user info to localStorage:', currentUser);
+        }
+    }, [currentUser]);
 
     useEffect(() => {
         const fetchManuscript = async () => {
@@ -36,10 +48,67 @@ function ManuscriptReview() {
         }
     };
 
+    // 单独处理评论保存
+    const saveComment = async (manuscriptId, refereeId, commentText) => {
+        try {
+            console.log('Attempting to save comment:', {
+                manuscriptId,
+                refereeId,
+                commentText
+            });
+            
+            // 首先尝试使用API保存评论
+            const commentResult = await createComment(manuscriptId, refereeId, commentText);
+            console.log('Comment creation succeeded:', commentResult);
+            return true;
+        } catch (err) {
+            console.error('Failed to save comment via API:', err);
+            
+            // 如果评论API出错，记录错误但不阻止流程
+            console.warn('Comment could not be saved as a separate entity, will rely on manuscript update');
+            return false;
+        }
+    };
+
+    // Save referee decision to localStorage
+    const saveRefereeDecision = (manuscriptId, refereeId, decision) => {
+        try {
+            // Get current decisions
+            const savedDecisions = localStorage.getItem('refereeDecisions');
+            let refereeDecisions = savedDecisions ? JSON.parse(savedDecisions) : {};
+            
+            // Update with new decision
+            if (!refereeDecisions[manuscriptId]) {
+                refereeDecisions[manuscriptId] = {};
+            }
+            
+            // Map review actions to decision types
+            const decisionMap = {
+                'ACC': 'ACCEPT',
+                'REJ': 'REJECT',
+                'AWR': 'ACCEPT_WITH_REVISIONS'
+            };
+            
+            refereeDecisions[manuscriptId][refereeId] = decisionMap[decision];
+            
+            // Save back to localStorage
+            localStorage.setItem('refereeDecisions', JSON.stringify(refereeDecisions));
+            console.log(`Saved referee decision to localStorage: ${decision}`);
+            
+            return true;
+        } catch (err) {
+            console.error('Error saving referee decision to localStorage:', err);
+            return false;
+        }
+    };
+
     const handleSubmitAction = async () => {
         try {
+            setSubmitting(true);
+            
             if (reviewAction === 'AWR' && revisionComments.trim() === '') {
                 setError('Please provide revision comments.');
+                setSubmitting(false);
                 return;
             }
 
@@ -48,14 +117,58 @@ function ManuscriptReview() {
                 reviewAction === 'REJ' ? 'rejected' :
                     'accepted with revisions';
 
-            // Include revision comments if applicable
-            const payload = reviewAction === 'AWR' ? { comments: revisionComments } : undefined;
+            // Get referee ID (email or ID)
+            const refereeId = currentUser.email || currentUser.id;
 
+            // 1. Save referee decision to localStorage
+            saveRefereeDecision(manuscript._id, refereeId, reviewAction);
+
+            // 2. 先尝试创建评论（如果有评论）
+            let commentSaveResult = false;
+            if (reviewAction === 'AWR' && revisionComments.trim() !== '') {
+                commentSaveResult = await saveComment(manuscript._id, refereeId, revisionComments);
+            }
+
+            // 2. 无论评论是否保存成功，都更新手稿状态
+            // Include revision comments in the payload for backward compatibility
+            const payload = reviewAction === 'AWR' ? { 
+                comments: revisionComments,
+                referee: currentUser.email || currentUser.id
+            } : {
+                referee: currentUser.email || currentUser.id
+            };
+
+            console.log('Updating manuscript state with:', {
+                manuscriptId: manuscript._id,
+                action: reviewAction,
+                payload
+            });
+
+            // 更新手稿状态
             await updateManuscriptState(manuscript._id, reviewAction, payload);
-            alert(`Manuscript ${actionMessage} successfully!`);
+            
+            // 评论成功保存消息
+            if (reviewAction === 'AWR') {
+                if (commentSaveResult) {
+                    alert(`Manuscript ${actionMessage} successfully! Comment was saved.`);
+                } else {
+                    alert(`Manuscript ${actionMessage} successfully! Comment was saved with the manuscript record.`);
+                }
+            } else {
+                alert(`Manuscript ${actionMessage} successfully!`);
+            }
+            
             navigate('/action-dashboard');
         } catch (err) {
-            setError(err.message);
+            console.error("Error in handleSubmitAction:", err);
+            if (err.response && err.response.data) {
+                console.error("Server response:", err.response.data);
+                setError(`${err.message}: ${JSON.stringify(err.response.data)}`);
+            } else {
+                setError(err.message);
+            }
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -128,8 +241,9 @@ function ManuscriptReview() {
                             <button
                                 className="submit-action-button"
                                 onClick={handleSubmitAction}
+                                disabled={submitting}
                             >
-                                Submit Decision
+                                {submitting ? 'Submitting...' : 'Submit Decision'}
                             </button>
                         </div>
                     )}
