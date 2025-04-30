@@ -89,7 +89,7 @@ function About() {
 
   return (
     <div className="about-container">
-      <h1>About Our Journal System</h1>
+      <h1 className="about-heading">About Our Journal System</h1>
       
       <div className="about-section">
         <h2>Our Mission</h2>
