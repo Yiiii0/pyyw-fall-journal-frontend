@@ -1,17 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { updatePerson } from '../../services/peopleAPI';
+import { updatePerson, getPerson } from '../../services/peopleAPI';
 import './Profile.css';
 
 function Profile() {
   const { currentUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState('');
+  const [userData, setUserData] = useState(null);
   const [formData, setFormData] = useState({
-    name: currentUser?.name || '',
-    affiliation: currentUser?.affiliation || '',
-    bio: currentUser?.bio || ''
+    name: '',
+    affiliation: '',
+    bio: ''
   });
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (currentUser?.email) {
+        try {
+          const data = await getPerson(currentUser.email);
+          setUserData(data);
+          setFormData({
+            name: data.name || '',
+            affiliation: data.affiliation || '',
+            bio: data.bio || ''
+          });
+        } catch (err) {
+          setError(err.message);
+        }
+      }
+    };
+    fetchUserData();
+  }, [currentUser]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -25,14 +45,10 @@ function Profile() {
     e.preventDefault();
     try {
       await updatePerson(currentUser.email, formData.name, formData.affiliation, formData.bio);
+      const updatedData = await getPerson(currentUser.email);
+      setUserData(updatedData);
       setIsEditing(false);
       setError('');
-      // Update local user data
-      if (currentUser) {
-        currentUser.name = formData.name;
-        currentUser.affiliation = formData.affiliation;
-        currentUser.bio = formData.bio;
-      }
     } catch (err) {
       setError(err.message);
     }
@@ -89,23 +105,23 @@ function Profile() {
         <div className="profile-info">
           <div className="info-group">
             <h2>Email</h2>
-            <p>{currentUser.email}</p>
+            <p>{userData?.email || 'Not specified'}</p>
           </div>
           <div className="info-group">
             <h2>Name</h2>
-            <p>{currentUser.name || 'Not specified'}</p>
+            <p>{userData?.name || 'Not specified'}</p>
           </div>
           <div className="info-group">
             <h2>Affiliation</h2>
-            <p>{currentUser.affiliation || 'Not specified'}</p>
+            <p>{userData?.affiliation || 'Not specified'}</p>
           </div>
           <div className="info-group">
             <h2>Roles</h2>
-            <p>{Array.isArray(currentUser.roles) ? currentUser.roles.join(', ') : currentUser.roles || 'No roles assigned'}</p>
+            <p>{Array.isArray(userData?.roles) ? userData.roles.join(', ') : 'No roles assigned'}</p>
           </div>
           <div className="info-group">
             <h2>Bio</h2>
-            <p>{currentUser.bio || 'No bio provided'}</p>
+            <p>{userData?.bio || 'No bio provided'}</p>
           </div>
           <button onClick={() => setIsEditing(true)} className="edit-button">Edit Profile</button>
         </div>

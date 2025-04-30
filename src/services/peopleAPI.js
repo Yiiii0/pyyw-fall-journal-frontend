@@ -22,6 +22,15 @@ export const getPeople = async () => {
   }
 };
 
+export const getPerson = async (email) => {
+  try {
+    const { data } = await axios.get(`${PEOPLE_ENDPOINTS.READ}/${email}`);
+    return data;
+  } catch (error) {
+    throw new Error(`Failed to fetch person: ${error.message}`);
+  }
+};
+
 export const createPerson = async (personData) => {
   try {
     const response = await axios.put(PEOPLE_ENDPOINTS.CREATE, personData);
