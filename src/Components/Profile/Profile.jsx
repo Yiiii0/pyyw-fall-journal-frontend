@@ -44,7 +44,16 @@ function Profile() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await updatePerson(currentUser.email, formData.name, formData.affiliation, formData.bio);
+      // First update the user's profile
+      await updatePerson(
+        currentUser.email, // user_id for URL path
+        formData.name,
+        formData.affiliation,
+        formData.bio,
+        currentUser.email  // caller identity
+      );
+      
+      // Then fetch the updated data
       const updatedData = await getPerson(currentUser.email);
       setUserData(updatedData);
       setIsEditing(false);

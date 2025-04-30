@@ -41,9 +41,13 @@ export const createPerson = async (personData) => {
   }
 };
 
-export const deletePerson = async (email) => {
+export const deletePerson = async (email, callerEmail) => {
   try {
-    const response = await axios.delete(`${PEOPLE_ENDPOINTS.READ}/${email}`);
+    const response = await axios.delete(`${PEOPLE_ENDPOINTS.READ}/${email}`, {
+      headers: {
+        'X-User-Email': callerEmail // Use caller's email instead of target email
+      }
+    });
     return response.data;
   } catch (error) {
     const errorMessage = error.response?.data?.message || error.message;
@@ -51,12 +55,16 @@ export const deletePerson = async (email) => {
   }
 };
 
-export const updatePerson = async (email, name, affiliation) => {
+export const updatePerson = async (email, name, affiliation, bio, callerEmail) => {
   try {
-    const response = await axios.put(PEOPLE_ENDPOINTS.UPDATE, {
-      id: email,
+    const response = await axios.put(`${PEOPLE_ENDPOINTS.READ}/${email}`, {
       name,
       affiliation,
+      bio,
+    }, {
+      headers: {
+        'X-User-Email': callerEmail // Use caller's email instead of target email
+      }
     });
     return response.data;
   } catch (error) {

@@ -10,6 +10,7 @@ import {
   deleteRole,
   getRoles
 } from '../../services/peopleAPI';
+import { useAuth } from '../../contexts/AuthContext';
 import './People.css';
 
 function AddPersonForm({ visible, cancel, fetchPeople, setError, roles }) {
@@ -99,6 +100,7 @@ function ErrorMessage({ message }) {
 ErrorMessage.propTypes = { message: propTypes.string.isRequired };
 
 function EditPersonForm({ person, visible, cancel, fetchPeople, setError, roles }) {
+  const { currentUser } = useAuth();
   const [name, setName] = useState(person.name);
   const [affiliation, setAffiliation] = useState(person.affiliation);
   const [newRole, setNewRole] = useState('');
@@ -111,7 +113,7 @@ function EditPersonForm({ person, visible, cancel, fetchPeople, setError, roles 
     e.preventDefault();
     setError('');
     try {
-      await updatePerson(person.email, name, affiliation);
+      await updatePerson(person.email, name, affiliation, '', currentUser.email);
       fetchPeople();
       cancel();
     } catch (error) {
@@ -214,12 +216,13 @@ EditPersonForm.propTypes = {
 
 function Person({ person, fetchPeople, setError, roles }) {
   const [isEditing, setIsEditing] = useState(false);
+  const { currentUser } = useAuth();
   const { name, email, roles: personRoles, affiliation } = person;
 
   const handleDelete = async () => {
     if (window.confirm(`Are you sure you want to delete ${name}?`)) {
       try {
-        await deletePerson(email);
+        await deletePerson(email, currentUser.email);
         fetchPeople();
       } catch (error) {
         setError(error.message);
