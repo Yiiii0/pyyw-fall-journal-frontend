@@ -1,179 +1,157 @@
 .action-dashboard-container {
-    background-color: var(--surface);
-    border-bottom: 1px solid var(--border);
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 1rem 2rem;
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem 2rem;
 }
 
 .action-dashboard-heading {
-    font-family: 'Playfair Display', serif;
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--primary);
-    margin-bottom: 1.5rem;
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 1.5rem;
 }
 
 /* Action Box Styling */
 .action-box {
-    background-color: white;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  background-color: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
 .action-box-title {
-    font-size: 1.5rem;
-    color: var(--primary);
-    margin-top: 0;
-    margin-bottom: 1rem;
-    font-weight: 600;
-    border-bottom: 1px solid var(--border-light);
-    padding-bottom: 0.5rem;
+  font-size: 1.5rem;
+  color: var(--primary);
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-light);
+  padding-bottom: 0.5rem;
 }
 
 .action-box-content {
-    color: var(--text);
+  color: var(--text);
 }
 
 .action-buttons {
-    display: flex;
-    gap: 1rem;
-    margin-top: 1rem;
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
 }
 
 .action-button {
-    background-color: var(--primary);
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    text-decoration: none;
-    font-weight: 500;
-    transition: background-color 0.2s ease;
+  background-color: var(--primary);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
 }
 
 .action-button:hover {
-    background-color: var(--primary-dark);
+  background-color: var(--primary-dark);
 }
 
 .action-dashboard-links {
-    list-style: none;
-    display: flex;
-    gap: 2rem;
-    margin: 0;
-    padding: 0;
+  list-style: none;
+  display: flex;
+  gap: 2rem;
+  margin: 0;
+  padding: 0;
 }
 
 .action-dashboard-link {
-    color: var(--text-light);
-    text-decoration: none;
-    font-weight: 500;
-    padding: 0.5rem 0;
-    position: relative;
-    transition: color 0.2s ease;
+  color: var(--text-light);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.5rem 0;
+  position: relative;
+  transition: color 0.2s ease;
 }
 
 .action-dashboard-link::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background-color: var(--primary);
-    transition: width 0.2s ease;
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: var(--primary);
+  transition: width 0.2s ease;
 }
 
 .action-dashboard-link:hover,
 .action-dashboard-link.active {
-    color: var(--primary);
+  color: var(--primary);
 }
 
 .action-dashboard-link:hover::after,
 .action-dashboard-link.active::after {
-    width: 100%;
+  width: 100%;
 }
 
 .manuscripts-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
 }
 
 .manuscripts-list .manuscript-item {
-    background-color: white;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 1.5rem;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  background-color: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .manuscripts-list .manuscript-item:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
 }
 
 .manuscripts-list .manuscript-title {
-    font-size: 1.4rem;
-    margin: 0 0 0.5rem 0;
-    color: var(--text-dark);
+  font-size: 1.4rem;
+  margin: 0 0 0.5rem 0;
+  color: var(--text-dark);
 }
 
 .manuscripts-list .manuscript-author {
-    font-size: 1rem;
-    color: var(--text-light);
-    margin-bottom: 1rem;
+  font-size: 1rem;
+  color: var(--text-light);
+  margin-bottom: 1rem;
 }
 
 .manuscripts-list .manuscript-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
 }
 
 .review-button {
-    background-color: var(--primary);
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    text-decoration: none;
-    font-weight: 500;
-    transition: all 0.2s ease;
-    display: inline-block;
+  background-color: var(--primary);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: inline-block;
 }
 
 .review-button:hover {
-    background-color: var(--primary-hover);
-    transform: translateY(-1px);
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
 }
 
-.withdraw-button {
-    background-color: #f44336;
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    font-weight: 500;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: inline-block;
-}
-
-.withdraw-button:hover {
-    background-color: #d32f2f;
-    transform: translateY(-1px);
-}
-
-.withdraw-button:disabled {
-    background-color: #e0e0e0;
-    color: #9e9e9e;
-    cursor: not-allowed;
-    transform: none;
-}
+/* Removed withdraw-button styles */
 
 /* 添加新的评论相关样式 */
 .manuscript-header {
@@ -190,16 +168,45 @@
   font-weight: 500;
 }
 
-.state-SUB { background-color: #e0e0e0; }
-.state-REV { background-color: #b3e0ff; }
-.state-REJ { background-color: #ffb3b3; }
-.state-CED { background-color: #c6e2c6; }
-.state-AUR { background-color: #ffe0b3; }
-.state-WIT { background-color: #d9d9d9; }
-.state-EDR { background-color: #d9b3ff; }
-.state-ARV { background-color: #ffcc99; }
-.state-FMT { background-color: #b3ffe0; }
-.state-PUB { background-color: #99ff99; }
+.state-SUB {
+  background-color: #e0e0e0;
+}
+
+.state-REV {
+  background-color: #b3e0ff;
+}
+
+.state-REJ {
+  background-color: #ffb3b3;
+}
+
+.state-CED {
+  background-color: #c6e2c6;
+}
+
+.state-AUR {
+  background-color: #ffe0b3;
+}
+
+.state-WIT {
+  background-color: #d9d9d9;
+}
+
+.state-EDR {
+  background-color: #d9b3ff;
+}
+
+.state-ARV {
+  background-color: #ffcc99;
+}
+
+.state-FMT {
+  background-color: #b3ffe0;
+}
+
+.state-PUB {
+  background-color: #99ff99;
+}
 
 .toggle-details-button {
   background-color: #f0f0f0;
@@ -291,7 +298,8 @@
 .comment-text {
   line-height: 1.6;
   color: #333;
-  white-space: pre-line; /* Preserve new lines in comments */
+  white-space: pre-line;
+  /* Preserve new lines in comments */
 }
 
 /* Add a notification badge for manuscripts with comments */

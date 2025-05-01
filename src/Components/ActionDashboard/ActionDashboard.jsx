@@ -3,14 +3,12 @@ import { Link } from 'react-router-dom';
 import './ActionDashboard.css';
 import { getManuscripts } from '../../services/manuscriptsAPI';
 import { getCommentsByManuscript } from '../../services/commentsAPI';
-import { removeRefereeFromManuscript } from '../../services/refereeAPI';
 import { useAuth } from '../../contexts/AuthContext';
 
 function ActionDashboard() {
     const [manuscripts, setManuscripts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [withdrawing, setWithdrawing] = useState(false);
     const [expandedManuscripts, setExpandedManuscripts] = useState({});
     const { currentUser } = useAuth();
     const [manuscriptComments, setManuscriptComments] = useState({});
@@ -90,18 +88,18 @@ function ActionDashboard() {
                     currentUser.email,
                     currentUser.username
                 ].filter(Boolean); // 过滤掉 undefined/null 值
-                
+
                 console.log("User possible identifiers:", possibleIdentifiers); // Debug
-                
+
                 manuscriptsArray = manuscriptsArray.filter(manuscript => {
                     console.log("Manuscript referees:", manuscript.referees); // Debug
-                    
+
                     if (!manuscript.referees || !Array.isArray(manuscript.referees)) {
                         return false;
                     }
-                    
+
                     // 检查 manuscript 的 referees 数组中是否包含用户的任意一个标识符
-                    return possibleIdentifiers.some(id => 
+                    return possibleIdentifiers.some(id =>
                         manuscript.referees.includes(id)
                     );
                 });
@@ -109,19 +107,19 @@ function ActionDashboard() {
 
             console.log("Filtered manuscripts for current user:", manuscriptsArray); // Debug: Log filtered array
             setManuscripts(manuscriptsArray);
-            
+
             // Fetch comments for each manuscript
             const commentsPromises = manuscriptsArray.map(async (manuscript) => {
                 const comments = await fetchComments(manuscript._id);
                 return { manuscriptId: manuscript._id, comments };
             });
-            
+
             const commentsResults = await Promise.all(commentsPromises);
             const commentsMap = {};
             commentsResults.forEach(({ manuscriptId, comments }) => {
                 commentsMap[manuscriptId] = comments;
             });
-            
+
             setManuscriptComments(commentsMap);
             setError('');
         } catch (err) {
@@ -137,36 +135,6 @@ function ActionDashboard() {
             fetchManuscripts();
         }
     }, [currentUser]);
-
-    const handleWithdraw = async (manuscriptId) => {
-        if (!currentUser || (!currentUser.id && !currentUser.email)) {
-            setError("User information not available");
-            return;
-        }
-
-        const confirmWithdraw = window.confirm(
-            "Are you sure you want to withdraw as a referee from this manuscript? This action cannot be undone."
-        );
-
-        if (!confirmWithdraw) {
-            return;
-        }
-
-        try {
-            setWithdrawing(true);
-            const userIdentifier = currentUser.id || currentUser.email;
-            await removeRefereeFromManuscript(manuscriptId, userIdentifier);
-            await fetchManuscripts(); // Refresh the manuscripts list
-
-            // Show success message
-            alert("You have successfully withdrawn as a referee from this manuscript.");
-        } catch (err) {
-            console.error("Error withdrawing from manuscript:", err);
-            setError(`Failed to withdraw: ${err.message}`);
-        } finally {
-            setWithdrawing(false);
-        }
-    };
 
     const toggleManuscriptDetails = (manuscriptId) => {
         setExpandedManuscripts(prev => ({
@@ -206,20 +174,20 @@ function ActionDashboard() {
     const getAllComments = (manuscript) => {
         // Get existing comments from the manuscript object
         const existingComments = manuscript.comments || [];
-        const formattedExisting = Array.isArray(existingComments) ? existingComments : 
-            (typeof existingComments === 'string' && existingComments.trim() !== '') ? 
-            [{ text: existingComments, author: manuscript.editor_email || 'Editor', date: new Date().toISOString() }] : [];
-        
+        const formattedExisting = Array.isArray(existingComments) ? existingComments :
+            (typeof existingComments === 'string' && existingComments.trim() !== '') ?
+                [{ text: existingComments, author: manuscript.editor_email || 'Editor', date: new Date().toISOString() }] : [];
+
         // Get comments from the comments API
         const apiComments = manuscriptComments[manuscript._id] || [];
-        
+
         // Format API comments to match the structure
         const formattedApiComments = apiComments.map(comment => ({
             text: comment.text,
             author: comment.editor_id, // Using editor_id as the author
             date: comment.timestamp || new Date().toISOString()
         }));
-        
+
         // Combine both sources
         return [...formattedExisting, ...formattedApiComments];
     };
@@ -244,10 +212,10 @@ function ActionDashboard() {
                                 const allComments = getAllComments(manuscript);
                                 // Check if manuscript has comments to apply special styling
                                 const hasComments = allComments.length > 0;
-                                
+
                                 return (
-                                    <div 
-                                        className={`manuscript-item ${hasComments ? 'has-comments' : ''}`} 
+                                    <div
+                                        className={`manuscript-item ${hasComments ? 'has-comments' : ''}`}
                                         key={manuscript._id}
                                     >
                                         <div className="manuscript-header">
@@ -257,37 +225,37 @@ function ActionDashboard() {
                                             </span>
                                         </div>
                                         <p className="manuscript-author">Author: {manuscript.author}</p>
-                                        
-                                        <button 
+
+                                        <button
                                             className="toggle-details-button"
                                             onClick={() => toggleManuscriptDetails(manuscript._id)}
                                         >
                                             {expandedManuscripts[manuscript._id] ? 'Hide Details' : 'Show Details'}
                                         </button>
-                                        
+
                                         {expandedManuscripts[manuscript._id] && (
                                             <div className="manuscript-details">
                                                 <div className="details-section">
                                                     <h5>Abstract</h5>
                                                     <p>{manuscript.abstract}</p>
                                                 </div>
-                                                
+
                                                 {allComments.length > 0 ? (
                                                     <div className="comments-section">
                                                         <h5>Revision Comments</h5>
-                                                            <ul className="comments-list">
+                                                        <ul className="comments-list">
                                                             {allComments.map((comment, index) => (
-                                                                    <li key={index} className="comment-item">
-                                                                        <div className="comment-header">
-                                                                            <span className="comment-author">{comment.author || 'Anonymous'}</span>
-                                                                            <span className="comment-date">
-                                                                                {formatDate(comment.date)}
-                                                                            </span>
-                                                                        </div>
-                                                                        <p className="comment-text">{comment.text}</p>
-                                                                    </li>
-                                                                ))}
-                                                            </ul>
+                                                                <li key={index} className="comment-item">
+                                                                    <div className="comment-header">
+                                                                        <span className="comment-author">{comment.author || 'Anonymous'}</span>
+                                                                        <span className="comment-date">
+                                                                            {formatDate(comment.date)}
+                                                                        </span>
+                                                                    </div>
+                                                                    <p className="comment-text">{comment.text}</p>
+                                                                </li>
+                                                            ))}
+                                                        </ul>
                                                     </div>
                                                 ) : (
                                                     <div className="comments-section">
@@ -297,18 +265,11 @@ function ActionDashboard() {
                                                 )}
                                             </div>
                                         )}
-                                        
+
                                         <div className="manuscript-actions">
                                             <Link to={`/referee/review/${manuscript._id}`} className="review-button">
                                                 Review
                                             </Link>
-                                            <button
-                                                className="withdraw-button"
-                                                onClick={() => handleWithdraw(manuscript._id)}
-                                                disabled={withdrawing}
-                                            >
-                                                {withdrawing ? "Withdrawing..." : "Withdraw"}
-                                            </button>
                                         </div>
                                     </div>
                                 );
