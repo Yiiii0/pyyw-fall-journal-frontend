@@ -69,24 +69,24 @@ class ManuscriptStateHandler {
       refereeEmail,
       hasComments
     });
-    
+
     if (decision === 'REJECT') {
       // Rejection logic - can reject from any state, transitioning to REJ state
       console.log("Decision path: Reject -> Rejected (REJ)");
       return 'REJ';
     }
-    
+
     if (decision === 'ACCEPT') {
       // Determine next step based on current state
       switch (manuscript.state) {
         case 'EDR': // Editor Review
           console.log("Decision path: Editor Review Accept -> Copy Editing (ACC)");
           return 'ACC'; // Accept -> Copy Editing state
-          
+
         case 'ARV': // Author Revision
           console.log("Decision path: Author Revision Complete -> Editor Review (DON)");
           return 'DON'; // Done -> Editor Review state
-          
+
         case 'REV': // In Review
           // Check if there are comments or ACCEPT_WITH_REVISIONS decision
           if (hasComments || this.getRefereeDecision(manuscript._id, refereeEmail) === 'ACCEPT_WITH_REVISIONS') {
@@ -96,31 +96,31 @@ class ManuscriptStateHandler {
             console.log("Decision path: Accept without comments -> Copy Editing (ACC)");
             return 'ACC'; // Accept -> Copy Editing state
           }
-          
+
         default:
           console.log("Default: Accept -> Copy Editing (ACC)");
           return 'ACC'; // Default to Copy Editing state
       }
     }
-    
+
     // Default case, only submit review
     console.log("Decision path: Submit Review only (SBR)");
     return 'SBR';
   }
-  
+
   // Get referee decision
   getRefereeDecision(manuscriptId, refereeEmail) {
     // First check in localStorage
     if (this.refereeDecisions[manuscriptId]?.[refereeEmail]) {
       return this.refereeDecisions[manuscriptId][refereeEmail];
     }
-    
+
     // Check in manuscripts data
     const manuscript = this.manuscripts.find(m => m._id === manuscriptId);
     if (manuscript?.referee_decisions?.[refereeEmail]) {
       return manuscript.referee_decisions[refereeEmail];
     }
-    
+
     return null;
   }
 
@@ -128,33 +128,33 @@ class ManuscriptStateHandler {
   async handleReject(manuscriptId, refereeEmail) {
     try {
       console.log(`Rejecting manuscript ${manuscriptId} by referee ${refereeEmail}`);
-      
+
       // Get current manuscript
       const manuscript = this.manuscripts.find(m => m._id === manuscriptId);
       if (!manuscript) {
         throw new Error("Manuscript not found");
       }
-      
+
       // Debug: Print the current state and available actions
       console.log(`Current manuscript state: ${manuscript.state}`);
       console.log(`Manuscript details:`, manuscript);
-      
+
       // Update state to REJ - rejection operation
       const action = 'REJ';  // Changed from 'REJ' to 'REJECT' to match backend constant
-      
+
       // Match the exact format used in the backend (based on endpoints.py)
       const requestData = {
         _id: manuscriptId.toString(), // Ensure it's a string
         action: action
       };
-      
+
       if (refereeEmail) {
         requestData.referee = refereeEmail;
       }
-      
+
       // Execute state update
       console.log("Sending direct API request:", requestData);
-      
+
       try {
         // Make a direct axios call to match exactly what the backend expects
         const response = await fetch(`${BACKEND_URL}/manuscript/update_state`, {
@@ -164,15 +164,15 @@ class ManuscriptStateHandler {
           },
           body: JSON.stringify(requestData)
         });
-        
+
         if (!response.ok) {
           const errorText = await response.text();
           throw new Error(`Server responded with ${response.status}: ${errorText}`);
         }
-        
+
         const data = await response.json();
         console.log("State update response:", data);
-        
+
         // Update decision record
         const newDecisions = {
           ...this.refereeDecisions,
@@ -182,19 +182,19 @@ class ManuscriptStateHandler {
           }
         };
         this.setRefereeDecisions(newDecisions);
-        
+
         // Immediately save to localStorage
         localStorage.setItem('refereeDecisions', JSON.stringify(newDecisions));
         console.log("Updated referee decisions saved to localStorage:", newDecisions);
-        
+
         // Refresh data
         await this.fetchManuscripts();
-        
+
         // Return success
         return { success: true, message: 'Manuscript rejected successfully!' };
       } catch (apiError) {
         console.error("API Error in handleReject:", apiError);
-        
+
         // Update decision record
         const newDecisions = {
           ...this.refereeDecisions,
@@ -204,13 +204,13 @@ class ManuscriptStateHandler {
           }
         };
         this.setRefereeDecisions(newDecisions);
-        
+
         // Immediately save to localStorage
         localStorage.setItem('refereeDecisions', JSON.stringify(newDecisions));
-        
+
         // Refresh data
         await this.fetchManuscripts();
-        
+
         return { success: true, message: 'Manuscript rejected successfully!' };
       }
     } catch (err) {
@@ -223,29 +223,29 @@ class ManuscriptStateHandler {
   async updateState(manuscriptId, decision, refereeEmail, comments = []) {
     try {
       console.log(`Editor decision: ${decision} for manuscript ${manuscriptId} by referee ${refereeEmail}`);
-      
+
       // Get current manuscript
       const manuscript = this.manuscripts.find(m => m._id === manuscriptId);
       if (!manuscript) {
         throw new Error("manuscript not found");
       }
-      
+
       // Check if there are comments
       const hasComments = comments.length > 0;
-      
+
       // Determine the next state
       const action = this.determineNextState(manuscript, decision, refereeEmail, hasComments);
-      
+
       console.log(`Updating manuscript state to: ${action}`);
-      
+
       // Execute state update
-      const response = await this.updateManuscriptState(manuscriptId, action, { 
+      const response = await this.updateManuscriptState(manuscriptId, action, {
         referee: refereeEmail,
         editor: this.currentUser?.email || this.currentUser?.id
       });
-      
+
       console.log("State update response:", response);
-      
+
       // Update decision record
       const newDecisions = {
         ...this.refereeDecisions,
@@ -255,14 +255,14 @@ class ManuscriptStateHandler {
         }
       };
       this.setRefereeDecisions(newDecisions);
-      
+
       // Immediately save to localStorage
       localStorage.setItem('refereeDecisions', JSON.stringify(newDecisions));
       console.log("Updated referee decisions saved to localStorage:", newDecisions);
-      
+
       // Refresh data
       await this.fetchManuscripts();
-      
+
       // Return success
       return { success: true, message: `Manuscript ${decision === 'ACCEPT' ? 'accepted' : 'rejected'} successfully!` };
     } catch (err) {
@@ -275,26 +275,26 @@ class ManuscriptStateHandler {
   async handleAuthorResponse(manuscriptId) {
     try {
       console.log(`Simulating author response for manuscript ${manuscriptId}`);
-      
+
       // Get current manuscript
       const manuscript = this.manuscripts.find(m => m._id === manuscriptId);
       if (!manuscript) {
         throw new Error("Manuscript not found");
       }
-      
+
       // Record current state
       console.log(`Current manuscript state: ${manuscript.state}`);
-      
+
       // Author complete revision operation
       const action = 'DON';  // DONE action
-      
+
       try {
         const response = await this.updateManuscriptState(manuscriptId, action);
         console.log("Author response update:", response);
-        
+
         // Refresh data
         await this.fetchManuscripts();
-        
+
         // Return success
         return { success: true, message: 'Author response processed successfully!' };
       } catch (apiError) {
@@ -410,23 +410,23 @@ function Manuscripts() {
     try {
       const data = await getManuscript();
       const manuscriptsArray = Array.isArray(data) ? data : ManuscriptsObjectToArray(data);
-      
+
       // Process manuscripts
       const processedManuscripts = formatManuscriptsWithComments(manuscriptsArray);
       setManuscripts(processedManuscripts);
-      
+
       // Fetch comments for each manuscript
       const commentsPromises = processedManuscripts.map(async (manuscript) => {
         const comments = await fetchComments(manuscript._id);
         return { manuscriptId: manuscript._id, comments };
       });
-      
+
       const commentsResults = await Promise.all(commentsPromises);
       const commentsMap = {};
       commentsResults.forEach(({ manuscriptId, comments }) => {
         commentsMap[manuscriptId] = comments;
       });
-      
+
       setManuscriptComments(commentsMap);
       setError('');
     } catch (err) {
@@ -619,19 +619,19 @@ function Manuscripts() {
 
   // Create ManuscriptStateHandler instance
   const stateHandler = new ManuscriptStateHandler(
-    manuscripts, 
-    setManuscripts, 
-    currentUser, 
-    updateManuscriptState, 
-    fetchManuscripts, 
-    refereeDecisions, 
+    manuscripts,
+    setManuscripts,
+    currentUser,
+    updateManuscriptState,
+    fetchManuscripts,
+    refereeDecisions,
     setRefereeDecisions
   );
 
   const handleEditorDecision = async (manuscriptId, decision, refereeEmail) => {
     try {
       setIsDecisionLoading(true);
-      
+
       // Use OOP approach to handle state change
       let result;
       if (decision === 'REJECT') {
@@ -644,13 +644,13 @@ function Manuscripts() {
         // Handle other state changes
         result = await stateHandler.updateState(manuscriptId, decision, refereeEmail, comments);
       }
-      
+
       if (result.success) {
         alert(result.message);
       } else {
         throw new Error(result.error);
       }
-      
+
     } catch (err) {
       console.error("Error in handleEditorDecision:", err);
       setError(`Failed to update manuscript status: ${err.message}`);
@@ -672,43 +672,43 @@ function Manuscripts() {
       localDecisions: refereeDecisions[manuscript._id]?.[refereeEmail],
       hasComments: getAllComments(manuscript).length > 0
     });
-    
+
     // Method 1: Check referee_actions array (from backend)
     if (manuscript.referee_actions && manuscript.referee_actions.includes(refereeEmail)) {
       console.log(`Referee ${refereeEmail} action found in referee_actions array`);
       return true;
     }
-    
+
     // Method 2: Check in the refereeDecisions object (from localStorage)
     if (refereeDecisions[manuscript._id] && refereeDecisions[manuscript._id][refereeEmail]) {
       console.log(`Referee ${refereeEmail} action found in localStorage decisions`);
       return true;
     }
-    
+
     // Method 3: Check if manuscript.referee_decisions contains the referee
-    if (manuscript.referee_decisions && 
-        typeof manuscript.referee_decisions === 'object' && 
-        manuscript.referee_decisions[refereeEmail]) {
+    if (manuscript.referee_decisions &&
+      typeof manuscript.referee_decisions === 'object' &&
+      manuscript.referee_decisions[refereeEmail]) {
       console.log(`Referee ${refereeEmail} action found in manuscript.referee_decisions`);
       return true;
     }
-    
+
     // Method 4: Check if there are comments by this referee
     const comments = getAllComments(manuscript);
-    const hasRefereeComments = comments.some(comment => 
+    const hasRefereeComments = comments.some(comment =>
       comment.author === refereeEmail
     );
     if (hasRefereeComments) {
       console.log(`Referee ${refereeEmail} comments found`);
       return true;
     }
-    
+
     // Method 5: If manuscript is in Author Revision state (ARV), assume the referee has acted
     if (manuscript.state === 'ARV' && manuscript.referees && manuscript.referees.includes(refereeEmail)) {
       console.log(`Manuscript is in ARV state, assuming referee ${refereeEmail} has acted`);
       return true;
     }
-    
+
     console.log(`No actions found for referee ${refereeEmail}`);
     return false;
   };
@@ -718,25 +718,25 @@ function Manuscripts() {
     if (!manuscript.referees || manuscript.referees.length === 0) {
       return false;
     }
-    
+
     const decisions = refereeDecisions[manuscript._id] || {};
-    return manuscript.referees.every(referee => 
+    return manuscript.referees.every(referee =>
       decisions[referee] === 'ACCEPT'
     );
   };
 
   const hasRefereeDecision = (manuscriptId, refereeEmail) => {
-    return (refereeDecisions[manuscriptId] && 
-           refereeDecisions[manuscriptId][refereeEmail]) ||
-           // Also check manuscript referee_actions if decision exists there
-           (manuscripts.find(m => m._id === manuscriptId)?.referee_decisions?.[refereeEmail]);
+    return (refereeDecisions[manuscriptId] &&
+      refereeDecisions[manuscriptId][refereeEmail]) ||
+      // Also check manuscript referee_actions if decision exists there
+      (manuscripts.find(m => m._id === manuscriptId)?.referee_decisions?.[refereeEmail]);
   };
 
   const getRefereeDecision = (manuscriptId, refereeEmail) => {
     // First check in refereeDecisions object
     const localDecision = refereeDecisions[manuscriptId]?.[refereeEmail];
     if (localDecision) return localDecision;
-    
+
     // If not found, check in manuscript.referee_decisions
     const manuscript = manuscripts.find(m => m._id === manuscriptId);
     return manuscript?.referee_decisions?.[refereeEmail] || null;
@@ -745,9 +745,9 @@ function Manuscripts() {
   // get the number of referees who have not made decisions
   const getPendingRefereeCount = (manuscript) => {
     if (!manuscript.referees) return 0;
-    
+
     const decisions = refereeDecisions[manuscript._id] || {};
-    return manuscript.referees.filter(referee => 
+    return manuscript.referees.filter(referee =>
       decisions[referee] === undefined
     ).length;
   };
@@ -759,25 +759,25 @@ function Manuscripts() {
       manuscriptComments: manuscriptComments[manuscript._id],
       manuscriptDirectComments: manuscript.comments,
     });
-    
+
     // Get existing comments from the manuscript object
     let existingComments = manuscript.comments || [];
-    
+
     // If comments is a string, convert it to array format
     if (typeof existingComments === 'string' && existingComments.trim() !== '') {
-      existingComments = [{ 
-        text: existingComments, 
-        author: manuscript.editor_email || 'Editor', 
-        date: new Date().toISOString() 
+      existingComments = [{
+        text: existingComments,
+        author: manuscript.editor_email || 'Editor',
+        date: new Date().toISOString()
       }];
     } else if (Array.isArray(existingComments)) {
       // Ensure each element in the array is in object format
       existingComments = existingComments.map(comment => {
         if (typeof comment === 'string' && comment.trim() !== '') {
-          return { 
-            text: comment, 
-            author: manuscript.editor_email || 'Editor', 
-            date: new Date().toISOString() 
+          return {
+            text: comment,
+            author: manuscript.editor_email || 'Editor',
+            date: new Date().toISOString()
           };
         }
         return comment;
@@ -785,17 +785,17 @@ function Manuscripts() {
     } else {
       existingComments = [];
     }
-    
+
     // Get comments from the comments API
     const apiComments = manuscriptComments[manuscript._id] || [];
-    
+
     // Format API comments to match the structure
     const formattedApiComments = apiComments.map(comment => ({
       text: comment.text || "No text provided",
-      author: comment.editor_id || 'Anonymous', 
+      author: comment.editor_id || 'Anonymous',
       date: comment.timestamp || new Date().toISOString()
     }));
-    
+
     // Combine both sources
     const allComments = [...existingComments, ...formattedApiComments];
     console.log("Getting comments - processed data:", {
@@ -803,7 +803,7 @@ function Manuscripts() {
       commentCount: allComments.length,
       comments: allComments
     });
-    
+
     return allComments;
   };
 
@@ -825,17 +825,17 @@ function Manuscripts() {
           const comments = await fetchComments(manuscript._id);
           return { manuscriptId: manuscript._id, comments };
         });
-        
+
         const commentsResults = await Promise.all(commentsPromises);
         const commentsMap = {};
         commentsResults.forEach(({ manuscriptId, comments }) => {
           commentsMap[manuscriptId] = comments;
         });
-        
+
         console.log("Loaded comment data:", commentsMap);
         setManuscriptComments(commentsMap);
       };
-      
+
       loadComments();
     }
   }, [manuscripts, manuscriptComments]);
@@ -846,17 +846,17 @@ function Manuscripts() {
     manuscripts.forEach(manuscript => {
       if (manuscript.state === 'REV' && manuscript.referees && manuscript.referees.length > 0) {
         const decisions = refereeDecisions[manuscript._id] || {};
-        
+
         // check if all referees have made decisions
-        const allReviewsSubmitted = manuscript.referees.every(ref => 
+        const allReviewsSubmitted = manuscript.referees.every(ref =>
           decisions[ref] !== undefined
         );
-        
+
         // check if all referees have accepted
-        const allAccepted = manuscript.referees.every(ref => 
+        const allAccepted = manuscript.referees.every(ref =>
           decisions[ref] === 'ACCEPT'
         );
-        
+
         // if all referees have accepted, automatically update the state
         if (allReviewsSubmitted && allAccepted) {
           (async () => {
@@ -877,18 +877,18 @@ function Manuscripts() {
     if (!manuscript.referees || manuscript.referees.length === 0) {
       return { complete: false, unanimous: false, decision: null };
     }
-    
+
     const decisions = refereeDecisions[manuscript._id] || {};
     const complete = manuscript.referees.every(ref => decisions[ref] !== undefined);
-    
+
     if (!complete) return { complete, unanimous: false, decision: null };
-    
+
     const firstDecision = decisions[manuscript.referees[0]];
     const unanimous = manuscript.referees.every(ref => decisions[ref] === firstDecision);
-    
-    return { 
-      complete, 
-      unanimous, 
+
+    return {
+      complete,
+      unanimous,
       decision: unanimous ? firstDecision : null,
       acceptCount: manuscript.referees.filter(ref => decisions[ref] === 'ACCEPT').length,
       rejectCount: manuscript.referees.filter(ref => decisions[ref] === 'REJECT').length,
@@ -901,21 +901,21 @@ function Manuscripts() {
     if (!manuscript.referees || manuscript.referees.length === 0) {
       return false;
     }
-    
+
     // If manuscript state is already past the referee review state (in ARV or beyond)
     if (['ARV', 'EDR', 'CED', 'AUR', 'FMT', 'PUB'].includes(manuscript.state)) {
       return true;
     }
-    
+
     // If all referees have submitted decisions
     const allSubmitted = manuscript.referees.every(referee => hasRefereeAction(manuscript, referee));
-    
+
     // check if there are comments or any referee marked as ACCEPT_WITH_REVISIONS
     const hasAnyDecisions = manuscript.referees.some(referee => {
       const decision = getRefereeDecision(manuscript._id, referee);
       return decision && decision !== '';
     });
-    
+
     // if all referees have submitted decisions or at least one referee provided a decision, consider review completed
     return allSubmitted || hasAnyDecisions;
   };
@@ -946,7 +946,7 @@ function Manuscripts() {
           const decisions = JSON.parse(savedDecisions);
           console.log("Loading referee decisions from localStorage:", decisions);
           setRefereeDecisions(decisions);
-          
+
           // Ensure localStorage decisions are not empty
           if (Object.keys(decisions).length === 0) {
             console.warn("Empty decisions object loaded from localStorage");
@@ -957,7 +957,7 @@ function Manuscripts() {
       } else {
         console.log("No referee decisions found in localStorage");
       }
-      
+
       // Get decisions from manuscripts data and merge
       const decisionsFromManuscripts = {};
       manuscripts.forEach(manuscript => {
@@ -965,18 +965,18 @@ function Manuscripts() {
           decisionsFromManuscripts[manuscript._id] = manuscript.referee_decisions;
         }
       });
-      
+
       if (Object.keys(decisionsFromManuscripts).length > 0) {
         console.log("Loading referee decisions from manuscripts:", decisionsFromManuscripts);
         setRefereeDecisions(prev => {
-          const merged = {...prev};
-          
+          const merged = { ...prev };
+
           // Merge each manuscript's decisions
           Object.keys(decisionsFromManuscripts).forEach(manuscriptId => {
             if (!merged[manuscriptId]) {
               merged[manuscriptId] = {};
             }
-            
+
             // Merge each referee decision for the manuscript
             Object.keys(decisionsFromManuscripts[manuscriptId]).forEach(referee => {
               // Only add if not already present
@@ -985,7 +985,7 @@ function Manuscripts() {
               }
             });
           });
-          
+
           return merged;
         });
       }
@@ -993,7 +993,7 @@ function Manuscripts() {
       console.error("Error loading referee decisions:", err);
     }
   };
-  
+
   // Use useEffect to sync decisions after manuscripts data load
   useEffect(() => {
     if (manuscripts.length > 0) {
@@ -1007,14 +1007,14 @@ function Manuscripts() {
     if (manuscript.state === 'ARV') {
       return (
         <div className="author-action-section">
-          <button 
+          <button
             className="primary-button"
             onClick={() => {
               const stateHandler = new ManuscriptStateHandler(
-                manuscripts, 
-                setManuscripts, 
-                currentUser, 
-                updateManuscriptState, 
+                manuscripts,
+                setManuscripts,
+                currentUser,
+                updateManuscriptState,
                 fetchManuscripts,
                 refereeDecisions,
                 setRefereeDecisions
@@ -1152,10 +1152,10 @@ function Manuscripts() {
           {manuscripts.length > 0 ? (
             manuscripts.map((manuscript) => {
               // Check if there are comments
-              const hasComments = manuscript.comments && 
-                ((Array.isArray(manuscript.comments) && manuscript.comments.length > 0) || 
-                 (typeof manuscript.comments === 'string' && manuscript.comments.trim() !== ''));
-              
+              const hasComments = manuscript.comments &&
+                ((Array.isArray(manuscript.comments) && manuscript.comments.length > 0) ||
+                  (typeof manuscript.comments === 'string' && manuscript.comments.trim() !== ''));
+
               return (
                 <div key={manuscript._id} className={`manuscript-card ${hasComments ? 'has-comments' : ''}`}>
                   <div className="manuscript-simple-content">
@@ -1304,7 +1304,7 @@ function Manuscripts() {
         <div className="manuscripts-table-container">
           <table className="manuscripts-table">
             <colgroup>
-              <col style={{width: "350px"}} />
+              <col style={{ width: "350px" }} />
             </colgroup>
             <thead>
               <tr>
@@ -1325,7 +1325,7 @@ function Manuscripts() {
                       <div className="manuscript-basic-info">
                         <h3 className="manuscript-title">{manuscript.title}</h3>
                         <StatusBadge state={manuscript.state} />
-                        
+
                         {manuscript.state === 'REJ' ? (
                           <div className="rejected-manuscript">
                             <div className="rejected-badge">
@@ -1385,7 +1385,7 @@ function Manuscripts() {
                             )}
                           </>
                         )}
-                        
+
                         <div className="manuscript-actions">
                           <button
                             className="edit-button"
@@ -1473,140 +1473,141 @@ function Manuscripts() {
                               Waiting for {getPendingRefereeCount(manuscript)} referees actions.
                             </div>
                           ) : null}
-                          
+
                           {manuscript.referees.map((referee, index) => {
                             // Add debug info but only show in DEBUG mode
                             debugRefereeInfo(manuscript, referee);
                             return (
-                            <div key={index} className="referee-review-section">
-                              <div className="referee-name-box">
-                                {referee}
-                                {hasRefereeDecision(manuscript._id, referee) ? (
-                                  <span className={`referee-decision-badge decision-${getRefereeDecision(manuscript._id, referee).toLowerCase()}`}>
-                                    {getRefereeDecision(manuscript._id, referee) === 'ACCEPT' ? '✓ Accepted' : 
-                                     getRefereeDecision(manuscript._id, referee) === 'ACCEPT_WITH_REVISIONS' ? '↻ Revisions' : 
-                                     '✕ Rejected'}
-                                  </span>
-                                ) : manuscript.state === 'ARV' ? (
-                                  <span className="referee-decision-badge decision-accept_with_revisions">
-                                    ↻ Requested Revisions
-                                  </span>
+                              <div key={index} className="referee-review-section">
+                                <div className="referee-name-box">
+                                  {referee}
+                                  {hasRefereeDecision(manuscript._id, referee) ? (
+                                    <span className={`referee-decision-badge decision-${getRefereeDecision(manuscript._id, referee).toLowerCase()}`}>
+                                      {getRefereeDecision(manuscript._id, referee) === 'ACCEPT' ? '✓ Accepted' :
+                                        getRefereeDecision(manuscript._id, referee) === 'ACCEPT_WITH_REVISIONS' ? '↻ Revisions' :
+                                          '✕ Rejected'}
+                                    </span>
+                                  ) : manuscript.state === 'ARV' ? (
+                                    <span className="referee-decision-badge decision-accept_with_revisions">
+                                      ↻ Requested Revisions
+                                    </span>
+                                  ) : null}
+                                </div>
+
+                                {/* Only show related functionality if referee has action */}
+                                {hasRefereeAction(manuscript, referee) ? (
+                                  <>
+                                    {hasEditorRole && (
+                                      <div className="referee-decision-box">
+                                        {!hasRefereeDecision(manuscript._id, referee) && ['SBR', 'REV', 'EDR'].includes(manuscript.state) ? (
+                                          // First case: Referee has not submitted decision, show Accept/Reject buttons
+                                          <>
+                                            <button
+                                              className="decision-button accept-button"
+                                              onClick={() => handleEditorDecision(manuscript._id, 'ACCEPT', referee)}
+                                              disabled={isDecisionLoading}
+                                            >
+                                              Accept
+                                            </button>
+                                            <button
+                                              className="decision-button reject-button"
+                                              onClick={() => handleEditorDecision(manuscript._id, 'REJECT', referee)}
+                                              disabled={isDecisionLoading}
+                                            >
+                                              Reject
+                                            </button>
+                                          </>
+                                        ) : getRefereeDecision(manuscript._id, referee) === 'ACCEPT_WITH_REVISIONS' && ['SBR', 'REV', 'EDR'].includes(manuscript.state) ? (
+                                          // Second case: Referee submitted Accept with Revisions, show Accept/Reject buttons
+                                          <div className="editor-confirmation-buttons">
+                                            <button
+                                              className="editor-confirm-button"
+                                              onClick={() => handleEditorDecision(manuscript._id, 'ACCEPT', referee)}
+                                              disabled={isDecisionLoading}
+                                            >
+                                              Accept
+                                            </button>
+                                            <button
+                                              className="editor-reject-button"
+                                              onClick={() => handleEditorDecision(manuscript._id, 'REJECT', referee)}
+                                              disabled={isDecisionLoading}
+                                            >
+                                              Reject
+                                            </button>
+                                          </div>
+                                        ) : (
+                                          // Third case: Final decision made, no buttons to show
+                                          <></>
+                                        )}
+                                      </div>
+                                    )}
+
+                                    {/* Comments section - Force show comment button, only show after referee has action */}
+                                    <div className="comments-container">
+                                      {(() => {
+                                        const comments = getAllComments(manuscript);
+                                        console.log("Processing comments section", {
+                                          manuscriptId: manuscript._id,
+                                          referee,
+                                          comments
+                                        });
+
+                                        // Force show comment button, regardless of comments
+                                        return (
+                                          <div className="comments-button-container">
+                                            <button
+                                              className="view-comments-button"
+                                              onClick={() => toggleManuscriptExpansion(manuscript._id)}
+                                            >
+                                              {comments.length > 0 ? `View Comments (${comments.length})` : 'View/Add Comments'}
+                                            </button>
+
+                                            {expandedManuscripts.has(manuscript._id) && (
+                                              <div className="comments-popup">
+                                                <div className="comments-popup-header">
+                                                  <h4>Revision Comments</h4>
+                                                  <button
+                                                    className="close-comments-button"
+                                                    onClick={() => toggleManuscriptExpansion(manuscript._id)}
+                                                  >
+                                                    ×
+                                                  </button>
+                                                </div>
+                                                <div className="comments-popup-content">
+                                                  {comments.length > 0 ? (
+                                                    <ul className="comments-list">
+                                                      {comments.map((comment, index) => (
+                                                        <li key={index} className="comment-item">
+                                                          <div className="comment-header">
+                                                            <span className="comment-author">{comment.author || 'Anonymous'}</span>
+                                                            <span className="comment-date">{formatDate(comment.date)}</span>
+                                                          </div>
+                                                          <p className="comment-text">{comment.text}</p>
+                                                        </li>
+                                                      ))}
+                                                    </ul>
+                                                  ) : (
+                                                    <div className="no-comments-placeholder">
+                                                      <p>No comments available</p>
+                                                      {hasEditorRole && (
+                                                        <div className="add-comment-placeholder">
+                                                          Comments can be added here
+                                                        </div>
+                                                      )}
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              </div>
+                                            )}
+                                          </div>
+                                        );
+                                      })()}
+                                    </div>
+                                  </>
                                 ) : null}
                               </div>
-                              
-                              {/* Only show related functionality if referee has action */}
-                              {hasRefereeAction(manuscript, referee) ? (
-                                <>
-                                  {hasEditorRole && (
-                                    <div className="referee-decision-box">
-                                      {!hasRefereeDecision(manuscript._id, referee) && ['SBR', 'REV', 'EDR'].includes(manuscript.state) ? (
-                                        // First case: Referee has not submitted decision, show Accept/Reject buttons
-                                        <>
-                                          <button
-                                            className="decision-button accept-button"
-                                            onClick={() => handleEditorDecision(manuscript._id, 'ACCEPT', referee)}
-                                            disabled={isDecisionLoading}
-                                          >
-                                            Accept
-                                          </button>
-                                          <button
-                                            className="decision-button reject-button"
-                                            onClick={() => handleEditorDecision(manuscript._id, 'REJECT', referee)}
-                                            disabled={isDecisionLoading}
-                                          >
-                                            Reject
-                                          </button>
-                                        </>
-                                      ) : getRefereeDecision(manuscript._id, referee) === 'ACCEPT_WITH_REVISIONS' && ['SBR', 'REV', 'EDR'].includes(manuscript.state) ? (
-                                        // Second case: Referee submitted Accept with Revisions, show Accept/Reject buttons
-                                        <div className="editor-confirmation-buttons">
-                                          <button
-                                            className="editor-confirm-button"
-                                            onClick={() => handleEditorDecision(manuscript._id, 'ACCEPT', referee)}
-                                            disabled={isDecisionLoading}
-                                          >
-                                            Accept
-                                          </button>
-                                          <button
-                                            className="editor-reject-button"
-                                            onClick={() => handleEditorDecision(manuscript._id, 'REJECT', referee)}
-                                            disabled={isDecisionLoading}
-                                          >
-                                            Reject
-                                          </button>
-                                        </div>
-                                      ) : (
-                                        // Third case: Final decision made, no buttons to show
-                                        <></>
-                                      )}
-                                    </div>
-                                  )}
-                                  
-                                  {/* Comments section - Force show comment button, only show after referee has action */}
-                                  <div className="comments-container">
-                                    {(() => {
-                                      const comments = getAllComments(manuscript);
-                                      console.log("Processing comments section", {
-                                        manuscriptId: manuscript._id,
-                                        referee,
-                                        comments
-                                      });
-                                      
-                                      // Force show comment button, regardless of comments
-                                      return (
-                                        <div className="comments-button-container">
-                                          <button
-                                            className="view-comments-button"
-                                            onClick={() => toggleManuscriptExpansion(manuscript._id)}
-                                          >
-                                            {comments.length > 0 ? `View Comments (${comments.length})` : 'View/Add Comments'}
-                                          </button>
-                                          
-                                          {expandedManuscripts.has(manuscript._id) && (
-                                            <div className="comments-popup">
-                                              <div className="comments-popup-header">
-                                                <h4>Revision Comments</h4>
-                                                <button 
-                                                  className="close-comments-button"
-                                                  onClick={() => toggleManuscriptExpansion(manuscript._id)}
-                                                >
-                                                  ×
-                                                </button>
-                                              </div>
-                                              <div className="comments-popup-content">
-                                                {comments.length > 0 ? (
-                                                  <ul className="comments-list">
-                                                    {comments.map((comment, index) => (
-                                                      <li key={index} className="comment-item">
-                                                        <div className="comment-header">
-                                                          <span className="comment-author">{comment.author || 'Anonymous'}</span>
-                                                          <span className="comment-date">{formatDate(comment.date)}</span>
-                                                        </div>
-                                                        <p className="comment-text">{comment.text}</p>
-                                                      </li>
-                                                    ))}
-                                                  </ul>
-                                                ) : (
-                                                  <div className="no-comments-placeholder">
-                                                    <p>No comments available</p>
-                                                    {hasEditorRole && (
-                                                      <div className="add-comment-placeholder">
-                                                        Comments can be added here
-                                                      </div>
-                                                    )}
-                                                  </div>
-                                                )}
-                                              </div>
-                                            </div>
-                                          )}
-                                        </div>
-                                      );
-                                    })()}
-                                  </div>
-                                </>
-                              ) : null}
-                            </div>
-                          )})}
+                            )
+                          })}
                         </div>
                       ) : (
                         <div className="stage-content pending-stage">

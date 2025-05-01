@@ -55,14 +55,14 @@ function ManuscriptReview() {
                 refereeId,
                 commentText
             });
-            
+
             // first try to save the comment using the API
             const commentResult = await createComment(manuscriptId, refereeId, commentText);
             console.log('Comment creation succeeded:', commentResult);
             return true;
         } catch (err) {
             console.error('Failed to save comment via API:', err);
-            
+
             // if the comment API fails, record the error but do not stop the process
             console.warn('Comment could not be saved as a separate entity, will rely on manuscript update');
             return false;
@@ -75,25 +75,25 @@ function ManuscriptReview() {
             // Get current decisions
             const savedDecisions = localStorage.getItem('refereeDecisions');
             let refereeDecisions = savedDecisions ? JSON.parse(savedDecisions) : {};
-            
+
             // update with the new decision
             if (!refereeDecisions[manuscriptId]) {
                 refereeDecisions[manuscriptId] = {};
             }
-            
+
             // map review actions to decision types
             const decisionMap = {
                 'ACC': 'ACCEPT',
                 'REJ': 'REJECT',
                 'AWR': 'ACCEPT_WITH_REVISIONS'
             };
-            
+
             refereeDecisions[manuscriptId][refereeId] = decisionMap[decision];
-            
+
             // save back to localStorage
             localStorage.setItem('refereeDecisions', JSON.stringify(refereeDecisions));
             console.log(`Saved referee decision to localStorage: ${decision}`);
-            
+
             return true;
         } catch (err) {
             console.error('Error saving referee decision to localStorage:', err);
@@ -104,7 +104,7 @@ function ManuscriptReview() {
     const handleSubmitAction = async () => {
         try {
             setSubmitting(true);
-            
+
             if (reviewAction === 'AWR' && revisionComments.trim() === '') {
                 setError('Please provide revision comments.');
                 setSubmitting(false);
@@ -133,9 +133,9 @@ function ManuscriptReview() {
             // instead of AWR, as we want to keep the manuscript in REV state
             // until the editor makes the final decision
             const actualAction = reviewAction === 'AWR' ? 'SBR' : reviewAction;
-            
+
             // Include revision comments in the payload for backward compatibility
-            const payload = reviewAction === 'AWR' ? { 
+            const payload = reviewAction === 'AWR' ? {
                 comments: revisionComments,
                 referee: currentUser.email || currentUser.id
             } : {
@@ -150,7 +150,7 @@ function ManuscriptReview() {
 
             // 4. update the manuscript state
             await updateManuscriptState(manuscript._id, actualAction, payload);
-            
+
             // 5. comment success message
             if (reviewAction === 'AWR') {
                 if (commentSaveResult) {
@@ -161,7 +161,7 @@ function ManuscriptReview() {
             } else {
                 alert(`Manuscript ${actionMessage} successfully!`);
             }
-            
+
             navigate('/action-dashboard');
         } catch (err) {
             console.error("Error in handleSubmitAction:", err);
