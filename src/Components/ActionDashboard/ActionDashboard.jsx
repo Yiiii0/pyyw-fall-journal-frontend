@@ -275,19 +275,19 @@ function ActionDashboard() {
                                                 {allComments.length > 0 ? (
                                                     <div className="comments-section">
                                                         <h5>Revision Comments</h5>
-                                                        <ul className="comments-list">
+                                                            <ul className="comments-list">
                                                             {allComments.map((comment, index) => (
-                                                                <li key={index} className="comment-item">
-                                                                    <div className="comment-header">
-                                                                        <span className="comment-author">{comment.author || 'Anonymous'}</span>
-                                                                        <span className="comment-date">
-                                                                            {formatDate(comment.date)}
-                                                                        </span>
-                                                                    </div>
-                                                                    <p className="comment-text">{comment.text}</p>
-                                                                </li>
-                                                            ))}
-                                                        </ul>
+                                                                    <li key={index} className="comment-item">
+                                                                        <div className="comment-header">
+                                                                            <span className="comment-author">{comment.author || 'Anonymous'}</span>
+                                                                            <span className="comment-date">
+                                                                                {formatDate(comment.date)}
+                                                                            </span>
+                                                                        </div>
+                                                                        <p className="comment-text">{comment.text}</p>
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
                                                     </div>
                                                 ) : (
                                                     <div className="comments-section">

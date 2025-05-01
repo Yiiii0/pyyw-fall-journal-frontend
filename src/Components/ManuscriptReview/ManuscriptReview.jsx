@@ -16,7 +16,6 @@ function ManuscriptReview() {
     const [revisionComments, setRevisionComments] = useState('');
     const [submitting, setSubmitting] = useState(false);
 
-    // 确保在localStorage中存储用户信息的备份
     useEffect(() => {
         if (currentUser && !localStorage.getItem('user')) {
             localStorage.setItem('user', JSON.stringify(currentUser));
@@ -48,7 +47,7 @@ function ManuscriptReview() {
         }
     };
 
-    // 单独处理评论保存
+    // ensure the comment is saved in the database
     const saveComment = async (manuscriptId, refereeId, commentText) => {
         try {
             console.log('Attempting to save comment:', {
@@ -57,32 +56,32 @@ function ManuscriptReview() {
                 commentText
             });
             
-            // 首先尝试使用API保存评论
+            // first try to save the comment using the API
             const commentResult = await createComment(manuscriptId, refereeId, commentText);
             console.log('Comment creation succeeded:', commentResult);
             return true;
         } catch (err) {
             console.error('Failed to save comment via API:', err);
             
-            // 如果评论API出错，记录错误但不阻止流程
+            // if the comment API fails, record the error but do not stop the process
             console.warn('Comment could not be saved as a separate entity, will rely on manuscript update');
             return false;
         }
     };
 
-    // Save referee decision to localStorage
+    // save the referee decision to localStorage
     const saveRefereeDecision = (manuscriptId, refereeId, decision) => {
         try {
             // Get current decisions
             const savedDecisions = localStorage.getItem('refereeDecisions');
             let refereeDecisions = savedDecisions ? JSON.parse(savedDecisions) : {};
             
-            // Update with new decision
+            // update with the new decision
             if (!refereeDecisions[manuscriptId]) {
                 refereeDecisions[manuscriptId] = {};
             }
             
-            // Map review actions to decision types
+            // map review actions to decision types
             const decisionMap = {
                 'ACC': 'ACCEPT',
                 'REJ': 'REJECT',
@@ -91,7 +90,7 @@ function ManuscriptReview() {
             
             refereeDecisions[manuscriptId][refereeId] = decisionMap[decision];
             
-            // Save back to localStorage
+            // save back to localStorage
             localStorage.setItem('refereeDecisions', JSON.stringify(refereeDecisions));
             console.log(`Saved referee decision to localStorage: ${decision}`);
             
@@ -123,13 +122,18 @@ function ManuscriptReview() {
             // 1. Save referee decision to localStorage
             saveRefereeDecision(manuscript._id, refereeId, reviewAction);
 
-            // 2. 先尝试创建评论（如果有评论）
+            // 2. first try to create the comment (if there is a comment)
             let commentSaveResult = false;
             if (reviewAction === 'AWR' && revisionComments.trim() !== '') {
                 commentSaveResult = await saveComment(manuscript._id, refereeId, revisionComments);
             }
 
-            // 2. 无论评论是否保存成功，都更新手稿状态
+            // 3. update the manuscript state
+            // For "Accept with Revisions", use SBR (Submit Review) action code
+            // instead of AWR, as we want to keep the manuscript in REV state
+            // until the editor makes the final decision
+            const actualAction = reviewAction === 'AWR' ? 'SBR' : reviewAction;
+            
             // Include revision comments in the payload for backward compatibility
             const payload = reviewAction === 'AWR' ? { 
                 comments: revisionComments,
@@ -140,14 +144,14 @@ function ManuscriptReview() {
 
             console.log('Updating manuscript state with:', {
                 manuscriptId: manuscript._id,
-                action: reviewAction,
+                action: actualAction, // Use SBR instead of AWR for "Accept with Revisions"
                 payload
             });
 
-            // 更新手稿状态
-            await updateManuscriptState(manuscript._id, reviewAction, payload);
+            // 4. update the manuscript state
+            await updateManuscriptState(manuscript._id, actualAction, payload);
             
-            // 评论成功保存消息
+            // 5. comment success message
             if (reviewAction === 'AWR') {
                 if (commentSaveResult) {
                     alert(`Manuscript ${actionMessage} successfully! Comment was saved.`);

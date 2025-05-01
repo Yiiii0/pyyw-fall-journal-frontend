@@ -82,9 +82,15 @@ export const updateManuscriptState = async (manuscriptId, action, extraParams = 
       action,
       ...extraParams 
     };
+    console.log("Sending update state request:", requestData);
     const { data } = await axios.put(`${MANUSCRIPTS_ENDPOINTS.READ}/update_state`, requestData);
+    console.log("Update state response:", data);
     return data;
   } catch (error) {
+    console.error("Error updating manuscript state:", error);
+    console.error("Error response data:", error.response?.data);
+    console.error("Error status:", error.response?.status);
+    console.error("Error status text:", error.response?.statusText);
     throw new Error(`Failed to update manuscript state for "${manuscriptId}": ${error.message}`);
   }
 };
