@@ -319,9 +319,9 @@ function ActionDashboard() {
                 return;
             }
 
-            // Update to AWR (Awaiting Review) state which better represents the author has completed revisions 
-            // and the manuscript is now awaiting another review
-            await updateManuscriptState(manuscriptId, 'AWR');
+            // Update to DON (Done) state which matches the behavior of "Simulate Author Approval"
+            // This changes from 'AWR' to 'DON' to have the same effect as in the editor dashboard
+            await updateManuscriptState(manuscriptId, 'DON');
 
             // Use template literals to avoid quote issues
             alert(`Your manuscript has been marked as "Revision Complete" and is now submitted for review.`);

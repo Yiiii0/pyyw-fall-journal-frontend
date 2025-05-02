@@ -1001,42 +1001,6 @@ function Manuscripts() {
     }
   }, [manuscripts]);
 
-  // If referee section is not found, can add in renderManuscriptDetails function
-  const renderAuthorActionButton = (manuscript) => {
-    // Only show in ARV (Author Revision) state
-    if (manuscript.state === 'ARV') {
-      return (
-        <div className="author-action-section">
-          <button
-            className="primary-button"
-            onClick={() => {
-              const stateHandler = new ManuscriptStateHandler(
-                manuscripts,
-                setManuscripts,
-                currentUser,
-                updateManuscriptState,
-                fetchManuscripts,
-                refereeDecisions,
-                setRefereeDecisions
-              );
-              stateHandler.handleAuthorResponse(manuscript._id)
-                .then(result => {
-                  if (result.success) {
-                    alert('Author response processed successfully!');
-                  } else {
-                    alert(`Error: ${result.error}`);
-                  }
-                });
-            }}
-          >
-            Simulate Author Approval
-          </button>
-        </div>
-      );
-    }
-    return null;
-  };
-
   return (
     <div className="manuscripts-wrapper">
       <div className="manuscripts-header">
@@ -1619,7 +1583,6 @@ function Manuscripts() {
                       {manuscript.state === 'ARV' ? (
                         <div className="stage-content active-stage">
                           <span className="stage-indicator">Waiting for author action</span>
-                          {renderAuthorActionButton(manuscript)}
                         </div>
                       ) : manuscript.history && manuscript.history.includes('ARV') ? (
                         <div className="stage-content completed-stage">
