@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { updatePerson, getPerson } from '../../services/peopleAPI';
+import { updatePerson, getPerson, deletePerson } from '../../services/peopleAPI';
 import './Profile.css';
 
 function Profile() {
@@ -60,6 +60,20 @@ function Profile() {
       setError('');
     } catch (err) {
       setError(err.message);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+      try {
+        await deletePerson(currentUser.email, currentUser.email);
+        alert('Your account has been deleted.');
+        // Sign out the user and redirect to the home page
+        localStorage.removeItem('userData');
+        window.location.href = '/';
+      } catch (err) {
+        setError(err.message);
+      }
     }
   };
 
@@ -133,6 +147,7 @@ function Profile() {
             <p>{userData?.bio || 'No bio provided'}</p>
           </div>
           <button onClick={() => setIsEditing(true)} className="edit-button">Edit Profile</button>
+          <button onClick={handleDeleteAccount} className="delete-button">Delete Account</button>
         </div>
       )}
     </div>
