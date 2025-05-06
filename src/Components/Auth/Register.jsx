@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { register } from '../../services/peopleAPI';
 import './Auth.css';
 
-function Register({ onRegister }) {
+function Register() {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         email: '',
@@ -42,9 +42,8 @@ function Register({ onRegister }) {
             if (formData.bio.trim()) {
                 userData.bio = formData.bio;
             }
-            const registeredUser = await register(userData);
-            onRegister(registeredUser);
-            navigate('/');
+            await register(userData);
+            navigate('/login');
         } catch (err) {
             setError(err.message);
         }
