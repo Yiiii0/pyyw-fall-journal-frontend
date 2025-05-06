@@ -581,6 +581,15 @@ const Submissions = ({ user }) => {
         )}
       </div>
 
+      <div className="guidelines-button-container">
+        <button 
+          className="view-guidelines-button" 
+          onClick={toggleGuidelines}
+        >
+          {guidelinesVisible ? 'Hide Submission Guidelines' : 'View Submission Guidelines'}
+        </button>
+      </div>
+
       <SubmissionGuidelines
         visible={guidelinesVisible}
         toggleVisibility={toggleGuidelines}
