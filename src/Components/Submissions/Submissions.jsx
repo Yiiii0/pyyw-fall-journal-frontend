@@ -458,24 +458,7 @@ const Submissions = ({ user }) => {
   const [addingManuscript, setAddingManuscript] = useState(false);
   const [guidelinesVisible, setGuidelinesVisible] = useState(false);
   const [searchTitle, setSearchTitle] = useState('');
-  const [isEditing, setIsEditing] = useState(false);
-  const [isUpdatingState, setIsUpdatingState] = useState(false);
-  const [selectedAction, setSelectedAction] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const [validActions, setValidActions] = useState([]);
-
-  const STATE_LABELS = {
-    'SUB': 'Submitted',
-    'REV': 'In Review',
-    'REJ': 'Rejected',
-    'CED': 'Copy Editing',
-    'AUR': 'Author Review',
-    'WIT': 'Withdrawn',
-    'EDR': 'Editor Review',
-    'ARV': 'Author Revision',
-    'FMT': 'Formatting',
-    'PUB': 'Published'
-  };
 
   const fetchManuscripts = async () => {
     try {
@@ -541,75 +524,32 @@ const Submissions = ({ user }) => {
 
   const showAddManuscriptForm = () => setAddingManuscript(true);
   const hideAddManuscriptForm = () => setAddingManuscript(false);
-
-  const showEditForm = () => setIsEditing(true);
-  const hideEditForm = () => setIsEditing(false);
-  const showStateUpdateForm = (manuscript) => {
-    const fetchValidActions = async () => {
-      try {
-        const actions = await getValidActions(manuscript.state);
-        setValidActions(actions);
-      } catch (error) {
-        setError(error.message);
-      }
-    };
-    fetchValidActions();
-    setIsUpdatingState(true);
-  };
-  const hideStateUpdateForm = () => {
-    setIsUpdatingState(false);
-    setSelectedAction('');
-  };
-
-  const handleDelete = async (manuscript) => {
-    if (window.confirm(`Are you sure you want to delete "${manuscript.title}"?`)) {
-      try {
-        await deleteManuscriptByTitle(manuscript.title);
-        fetchManuscripts();
-      } catch (error) {
-        console.error("Delete error:", error);
-        setError(`Failed to delete manuscript: ${error.message}`);
-      }
-    }
-  };
-
-  const handleStateUpdate = async (e, manuscript) => {
-    e.preventDefault();
-    try {
-      await updateManuscriptState(manuscript.title, selectedAction);
-      fetchManuscripts();
-      setIsUpdatingState(false);
-      setSelectedAction('');
-    } catch (error) {
-      setError(error.message);
-    }
-  };
-
-  const toggleGuidelines = () => {
-    setGuidelinesVisible(!guidelinesVisible);
-  };
+  const toggleGuidelines = () => setGuidelinesVisible(!guidelinesVisible);
 
   return (
     <div className="submissions-container">
       <div className="submissions-header">
         <h2>Manuscripts</h2>
-        <button onClick={showAddManuscriptForm} className="add-button">
-          Add Manuscript
-        </button>
       </div>
 
-      <div className="search-controls">
-        <form onSubmit={handleSearch}>
-          <input
-            type="text"
-            placeholder="Search by title..."
-            value={searchTitle}
-            onChange={(e) => setSearchTitle(e.target.value)}
-          />
-          <button type="submit" disabled={isSearching}>
-            {isSearching ? 'Searching...' : 'Search'}
-          </button>
-        </form>
+      <div className="controls-container">
+        <button onClick={showAddManuscriptForm} className="add-button">
+          Add
+        </button>
+        
+        <div className="search-controls">
+          <form onSubmit={handleSearch}>
+            <input
+              type="text"
+              placeholder="Search by title..."
+              value={searchTitle}
+              onChange={(e) => setSearchTitle(e.target.value)}
+            />
+            <button type="submit" disabled={isSearching}>
+              {isSearching ? 'Searching...' : 'Search'}
+            </button>
+          </form>
+        </div>
       </div>
 
       {error && <div className="error-message">{error}</div>}
@@ -627,83 +567,12 @@ const Submissions = ({ user }) => {
       <div className="manuscripts-list">
         {filteredManuscripts && filteredManuscripts.length > 0 ? (
           filteredManuscripts.map((manuscript) => (
-            <div key={manuscript._id} className="manuscript-item">
-              <div className={`state-tag state-${manuscript.state}`}>
-                {STATE_LABELS[manuscript.state] || manuscript.state}
-              </div>
-              <h3 className="manuscript-title">
-                <a href={`/manuscript/${manuscript._id}`} className="manuscript-link">
-                  {manuscript.title}
-                </a>
-              </h3>
-              <div className="manuscript-info">
-                <p><span className="label">Author:</span> {manuscript.author}</p>
-                <p><span className="label">Author Email:</span> {manuscript.author_email}</p>
-                <p><span className="label">Editor:</span> {manuscript.editor_email}</p>
-                {manuscript.referees && manuscript.referees.length > 0 && (
-                  <p><span className="label">Referees:</span> {manuscript.referees.join(', ')}</p>
-                )}
-                <div className="abstract-text">
-                  <p><span className="label">Abstract:</span></p>
-                  <p>{manuscript.abstract}</p>
-                </div>
-                {manuscript.history && manuscript.history.length > 0 && (
-                  <p><span className="label">History:</span> {manuscript.history.map(state => STATE_LABELS[state] || state).join(' → ')}</p>
-                )}
-              </div>
-              <div className="manuscript-actions">
-                <button className="edit-button" onClick={showEditForm}>Edit</button>
-                {validActions.length > 0 && (
-                  <button className="view-button" onClick={() => showStateUpdateForm(manuscript)}>Update State</button>
-                )}
-                <button className="delete-button" onClick={() => handleDelete(manuscript)}>Delete</button>
-              </div>
-              <EditManuscriptForm
-                manuscript={manuscript}
-                visible={isEditing}
-                cancel={hideEditForm}
-                fetchManuscripts={fetchManuscripts}
-                setError={setError}
-              />
-              {isUpdatingState && (
-                <div className="submission-form">
-                  <h3>Update Manuscript State</h3>
-                  <form onSubmit={(e) => handleStateUpdate(e, manuscript)}>
-                    <label htmlFor="action">Select Action</label>
-                    <select
-                      id="action"
-                      value={selectedAction}
-                      onChange={(e) => setSelectedAction(e.target.value)}
-                      required
-                    >
-                      <option value="">Select an action...</option>
-                      {validActions.map((action) => (
-                        <option key={action.code} value={action.code}>
-                          {action.label}
-                        </option>
-                      ))}
-                    </select>
-                    {selectedAction !== 'SBR' && (
-                      <div className="button-group">
-                        <button type="button" onClick={hideStateUpdateForm}>Cancel</button>
-                        <button type="submit">Apply Action</button>
-                      </div>
-                    )}
-                  </form>
-                  {selectedAction === 'SBR' && (
-                    <RefereeActionForm
-                      title={manuscript.title}
-                      onSuccess={() => {
-                        fetchManuscripts();
-                        hideStateUpdateForm();
-                      }}
-                      setError={setError}
-                      onCancel={hideStateUpdateForm}
-                    />
-                  )}
-                </div>
-              )}
-            </div>
+            <Manuscript 
+              key={manuscript._id}
+              manuscript={manuscript} 
+              fetchManuscripts={fetchManuscripts}
+              setError={setError}
+            />
           ))
         ) : (
           <div className="no-manuscripts">
