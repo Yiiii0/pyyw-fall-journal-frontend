@@ -51,17 +51,15 @@ const EditorDashboard = () => {
   }
 
   return (
-    <div className="editor-dashboard">
-      <h1>Editor Dashboard</h1>
+    <div className="editor-dashboard-container">
+      <div className="editor-dashboard-heading">
+        <h2>Editor Dashboard</h2>
+      </div>
       <nav>
-        <ul>
-          <li>
-            <Link to="/manuscripts">Manuscripts</Link>
-          </li>
-          <li>
-            <Link to="/people">People</Link>
-          </li>
-        </ul>
+        <div className="button-group">
+          <Link to="/manuscripts" className="dashboard-button">Manuscripts</Link>
+          <Link to="/people" className="dashboard-button">People</Link>
+        </div>
       </nav>
     </div>
   );
