@@ -37,9 +37,10 @@
   display: flex;
   gap: 2rem;
   margin-top: 1rem;
-  margin-left: 2rem;
-  justify-content: flex-start;
+  margin-left:1rem;
+  justify-content: space-evenly;
   padding-left: 1rem;
+  padding-right: 1rem;
 }
 
 .dashboard-button {
@@ -62,4 +63,99 @@
   background-color: var(--primary-hover, #357ae8);
   transform: translateY(-2px);
   color: white;
+}
+
+.edit-title-button {
+  /* Custom style for Edit Journal Title button */
+  background-color: transparent;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.edit-title-button:hover {
+  background-color: var(--primary);
+  color: white;
+}
+
+.edit-static-button {
+  background-color: transparent;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.edit-static-button:hover {
+  background-color: var(--primary);
+  color: white;
+}
+
+.title-edit-form {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background-color: #f9f9f9;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.title-edit-form label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: var(--fw-600);
+  color: var(--text-dark);
+}
+
+.title-edit-form input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 1rem;
+}
+
+.static-page-edit-form {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background-color: #f9f9f9;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.static-page-edit-form label {
+  display: block;
+  margin-top: 0.5rem;
+  margin-bottom: 0.25rem;
+  font-weight: var(--fw-600);
+  color: var(--text-dark);
+}
+
+.static-page-edit-form select,
+.static-page-edit-form input,
+.static-page-edit-form textarea {
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.form-button-group {
+  display: flex;
+  gap: 1rem;
+}
+
+.form-button-group button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: var(--radius);
+  background-color: var(--primary);
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.form-button-group button:hover {
+  background-color: var(--primary-hover);
 }

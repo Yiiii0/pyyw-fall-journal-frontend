@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import './Navbar.css';
 import { useAuth } from '../../contexts/AuthContext';
+import { getText } from '../../services/textAPI';
 
 function Navbar() {
   const { currentUser, logout } = useAuth();
@@ -10,6 +11,20 @@ function Navbar() {
   console.log('Current user roles:', currentUser?.roles);
   const navigate = useNavigate();
   const location = useLocation();
+
+  const [websiteTitle, setWebsiteTitle] = useState('');
+
+  useEffect(() => {
+    const fetchTitle = async () => {
+      try {
+        const title = await getText("title");
+        setWebsiteTitle(title.text);
+      } catch (error) {
+        console.error("Failed to fetch website title:", error);
+      }
+    };
+    fetchTitle();
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -27,7 +42,7 @@ function Navbar() {
       <nav className="nav-container">
         <div className="nav-brand">
           <Link to="/" className="brand-link">
-            Journal System
+            {websiteTitle || 'Journal System'}
           </Link>
         </div>
 

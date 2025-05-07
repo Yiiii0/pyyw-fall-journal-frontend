@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   BrowserRouter,
   Routes,
@@ -25,6 +25,8 @@ import ActionDashboard from './Components/ActionDashboard';
 import ManuscriptReview from './Components/ManuscriptReview';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
+import { getText } from './services/textAPI';
+
 function PersonPage() {
   const { name } = useParams();
   return <h1>{name}</h1>;
@@ -44,14 +46,31 @@ ProtectedRoute.propTypes = {
 };
 
 function WelcomePage() {
+  const [welcomeContent, setWelcomeContent] = useState('');
+
+  useEffect(() => {
+      async function fetchWelcomeContent() {
+          try {
+              const content = await getText('home');
+              setWelcomeContent(content.text);
+          } catch (error) {
+              console.error('Error fetching welcome content:', error);
+          }
+      }
+      fetchWelcomeContent();
+  }, []);
+
   return (
-    <div className="welcome-page">
-      <div className="welcome-content">
-        <h1>Welcome to Journal System</h1>
-        <p className="welcome-tagline">A modern platform for academic publishing and collaboration</p>
-        <p className="welcome-description">Discover, submit, and review scholarly articles in an efficient and transparent environment</p>
+      <div className="welcome-page">
+          <div className="welcome-content">
+              {welcomeContent ? (
+                  // If you are sure the content is safe use dangerouslySetInnerHTML
+                  <div dangerouslySetInnerHTML={{ __html: welcomeContent }} />
+              ) : (
+                  <p>Loading...</p>
+              )}
+          </div>
       </div>
-    </div>
   );
 }
 
