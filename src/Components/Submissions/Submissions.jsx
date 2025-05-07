@@ -456,7 +456,11 @@ const Submissions = ({ user }) => {
   const fetchManuscripts = async () => {
     try {
       const data = await getManuscripts();
-      const manuscriptsArray = Array.isArray(data.manuscripts) ? data.manuscripts : [];
+      let manuscriptsArray = Array.isArray(data.manuscripts) ? data.manuscripts : [];
+      // only show current user’s own submissions
+      if (user?.email) {
+        manuscriptsArray = manuscriptsArray.filter(m => m.author_email === user.email);
+      }
       setFilteredManuscripts(manuscriptsArray);
       setError('');
     } catch (err) {
@@ -500,7 +504,11 @@ const Submissions = ({ user }) => {
         await fetchManuscripts();
       } else {
         const data = await getManuscriptsByTitle(searchTitle);
-        setFilteredManuscripts(data.manuscripts);
+        let results = Array.isArray(data.manuscripts) ? data.manuscripts : [];
+        if (user?.email) {
+          results = results.filter(m => m.author_email === user.email);
+        }
+        setFilteredManuscripts(results);
         if (data.manuscripts.length === 0) {
           setError(`No manuscripts found matching "${searchTitle}"`);
         } else {
