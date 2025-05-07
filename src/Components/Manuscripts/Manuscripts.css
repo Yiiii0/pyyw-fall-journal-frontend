@@ -490,6 +490,10 @@ button:hover {
 .referee-dropdown-container {
   position: relative;
   margin-top: 10px;
+  display: block;
+  /* Ensure the container is displayed */
+  width: 100%;
+  /* Take full width */
 }
 
 .add-referee-button {
@@ -501,6 +505,22 @@ button:hover {
   cursor: pointer;
   font-size: 0.9rem;
   margin-left: 8px;
+  display: inline-block;
+  /* Ensure button is displayed as inline-block */
+  visibility: visible;
+  /* Ensure button is visible */
+  opacity: 1;
+  /* Ensure button is not transparent */
+  width: auto;
+  /* Let the content determine width */
+  z-index: 5;
+  /* Ensure it's above other elements */
+}
+
+.add-referee-button:hover {
+  background-color: #3b57c2;
+  transform: none;
+  /* Override the general transform effect */
 }
 
 .referee-dropdown {
@@ -784,16 +804,14 @@ button:hover {
 .referee-decision-box {
   display: flex;
   flex-direction: column;
-  /* Change to column to stack rows */
+  /* Stack decision buttons vertically */
   padding: 0;
   background-color: transparent;
   border-radius: 4px;
   margin: 3px auto;
   gap: 8px;
-  /* Gap between rows */
   width: 90%;
   min-height: 80px;
-  /* Increase height to accommodate two rows */
 }
 
 /* Create first row container for Accept and Reject buttons */
@@ -1580,4 +1598,75 @@ button:hover {
   color: #4b5563;
   font-size: 0.9rem;
   border: 1px solid #e5e7eb;
+}
+
+/* Fix Assign Referee button visibility issues */
+.referee-dropdown-container {
+  position: relative;
+  margin: 10px 0;
+  display: block !important;
+  /* Force display */
+  width: 100%;
+  z-index: 10;
+}
+
+.add-referee-button {
+  background-color: #4b67d2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin: 5px 0;
+  display: inline-block !important;
+  /* Force display as inline-block */
+  visibility: visible !important;
+  /* Force visibility */
+  opacity: 1 !important;
+  /* Force opacity */
+  width: auto;
+  z-index: 15;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.add-referee-button:hover {
+  background-color: #3b57c2;
+  transform: none;
+}
+
+/* Fix button appearance in both views */
+.manuscript-simple-content .add-referee-button,
+.manuscript-basic-info .add-referee-button {
+  display: block !important;
+  margin: 8px 0;
+  width: 100%;
+  max-width: 200px;
+}
+
+/* Fix dropdown positioning and visibility */
+.referee-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 250px;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 20;
+  padding: 10px;
+}
+
+/* Remove any conflicting rules */
+.referee-decision-box {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  background-color: transparent;
+  border-radius: 4px;
+  margin: 3px auto;
+  gap: 8px;
+  width: 90%;
+  min-height: 80px;
 }

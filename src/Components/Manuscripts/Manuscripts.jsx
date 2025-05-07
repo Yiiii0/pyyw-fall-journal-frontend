@@ -1253,7 +1253,7 @@ function Manuscripts() {
                             className="add-referee-button"
                             onClick={() => toggleDropdown(manuscript._id)}
                           >
-                            Assign Referee
+                            <strong>+ Assign Referee</strong>
                           </button>
                           {dropdownOpen[manuscript._id] && (
                             <div className="referee-dropdown">
