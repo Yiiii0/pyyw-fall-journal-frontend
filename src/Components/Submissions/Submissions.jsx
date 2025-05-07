@@ -5,7 +5,6 @@ import {
   getManuscriptsByTitle,
   createManuscript,
   updateManuscript,
-  deleteManuscriptByTitle,
   updateManuscriptState,
   getManuscripts,
   getManuscriptById
@@ -189,18 +188,6 @@ function Manuscript({ manuscript, fetchManuscripts, setError }) {
     'PUB': 'Published'
   };
 
-  const handleDelete = async () => {
-    if (window.confirm(`Are you sure you want to delete "${manuscript.title}"?`)) {
-      try {
-        await deleteManuscriptByTitle(manuscript.title);
-        fetchManuscripts();
-      } catch (error) {
-        console.error("Delete error:", error);
-        setError(`Failed to delete manuscript: ${error.message}`);
-      }
-    }
-  };
-
   const handleWithdraw = async () => {
     if (window.confirm(`Are you sure you want to withdraw "${manuscript.title}"?`)) {
       try {
@@ -244,7 +231,6 @@ function Manuscript({ manuscript, fetchManuscripts, setError }) {
       <div className="manuscript-actions">
         <button className="edit-button" onClick={showEditForm}>Edit</button>
         <button className="withdraw-button" onClick={handleWithdraw}>Withdraw</button>
-        <button className="delete-button" onClick={handleDelete}>Delete</button>
       </div>
       <EditManuscriptForm
         manuscript={manuscript}
