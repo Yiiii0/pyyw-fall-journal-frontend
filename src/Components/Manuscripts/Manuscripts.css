@@ -780,6 +780,67 @@ button:hover {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
+/* Updated referee-decision-box layout for 2-row button arrangement */
+.referee-decision-box {
+  display: flex;
+  flex-direction: column;
+  /* Change to column to stack rows */
+  padding: 0;
+  background-color: transparent;
+  border-radius: 4px;
+  margin: 3px auto;
+  gap: 8px;
+  /* Gap between rows */
+  width: 90%;
+  min-height: 80px;
+  /* Increase height to accommodate two rows */
+}
+
+/* Create first row container for Accept and Reject buttons */
+.referee-decision-first-row {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+}
+
+/* Make Accept with Revisions button take full width in second row */
+.decision-button.revisions-button {
+  background-color: #f59e0b;
+  color: white;
+  padding: 0.7rem 1.2rem;
+  font-size: 1.05rem;
+  font-weight: 500;
+  margin: 0.3rem 0;
+  /* Adjust vertical margin, remove horizontal margin */
+  border-radius: 0.4rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: none;
+  transition: all 0.2s ease;
+  width: 100%;
+  /* Make button take full width */
+  position: relative;
+  z-index: 1;
+}
+
+/* Ensure consistent height for all decision buttons */
+.decision-button {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Adjust the Accept and Reject buttons to fit in first row */
+.decision-button.accept-button,
+.decision-button.reject-button {
+  padding: 0.5rem 1rem;
+  flex: 1;
+  /* Make buttons share available space equally */
+  min-width: unset;
+  /* Remove fixed min-width to be more flexible */
+}
+
 .referee-decision-box {
   display: flex;
   flex-direction: row;
@@ -1298,6 +1359,32 @@ button:hover {
   opacity: 0.7;
 }
 
+/* Enhanced disabled button styles */
+.decision-button:disabled,
+.editor-confirm-button:disabled,
+.editor-reject-button:disabled {
+  background-color: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.7;
+  box-shadow: none;
+  border: 1px solid #d1d5db;
+}
+
+.decision-button.accept-button:disabled {
+  background-color: rgba(76, 175, 80, 0.3);
+}
+
+.decision-button.reject-button:disabled {
+  background-color: rgba(244, 67, 54, 0.3);
+}
+
+.decision-button.revisions-button:disabled {
+  background-color: rgba(245, 158, 11, 0.3);
+  transform: none;
+  box-shadow: none;
+}
+
 /* Revision Modal Styles */
 .revision-modal-backdrop {
   position: fixed;
@@ -1423,13 +1510,74 @@ button:hover {
 .decision-button.revisions-button {
   background-color: #f59e0b;
   color: white;
+  padding: 0.7rem 1.2rem;
+  /* Increased padding for larger button */
+  font-size: 1.05rem;
+  /* Slightly larger font */
+  font-weight: 500;
+  /* Make text a bit bolder */
+  margin: 0.3rem 0.5rem;
+  /* Add some margin around the button */
+  border-radius: 0.4rem;
+  /* Slightly rounded corners */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  /* Add subtle shadow for depth */
+  border: none;
+  transition: all 0.2s ease;
+  min-width: 180px;
+  /* Ensure minimum width */
+  position: relative;
+  /* For positioning highlight effects */
+  z-index: 1;
+  /* Ensure proper layering */
 }
 
 .decision-button.revisions-button:hover {
   background-color: #d97706;
+  transform: translateY(-2px);
+  /* Slight lift effect on hover */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  /* Enhanced shadow on hover */
+}
+
+.decision-button.revisions-button:focus {
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+.decision-button.revisions-button:active {
+  transform: translateY(1px);
+  /* Press down effect */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .decision-button.revisions-button:disabled {
   background-color: #fcd34d;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Adjust adjacent buttons for consistent sizing */
+.decision-button.accept-button,
+.decision-button.reject-button {
+  padding: 0.5rem 1rem;
+  min-width: 120px;
+}
+
+/* Decision status message styling */
+.decision-status {
+  padding: 8px;
+  margin-top: 8px;
+  text-align: center;
+}
+
+.decision-made-message {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 4px;
+  background-color: #f3f4f6;
+  color: #4b5563;
+  font-size: 0.9rem;
+  border: 1px solid #e5e7eb;
 }

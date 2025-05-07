@@ -1027,6 +1027,30 @@ function Manuscripts() {
     }
   };
 
+  // Add a new function to check if any decision has already been made for this referee
+  const hasRefereeDecisionBeenMade = (manuscript, refereeEmail) => {
+    // First check in refereeDecisions object (localStorage)
+    if (refereeDecisions[manuscript._id]?.[refereeEmail]) {
+      return true;
+    }
+
+    // Check in manuscript.referee_decisions
+    if (manuscript.referee_decisions &&
+      typeof manuscript.referee_decisions === 'object' &&
+      manuscript.referee_decisions[refereeEmail]) {
+      return true;
+    }
+
+    // Check if the manuscript is in a state that indicates decisions have been made
+    // and this referee is listed as having contributed to that state
+    if (['ARV', 'AWR', 'ACC', 'REJ', 'EDR', 'CED'].includes(manuscript.state) &&
+      manuscript.referee_actions?.includes(refereeEmail)) {
+      return true;
+    }
+
+    return false;
+  };
+
   return (
     <div className="manuscripts-wrapper">
       <div className="manuscripts-header">
@@ -1408,26 +1432,28 @@ function Manuscripts() {
                                       <div className="referee-decision-box">
                                         {!hasRefereeDecision(manuscript._id, referee) && ['SBR', 'REV', 'EDR'].includes(manuscript.state) ? (
                                           <>
-                                            <button
-                                              className="decision-button accept-button"
-                                              onClick={() => handleEditorDecision(manuscript._id, 'ACCEPT', referee)}
-                                              disabled={isDecisionLoading}
-                                            >
-                                              Accept
-                                            </button>
+                                            <div className="referee-decision-first-row">
+                                              <button
+                                                className="decision-button accept-button"
+                                                onClick={() => handleEditorDecision(manuscript._id, 'ACCEPT', referee)}
+                                                disabled={isDecisionLoading || hasRefereeDecisionBeenMade(manuscript, referee)}
+                                              >
+                                                Accept
+                                              </button>
+                                              <button
+                                                className="decision-button reject-button"
+                                                onClick={() => handleEditorDecision(manuscript._id, 'REJECT', referee)}
+                                                disabled={isDecisionLoading || hasRefereeDecisionBeenMade(manuscript, referee)}
+                                              >
+                                                Reject
+                                              </button>
+                                            </div>
                                             <button
                                               className="decision-button revisions-button"
                                               onClick={() => openRevisionModal(manuscript._id, referee)}
-                                              disabled={isDecisionLoading}
+                                              disabled={isDecisionLoading || hasRefereeDecisionBeenMade(manuscript, referee)}
                                             >
                                               Accept with Revisions
-                                            </button>
-                                            <button
-                                              className="decision-button reject-button"
-                                              onClick={() => handleEditorDecision(manuscript._id, 'REJECT', referee)}
-                                              disabled={isDecisionLoading}
-                                            >
-                                              Reject
                                             </button>
                                           </>
                                         ) : getRefereeDecision(manuscript._id, referee) === 'ACCEPT_WITH_REVISIONS' && ['SBR', 'REV', 'EDR'].includes(manuscript.state) ? (
@@ -1435,20 +1461,26 @@ function Manuscripts() {
                                             <button
                                               className="editor-confirm-button"
                                               onClick={() => handleEditorDecision(manuscript._id, 'ACCEPT', referee)}
-                                              disabled={isDecisionLoading}
+                                              disabled={isDecisionLoading || hasRefereeDecisionBeenMade(manuscript, referee)}
                                             >
                                               Accept
                                             </button>
                                             <button
                                               className="editor-reject-button"
                                               onClick={() => handleEditorDecision(manuscript._id, 'REJECT', referee)}
-                                              disabled={isDecisionLoading}
+                                              disabled={isDecisionLoading || hasRefereeDecisionBeenMade(manuscript, referee)}
                                             >
                                               Reject
                                             </button>
                                           </div>
                                         ) : (
-                                          <></>
+                                          <div className="decision-status">
+                                            {getRefereeDecision(manuscript._id, referee) && (
+                                              <span className="decision-made-message">
+                                                Decision submitted: {getRefereeDecision(manuscript._id, referee)}
+                                              </span>
+                                            )}
+                                          </div>
                                         )}
                                       </div>
                                     )}
