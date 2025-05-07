@@ -1,14 +1,14 @@
 :root {
-  --surface:    #ffffff;
-  --border:     #e0e0e0;
-  --primary:    #635bff;
-  --text-dark:  #2c3e50;
+  --surface: #ffffff;
+  --border: #e0e0e0;
+  --primary: #635bff;
+  --text-dark: #2c3e50;
   --text-light: #6b7280;
-  --radius:     6px;
-  --gap:        1rem;
-  --fw-500:     500;
-  --fw-600:     600;
-  --fw-700:     700;
+  --radius: 6px;
+  --gap: 1rem;
+  --fw-500: 500;
+  --fw-600: 600;
+  --fw-700: 700;
 }
 
 .submissions-container {
@@ -140,16 +140,45 @@
   color: white;
 }
 
-.state-SUB { background-color: #4299e1; }
-.state-REV { background-color: #ed8936; }
-.state-REJ { background-color: #e53e3e; }
-.state-CED { background-color: #805ad5; }
-.state-AUR { background-color: #38a169; }
-.state-WIT { background-color: #718096; }
-.state-EDR { background-color: #3182ce; }
-.state-ARV { background-color: #dd6b20; }
-.state-FMT { background-color: #6b46c1; }
-.state-PUB { background-color: #2f855a; }
+.state-SUB {
+  background-color: #4299e1;
+}
+
+.state-REV {
+  background-color: #ed8936;
+}
+
+.state-REJ {
+  background-color: #e53e3e;
+}
+
+.state-CED {
+  background-color: #805ad5;
+}
+
+.state-AUR {
+  background-color: #38a169;
+}
+
+.state-WIT {
+  background-color: #718096;
+}
+
+.state-EDR {
+  background-color: #3182ce;
+}
+
+.state-ARV {
+  background-color: #dd6b20;
+}
+
+.state-FMT {
+  background-color: #6b46c1;
+}
+
+.state-PUB {
+  background-color: #2f855a;
+}
 
 .manuscript-title {
   font-size: 1.4rem;
@@ -203,7 +232,10 @@
   margin-top: 1.5rem;
 }
 
-.edit-button, .view-button, .delete-button {
+.edit-button,
+.view-button,
+.delete-button,
+.withdraw-button {
   flex: 1;
   padding: 0.6rem 1rem;
   border-radius: 6px;
@@ -220,6 +252,11 @@
   color: white;
 }
 
+.withdraw-button {
+  background-color: #d69e2e;
+  color: white;
+}
+
 .view-button {
   background-color: #38a169;
   color: white;
@@ -230,7 +267,10 @@
   color: white;
 }
 
-.edit-button:hover, .view-button:hover, .delete-button:hover {
+.edit-button:hover,
+.view-button:hover,
+.delete-button:hover,
+.withdraw-button:hover {
   opacity: 0.9;
   transform: translateY(-2px);
 }
@@ -243,7 +283,8 @@
   margin-bottom: 2rem;
 }
 
-.submission-form h2, .submission-form h3 {
+.submission-form h2,
+.submission-form h3 {
   margin-top: 0;
   margin-bottom: 1.5rem;
   color: var(--text-dark, #2d3748);
@@ -256,8 +297,8 @@
   color: var(--text-dark, #4a5568);
 }
 
-.submission-form input, 
-.submission-form textarea, 
+.submission-form input,
+.submission-form textarea,
 .submission-form select {
   width: 100%;
   padding: 0.75rem;
@@ -273,8 +314,8 @@
   resize: vertical;
 }
 
-.submission-form input:focus, 
-.submission-form textarea:focus, 
+.submission-form input:focus,
+.submission-form textarea:focus,
 .submission-form select:focus {
   outline: none;
   border-color: #3182ce;
@@ -402,36 +443,36 @@
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .add-button {
     width: 100%;
     margin-bottom: 1rem;
   }
-  
+
   .search-controls {
     width: 100%;
   }
-  
+
   .search-controls form {
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .search-controls input {
     width: 100%;
     max-width: none;
     margin-bottom: 1rem;
   }
-  
+
   .search-controls button {
     margin-left: 0;
     width: 100%;
   }
-  
+
   .manuscripts-list {
     grid-template-columns: 1fr;
   }
-  
+
   .manuscript-actions {
     flex-direction: column;
   }

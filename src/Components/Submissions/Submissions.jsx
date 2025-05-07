@@ -7,10 +7,8 @@ import {
   deleteManuscriptByTitle,
   updateManuscriptState,
   getManuscripts,
-  getValidActions,
   getManuscriptById
 } from '../../services/manuscriptsAPI';
-import RefereeActionForm from '../Referee';
 import './Submissions.css';
 
 // Error message component
@@ -22,7 +20,7 @@ ErrorMessage.propTypes = {
 };
 
 // Component for creating a new manuscript
-function AddManuscriptForm({ visible, cancel, fetchManuscripts, setError}) {
+function AddManuscriptForm({ visible, cancel, fetchManuscripts, setError }) {
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
   const [authorEmail, setAuthorEmail] = useState('');
@@ -176,9 +174,6 @@ EditManuscriptForm.propTypes = {
 // Component for displaying a single manuscript
 function Manuscript({ manuscript, fetchManuscripts, setError }) {
   const [isEditing, setIsEditing] = useState(false);
-  const [isUpdatingState, setIsUpdatingState] = useState(false);
-  const [selectedAction, setSelectedAction] = useState('');
-  const [validActions, setValidActions] = useState([]);
 
   const STATE_LABELS = {
     'SUB': 'Submitted',
@@ -193,18 +188,6 @@ function Manuscript({ manuscript, fetchManuscripts, setError }) {
     'PUB': 'Published'
   };
 
-  useEffect(() => {
-    const fetchValidActions = async () => {
-      try {
-        const actions = await getValidActions(manuscript.state);
-        setValidActions(actions);
-      } catch (error) {
-        setError(error.message);
-      }
-    };
-    fetchValidActions();
-  }, [manuscript.state, setError]);
-
   const handleDelete = async () => {
     if (window.confirm(`Are you sure you want to delete "${manuscript.title}"?`)) {
       try {
@@ -217,25 +200,20 @@ function Manuscript({ manuscript, fetchManuscripts, setError }) {
     }
   };
 
-  const handleStateUpdate = async (e) => {
-    e.preventDefault();
-    try {
-      await updateManuscriptState(manuscript.title, selectedAction);
-      fetchManuscripts();
-      setIsUpdatingState(false);
-      setSelectedAction('');
-    } catch (error) {
-      setError(error.message);
+  const handleWithdraw = async () => {
+    if (window.confirm(`Are you sure you want to withdraw "${manuscript.title}"?`)) {
+      try {
+        await updateManuscriptState(manuscript.title, "WIT");
+        fetchManuscripts();
+      } catch (error) {
+        console.error("Withdraw error:", error);
+        setError(`Failed to withdraw manuscript: ${error.message}`);
+      }
     }
   };
 
   const showEditForm = () => setIsEditing(true);
   const hideEditForm = () => setIsEditing(false);
-  const showStateUpdateForm = () => setIsUpdatingState(true);
-  const hideStateUpdateForm = () => {
-    setIsUpdatingState(false);
-    setSelectedAction('');
-  };
 
   return (
     <div className="manuscript-item">
@@ -264,9 +242,7 @@ function Manuscript({ manuscript, fetchManuscripts, setError }) {
       </div>
       <div className="manuscript-actions">
         <button className="edit-button" onClick={showEditForm}>Edit</button>
-        {validActions.length > 0 && (
-          <button className="view-button" onClick={showStateUpdateForm}>Update State</button>
-        )}
+        <button className="withdraw-button" onClick={handleWithdraw}>Withdraw</button>
         <button className="delete-button" onClick={handleDelete}>Delete</button>
       </div>
       <EditManuscriptForm
@@ -276,44 +252,6 @@ function Manuscript({ manuscript, fetchManuscripts, setError }) {
         fetchManuscripts={fetchManuscripts}
         setError={setError}
       />
-      {isUpdatingState && (
-        <div className="submission-form">
-          <h3>Update Manuscript State</h3>
-          <form onSubmit={handleStateUpdate}>
-            <label htmlFor="action">Select Action</label>
-            <select
-              id="action"
-              value={selectedAction}
-              onChange={(e) => setSelectedAction(e.target.value)}
-              required
-            >
-              <option value="">Select an action...</option>
-              {validActions.map((action) => (
-                <option key={action.code} value={action.code}>
-                  {action.label}
-                </option>
-              ))}
-            </select>
-            {selectedAction !== 'SBR' && (
-              <div className="button-group">
-                <button type="button" onClick={hideStateUpdateForm}>Cancel</button>
-                <button type="submit">Apply Action</button>
-              </div>
-            )}
-          </form>
-          {selectedAction === 'SBR' && (
-            <RefereeActionForm
-              title={manuscript.title}
-              onSuccess={() => {
-                fetchManuscripts();
-                hideStateUpdateForm();
-              }}
-              setError={setError}
-              onCancel={hideStateUpdateForm}
-            />
-          )}
-        </div>
-      )}
     </div>
   );
 }
@@ -537,7 +475,7 @@ const Submissions = ({ user }) => {
         <button onClick={showAddManuscriptForm} className="add-button">
           Add
         </button>
-        
+
         <div className="search-controls">
           <form onSubmit={handleSearch}>
             <input
@@ -568,9 +506,9 @@ const Submissions = ({ user }) => {
       <div className="manuscripts-list">
         {filteredManuscripts && filteredManuscripts.length > 0 ? (
           filteredManuscripts.map((manuscript) => (
-            <Manuscript 
+            <Manuscript
               key={manuscript._id}
-              manuscript={manuscript} 
+              manuscript={manuscript}
               fetchManuscripts={fetchManuscripts}
               setError={setError}
             />
@@ -583,8 +521,8 @@ const Submissions = ({ user }) => {
       </div>
 
       <div className="guidelines-button-container">
-        <button 
-          className="view-guidelines-button" 
+        <button
+          className="view-guidelines-button"
           onClick={toggleGuidelines}
         >
           {guidelinesVisible ? 'Hide Submission Guidelines' : 'View Submission Guidelines'}
