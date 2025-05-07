@@ -696,19 +696,6 @@ function ActionDashboard() {
                     )}
                 </div>
             </div>
-
-            <ul className="action-dashboard-links">
-                <li>
-                    <Link to="/manuscripts" className="action-dashboard-link">
-                        Manuscripts
-                    </Link>
-                </li>
-                <li>
-                    <Link to="/submissions" className="action-dashboard-link">
-                        New Submission
-                    </Link>
-                </li>
-            </ul>
         </div>
     );
 }

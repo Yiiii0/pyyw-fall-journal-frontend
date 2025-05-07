@@ -232,47 +232,26 @@
   margin-top: 1.5rem;
 }
 
-.edit-button,
-.view-button,
-.delete-button,
-.withdraw-button {
-  flex: 1;
-  padding: 0.6rem 1rem;
+button.edit-button {
+  background-color: var(--primary, #3182ce);
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 0px;
+}
+
+button.withdraw-button {
+  background-color: #fdb137;
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
   border-radius: 6px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  text-align: center;
-  transition: all 0.2s ease;
-  border: none;
 }
 
-.edit-button {
-  background-color: #3182ce;
-  color: white;
-}
-
-.withdraw-button {
-  background-color: #d69e2e;
-  color: white;
-}
-
-.view-button {
-  background-color: #38a169;
-  color: white;
-}
-
-.delete-button {
-  background-color: #e53e3e;
-  color: white;
-}
-
-.edit-button:hover,
-.view-button:hover,
-.delete-button:hover,
 .withdraw-button:hover {
   opacity: 0.9;
   transform: translateY(-2px);
+  background-color: #df951e;
 }
 
 .submission-form {
@@ -474,7 +453,7 @@
   }
 
   .manuscript-actions {
-    flex-direction: column;
+    flex-direction: row;
   }
 }
 
