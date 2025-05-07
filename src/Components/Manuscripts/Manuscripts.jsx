@@ -409,7 +409,7 @@ function Manuscripts() {
     try {
       const data = await getManuscript();
       let manuscriptsArray = Array.isArray(data) ? data : ManuscriptsObjectToArray(data);
-      // only show current user’s own submissions
+      // only show current user's own submissions
       if (!hasEditorRole && currentUser?.email) {
         manuscriptsArray = manuscriptsArray.filter(m => m.author_email === currentUser.email);
       }
@@ -699,18 +699,6 @@ function Manuscripts() {
     return false;
   };
 
-  // check if all referees have accepted
-  const allRefereesAccepted = (manuscript) => {
-    if (!manuscript.referees || manuscript.referees.length === 0) {
-      return false;
-    }
-
-    const decisions = refereeDecisions[manuscript._id] || {};
-    return manuscript.referees.every(referee =>
-      decisions[referee] === 'ACCEPT'
-    );
-  };
-
   const hasRefereeDecision = (manuscriptId, refereeEmail) => {
     return (refereeDecisions[manuscriptId] &&
       refereeDecisions[manuscriptId][refereeEmail]) ||
@@ -726,16 +714,6 @@ function Manuscripts() {
     // If not found, check in manuscript.referee_decisions
     const manuscript = manuscripts.find(m => m._id === manuscriptId);
     return manuscript?.referee_decisions?.[refereeEmail] || null;
-  };
-
-  // get the number of referees who have not made decisions
-  const getPendingRefereeCount = (manuscript) => {
-    if (!manuscript.referees) return 0;
-
-    const decisions = refereeDecisions[manuscript._id] || {};
-    return manuscript.referees.filter(referee =>
-      decisions[referee] === undefined
-    ).length;
   };
 
   // Helper function to combine manuscript comments from both sources
@@ -857,30 +835,6 @@ function Manuscripts() {
       }
     });
   }, [manuscripts, refereeDecisions]);
-
-  // check if all referees have made decisions
-  const checkAllDecisions = (manuscript) => {
-    if (!manuscript.referees || manuscript.referees.length === 0) {
-      return { complete: false, unanimous: false, decision: null };
-    }
-
-    const decisions = refereeDecisions[manuscript._id] || {};
-    const complete = manuscript.referees.every(ref => decisions[ref] !== undefined);
-
-    if (!complete) return { complete, unanimous: false, decision: null };
-
-    const firstDecision = decisions[manuscript.referees[0]];
-    const unanimous = manuscript.referees.every(ref => decisions[ref] === firstDecision);
-
-    return {
-      complete,
-      unanimous,
-      decision: unanimous ? firstDecision : null,
-      acceptCount: manuscript.referees.filter(ref => decisions[ref] === 'ACCEPT').length,
-      rejectCount: manuscript.referees.filter(ref => decisions[ref] === 'REJECT').length,
-      revisionCount: manuscript.referees.filter(ref => decisions[ref] === 'ACCEPT_WITH_REVISIONS').length
-    };
-  };
 
   // Add a function to check if we should show referee section as completed
   const isRefereeReviewCompleted = (manuscript) => {
@@ -1010,7 +964,7 @@ function Manuscripts() {
 
       {error && <ErrorMessage message={error} />}
 
-      {editingManuscript && (
+      {hasEditorRole && editingManuscript && (
         <div className="edit-form-container">
           <h2>Edit Manuscript</h2>
           <form onSubmit={handleEditSubmit} className="edit-form">
@@ -1175,12 +1129,14 @@ function Manuscripts() {
                       >
                         {expandedManuscripts.has(manuscript._id) ? 'Show Less' : 'Show More'}
                       </button>
-                      <button
-                        className="edit-button"
-                        onClick={() => handleEditClick(manuscript)}
-                      >
-                        Edit
-                      </button>
+                      {hasEditorRole && (
+                        <button
+                          className="edit-button"
+                          onClick={() => handleEditClick(manuscript)}
+                        >
+                          Edit
+                        </button>
+                      )}
 
                       {hasEditorRole && (
                         <div className="referee-dropdown-container">
@@ -1248,12 +1204,13 @@ function Manuscripts() {
             <thead>
               <tr>
                 <th className="info-column">Basic Information</th>
-                <th className="referee-column">Referee Review</th>
-                <th>Author Revisions</th>
+                <th className="referee-column">In Review</th>
+                <th>Author Revision</th>
                 <th>Editor Review</th>
-                <th>Copy Editing</th>
+                <th>Copy Edit</th>
                 <th>Author Review</th>
-                <th>Final Processing</th>
+                <th>Formatting</th>
+                <th>Published</th>
               </tr>
             </thead>
             <tbody>
@@ -1326,12 +1283,14 @@ function Manuscripts() {
                         )}
 
                         <div className="manuscript-actions">
-                          <button
-                            className="edit-button"
-                            onClick={() => handleEditClick(manuscript)}
-                          >
-                            Edit
-                          </button>
+                          {hasEditorRole && (
+                            <button
+                              className="edit-button"
+                              onClick={() => handleEditClick(manuscript)}
+                            >
+                              Edit
+                            </button>
+                          )}
 
                           {hasEditorRole && manuscript.state !== 'REJ' && (
                             <div className="referee-dropdown-container">
@@ -1390,28 +1349,12 @@ function Manuscripts() {
                           {isRefereeReviewCompleted(manuscript) ? (
                             <div className="referee-status-message success">
                               <div className="decision-message">Referee review completed</div>
-                              <div className="decision-summary">
-                                {(() => {
-                                  const decisions = checkAllDecisions(manuscript);
-                                  return (
-                                    <div>
-                                      <div>Accept: {decisions.acceptCount || 0} </div>
-                                      <div>Revision: {decisions.revisionCount || 0} </div>
-                                      <div>Reject: {decisions.rejectCount || 0} </div>
-                                    </div>
-                                  );
-                                })()}
-                              </div>
-
-                              {allRefereesAccepted(manuscript) && (
-                                <div className="decision-message">All referee accepted this manuscript!</div>
-                              )}
                             </div>
-                          ) : getPendingRefereeCount(manuscript) > 0 ? (
+                          ) : (
                             <div className="referee-status-message">
-                              Waiting for {getPendingRefereeCount(manuscript)} referees actions.
+                              Waiting for referee actions.
                             </div>
-                          ) : null}
+                          )}
 
                           {manuscript.referees.map((referee, index) => {
                             // Add debug info but only show in DEBUG mode
@@ -1577,10 +1520,10 @@ function Manuscripts() {
                             <div className="editor-review-actions">
                               <button
                                 className="accept-button editor-decision-button"
-                                onClick={() => handleEditorDecision(manuscript._id, 'ACCEPT', currentUser?.email || currentUser?.id)}
+                                onClick={async () => { await updateManuscriptState(manuscript._id, 'DON'); fetchManuscripts(); }}
                                 disabled={isDecisionLoading}
                               >
-                                Accept
+                                Done
                               </button>
                               <button
                                 className="reject-button editor-decision-button"
@@ -1606,6 +1549,15 @@ function Manuscripts() {
                       {manuscript.state === 'CED' ? (
                         <div className="stage-content active-stage">
                           <span className="stage-indicator">In Progress</span>
+                          {hasEditorRole && (
+                            <button
+                              className="accept-button editor-decision-button"
+                              onClick={async () => { await updateManuscriptState(manuscript._id, 'DON'); fetchManuscripts(); }}
+                              disabled={isDecisionLoading}
+                            >
+                              Done
+                            </button>
+                          )}
                         </div>
                       ) : manuscript.history && manuscript.history.includes('CED') ? (
                         <div className="stage-content completed-stage">
@@ -1620,7 +1572,20 @@ function Manuscripts() {
                     <td className="process-cell">
                       {manuscript.state === 'AUR' ? (
                         <div className="stage-content active-stage">
-                          <span className="stage-indicator">In Progress</span>
+                          <span className="stage-indicator">Waiting for author action</span>
+                          {hasEditorRole && (
+                            <button
+                              className="accept-button editor-decision-button"
+                              onClick={async () => { 
+                                await updateManuscriptState(manuscript._id, 'DON'); 
+                                fetchManuscripts();
+                                alert('Simulated author response successfully!');
+                              }}
+                              disabled={isDecisionLoading}
+                            >
+                              Simulate Author Response
+                            </button>
+                          )}
                         </div>
                       ) : manuscript.history && manuscript.history.includes('AUR') ? (
                         <div className="stage-content completed-stage">
@@ -1633,11 +1598,35 @@ function Manuscripts() {
                       )}
                     </td>
                     <td className="process-cell">
-                      {(manuscript.state === 'FMT' || manuscript.state === 'PUB') ? (
+                      {manuscript.state === 'FMT' ? (
                         <div className="stage-content active-stage">
                           <span className="stage-indicator">In Progress</span>
+                          {hasEditorRole && (
+                            <button
+                              className="accept-button editor-decision-button"
+                              onClick={async () => { await updateManuscriptState(manuscript._id, 'DON'); fetchManuscripts(); }}
+                              disabled={isDecisionLoading}
+                            >
+                              Done
+                            </button>
+                          )}
                         </div>
-                      ) : manuscript.history && (manuscript.history.includes('FMT') || manuscript.history.includes('PUB')) ? (
+                      ) : manuscript.history && manuscript.history.includes('FMT') ? (
+                        <div className="stage-content completed-stage">
+                          <span className="stage-indicator">Completed</span>
+                        </div>
+                      ) : (
+                        <div className="stage-content pending-stage">
+                          <span className="stage-indicator">Pending</span>
+                        </div>
+                      )}
+                    </td>
+                    <td className="process-cell">
+                      {manuscript.state === 'PUB' ? (
+                        <div className="stage-content active-stage">
+                          <span className="stage-indicator">Published</span>
+                        </div>
+                      ) : manuscript.history && manuscript.history.includes('PUB') ? (
                         <div className="stage-content completed-stage">
                           <span className="stage-indicator">Completed</span>
                         </div>
@@ -1651,7 +1640,7 @@ function Manuscripts() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="7" className="no-manuscripts">No manuscripts found</td>
+                  <td colSpan="8" className="no-manuscripts">No manuscripts found</td>
                 </tr>
               )}
             </tbody>

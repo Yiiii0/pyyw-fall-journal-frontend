@@ -20,6 +20,7 @@ function Navbar() {
   // Determine if user has specific roles
   const isEditorOrME = currentUser?.roles?.some(role => role === 'ED' || role === 'ME');
   const isReferee = currentUser?.roles?.some(role => role === 'RE');
+  const isAuthor = currentUser?.roles?.some(role => role === 'AU');
 
   return (
     <header className="header">
@@ -71,8 +72,8 @@ function Navbar() {
                 </li>
               )}
 
-              {/* Show Action Dashboard if user has Referee role */}
-              {isReferee && (
+              {/* Show Action Dashboard if user is Referee or Author (not Editor/ME) */}
+              {!isEditorOrME && (isReferee || isAuthor) && (
                 <li>
                   <Link
                     to="/action-dashboard"
@@ -95,15 +96,17 @@ function Navbar() {
                 </li>
               )}
 
-              {/* Always show Submissions if user is logged in */}
-              <li>
-                <Link
-                  to="/submissions"
-                  className={location.pathname === '/submissions' ? 'active' : ''}
-                >
-                  Submissions
-                </Link>
-              </li>
+              {/* Show Submissions if user is not Editor/ME */}
+              {!isEditorOrME && (
+                <li>
+                  <Link
+                    to="/submissions"
+                    className={location.pathname === '/submissions' ? 'active' : ''}
+                  >
+                    Submissions
+                  </Link>
+                </li>
+              )}
             </>
           )}
         </ul>
