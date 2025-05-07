@@ -5,6 +5,7 @@ import { BACKEND_URL } from '../constants';
 const REFEREE_ENDPOINTS = {
     UPDATE_MANUSCRIPT: `${BACKEND_URL}/manuscript/update_state`,
     ADD_ROLE: `${BACKEND_URL}/people/add_role`,
+    SUBMIT_COMMENTS: `${BACKEND_URL}/manuscript/submit_comments`,
 };
 
 // Add referee role to a person
@@ -71,5 +72,22 @@ export const makePersonRefereeForManuscript = async (manuscriptId, email) => {
     } catch (error) {
         const errorMessage = error.response?.data?.message || error.message;
         throw new Error(`Failed to make person referee for manuscript: ${errorMessage}`);
+    }
+};
+
+// Submit referee comments (replacing the direct accept/reject functionality)
+export const submitRefereeComments = async (manuscriptId, refereeEmail, comments) => {
+    try {
+        const { data } = await axios.put(REFEREE_ENDPOINTS.UPDATE_MANUSCRIPT, {
+            _id: manuscriptId,
+            action: 'SBR', // Submit Review
+            referee: refereeEmail,
+            comments: comments
+        });
+
+        return data;
+    } catch (error) {
+        const errorMessage = error.response?.data?.message || error.message;
+        throw new Error(`Failed to submit referee comments: ${errorMessage}`);
     }
 };

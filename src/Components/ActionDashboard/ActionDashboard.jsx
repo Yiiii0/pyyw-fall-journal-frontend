@@ -416,6 +416,10 @@ function ActionDashboard() {
                                 const allComments = getAllComments(manuscript);
                                 // Check if manuscript has comments to apply special styling
                                 const hasComments = allComments.length > 0;
+                                // Check if current user has already submitted comments
+                                const hasSubmittedComments = hasComments && allComments.some(
+                                    comment => comment.author === (currentUser.email || currentUser.id)
+                                );
 
                                 return (
                                     <div
@@ -429,6 +433,14 @@ function ActionDashboard() {
                                             </span>
                                         </div>
                                         <p className="manuscript-author">Author: {manuscript.author}</p>
+
+                                        {hasSubmittedComments && (
+                                            <div className="review-status">
+                                                <span className="review-status-badge submitted">
+                                                    You have submitted comments
+                                                </span>
+                                            </div>
+                                        )}
 
                                         <button
                                             className="toggle-details-button"
@@ -471,9 +483,15 @@ function ActionDashboard() {
                                         )}
 
                                         <div className="manuscript-actions">
-                                            <Link to={`/referee/review/${manuscript._id}`} className="review-button">
-                                                Review
-                                            </Link>
+                                            {!hasSubmittedComments ? (
+                                                <Link to={`/referee/review/${manuscript._id}`} className="review-button">
+                                                    Submit Comments
+                                                </Link>
+                                            ) : (
+                                                <Link to={`/referee/review/${manuscript._id}`} className="review-button secondary">
+                                                    Edit Comments
+                                                </Link>
+                                            )}
                                         </div>
                                     </div>
                                 );

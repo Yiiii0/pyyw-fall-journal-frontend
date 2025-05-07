@@ -12,7 +12,6 @@ function ManuscriptReview() {
     const [manuscript, setManuscript] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [reviewAction, setReviewAction] = useState('');
     const [revisionComments, setRevisionComments] = useState('');
     const [submitting, setSubmitting] = useState(false);
 
@@ -39,14 +38,6 @@ function ManuscriptReview() {
         fetchManuscript();
     }, [id]);
 
-    const handleSelectAction = (action) => {
-        setReviewAction(action);
-        if (action !== 'AWR') {
-            // Clear revision comments if not doing "Accept with Revisions"
-            setRevisionComments('');
-        }
-    };
-
     // ensure the comment is saved in the database
     const saveComment = async (manuscriptId, refereeId, commentText) => {
         try {
@@ -70,7 +61,7 @@ function ManuscriptReview() {
     };
 
     // save the referee decision to localStorage
-    const saveRefereeDecision = (manuscriptId, refereeId, decision) => {
+    const saveRefereeDecision = (manuscriptId, refereeId) => {
         try {
             // Get current decisions
             const savedDecisions = localStorage.getItem('refereeDecisions');
@@ -81,18 +72,12 @@ function ManuscriptReview() {
                 refereeDecisions[manuscriptId] = {};
             }
 
-            // map review actions to decision types
-            const decisionMap = {
-                'ACC': 'ACCEPT',
-                'REJ': 'REJECT',
-                'AWR': 'ACCEPT_WITH_REVISIONS'
-            };
-
-            refereeDecisions[manuscriptId][refereeId] = decisionMap[decision];
+            // Only storing "COMMENTS_SUBMITTED" status for referee
+            refereeDecisions[manuscriptId][refereeId] = 'COMMENTS_SUBMITTED';
 
             // save back to localStorage
             localStorage.setItem('refereeDecisions', JSON.stringify(refereeDecisions));
-            console.log(`Saved referee decision to localStorage: ${decision}`);
+            console.log(`Saved referee submission to localStorage`);
 
             return true;
         } catch (err) {
@@ -105,61 +90,44 @@ function ManuscriptReview() {
         try {
             setSubmitting(true);
 
-            if (reviewAction === 'AWR' && revisionComments.trim() === '') {
+            if (revisionComments.trim() === '') {
                 setError('Please provide revision comments.');
                 setSubmitting(false);
                 return;
             }
 
-            // Determine action message for alert
-            const actionMessage = reviewAction === 'ACC' ? 'accepted' :
-                reviewAction === 'REJ' ? 'rejected' :
-                    'accepted with revisions';
-
             // Get referee ID (email or ID)
             const refereeId = currentUser.email || currentUser.id;
 
             // 1. Save referee decision to localStorage
-            saveRefereeDecision(manuscript._id, refereeId, reviewAction);
+            saveRefereeDecision(manuscript._id, refereeId);
 
-            // 2. first try to create the comment (if there is a comment)
+            // 2. Save the comment
             let commentSaveResult = false;
-            if (reviewAction === 'AWR' && revisionComments.trim() !== '') {
+            if (revisionComments.trim() !== '') {
                 commentSaveResult = await saveComment(manuscript._id, refereeId, revisionComments);
             }
 
-            // 3. update the manuscript state
-            // For "Accept with Revisions", use SBR (Submit Review) action code
-            // instead of AWR, as we want to keep the manuscript in REV state
-            // until the editor makes the final decision
-            const actualAction = reviewAction === 'AWR' ? 'SBR' : reviewAction;
-
-            // Include revision comments in the payload for backward compatibility
-            const payload = reviewAction === 'AWR' ? {
+            // 3. Update the manuscript state with SBR (Submit Review) action code
+            const payload = {
                 comments: revisionComments,
-                referee: currentUser.email || currentUser.id
-            } : {
                 referee: currentUser.email || currentUser.id
             };
 
-            console.log('Updating manuscript state with:', {
+            console.log('Submitting referee comments with:', {
                 manuscriptId: manuscript._id,
-                action: actualAction, // Use SBR instead of AWR for "Accept with Revisions"
+                action: 'SBR', // Submit Review
                 payload
             });
 
-            // 4. update the manuscript state
-            await updateManuscriptState(manuscript._id, actualAction, payload);
+            // 4. Update the manuscript state
+            await updateManuscriptState(manuscript._id, 'SBR', payload);
 
-            // 5. comment success message
-            if (reviewAction === 'AWR') {
-                if (commentSaveResult) {
-                    alert(`Manuscript ${actionMessage} successfully! Comment was saved.`);
-                } else {
-                    alert(`Manuscript ${actionMessage} successfully! Comment was saved with the manuscript record.`);
-                }
+            // 5. Success message
+            if (commentSaveResult) {
+                alert(`Comments submitted successfully!`);
             } else {
-                alert(`Manuscript ${actionMessage} successfully!`);
+                alert(`Comments submitted successfully! Comment was saved with the manuscript record.`);
             }
 
             navigate('/action-dashboard');
@@ -204,53 +172,29 @@ function ManuscriptReview() {
                 </div>
 
                 <div className="review-action-selection">
-                    <h4>Your Decision</h4>
-                    <div className="review-actions">
-                        <button
-                            className={`action-button accept-button ${reviewAction === 'ACC' ? 'selected' : ''}`}
-                            onClick={() => handleSelectAction('ACC')}
-                        >
-                            Accept
-                        </button>
-                        <button
-                            className={`action-button revisions-button ${reviewAction === 'AWR' ? 'selected' : ''}`}
-                            onClick={() => handleSelectAction('AWR')}
-                        >
-                            Accept with Revisions
-                        </button>
-                        <button
-                            className={`action-button reject-button ${reviewAction === 'REJ' ? 'selected' : ''}`}
-                            onClick={() => handleSelectAction('REJ')}
-                        >
-                            Reject
-                        </button>
+                    <h4>Provide Feedback</h4>
+
+                    <div className="revision-comments-container">
+                        <h4>Review Comments</h4>
+                        <p className="revision-instructions">Please provide specific feedback and suggestions for the manuscript:</p>
+                        <textarea
+                            className="revision-comments"
+                            value={revisionComments}
+                            onChange={(e) => setRevisionComments(e.target.value)}
+                            placeholder="Enter your comments, observations, and suggestions..."
+                            required
+                        />
                     </div>
 
-                    {reviewAction === 'AWR' && (
-                        <div className="revision-comments-container">
-                            <h4>Revision Comments</h4>
-                            <p className="revision-instructions">Please provide specific feedback and suggestions for the author:</p>
-                            <textarea
-                                className="revision-comments"
-                                value={revisionComments}
-                                onChange={(e) => setRevisionComments(e.target.value)}
-                                placeholder="Explain what changes or improvements are needed..."
-                                required
-                            />
-                        </div>
-                    )}
-
-                    {reviewAction && (
-                        <div className="submit-container">
-                            <button
-                                className="submit-action-button"
-                                onClick={handleSubmitAction}
-                                disabled={submitting}
-                            >
-                                {submitting ? 'Submitting...' : 'Submit Decision'}
-                            </button>
-                        </div>
-                    )}
+                    <div className="submit-container">
+                        <button
+                            className="submit-action-button"
+                            onClick={handleSubmitAction}
+                            disabled={submitting || revisionComments.trim() === ''}
+                        >
+                            {submitting ? 'Submitting...' : 'Submit Comments'}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

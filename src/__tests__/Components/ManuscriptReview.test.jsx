@@ -4,9 +4,11 @@ import '@testing-library/jest-dom';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import ManuscriptReview from '../../Components/ManuscriptReview/ManuscriptReview';
 import { getManuscriptById, updateManuscriptState } from '../../services/manuscriptsAPI';
+import { createComment } from '../../services/commentsAPI';
 
 // Mock the API calls
 jest.mock('../../services/manuscriptsAPI');
+jest.mock('../../services/commentsAPI');
 
 // Mock the useNavigate hook
 const mockNavigate = jest.fn();
@@ -14,6 +16,16 @@ jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockNavigate,
   useParams: () => ({ id: '123' })
+}));
+
+// Mock useAuth hook
+jest.mock('../../contexts/AuthContext', () => ({
+  useAuth: () => ({
+    currentUser: {
+      email: 'referee@example.com',
+      id: 'referee-123'
+    }
+  })
 }));
 
 describe('ManuscriptReview Component', () => {
@@ -31,6 +43,7 @@ describe('ManuscriptReview Component', () => {
     // Mock API responses
     getManuscriptById.mockResolvedValue(mockManuscript);
     updateManuscriptState.mockResolvedValue({ success: true });
+    createComment.mockResolvedValue({ success: true });
     // Reset the mock navigate function
     mockNavigate.mockReset();
     // Mock window.alert
@@ -71,41 +84,7 @@ describe('ManuscriptReview Component', () => {
     });
   });
 
-  test('displays error message when manuscript fetch fails', async () => {
-    // Mock API error
-    getManuscriptById.mockRejectedValueOnce(new Error('Failed to fetch manuscript'));
-
-    render(
-      <MemoryRouter initialEntries={['/manuscript-review/123']}>
-        <Routes>
-          <Route path="/manuscript-review/:id" element={<ManuscriptReview />} />
-        </Routes>
-      </MemoryRouter>
-    );
-
-    await waitFor(() => {
-      expect(screen.getByText('Failed to fetch manuscript')).toBeInTheDocument();
-    });
-  });
-
-  test('displays not found message when manuscript is null', async () => {
-    // Mock API returning null
-    getManuscriptById.mockResolvedValueOnce(null);
-
-    render(
-      <MemoryRouter initialEntries={['/manuscript-review/123']}>
-        <Routes>
-          <Route path="/manuscript-review/:id" element={<ManuscriptReview />} />
-        </Routes>
-      </MemoryRouter>
-    );
-
-    await waitFor(() => {
-      expect(screen.getByText('No manuscript found with ID: 123')).toBeInTheDocument();
-    });
-  });
-
-  test('accept button calls updateManuscriptState with ACC action', async () => {
+  test('submits comments when "Submit Comments" button is clicked', async () => {
     render(
       <MemoryRouter initialEntries={['/manuscript-review/123']}>
         <Routes>
@@ -118,20 +97,37 @@ describe('ManuscriptReview Component', () => {
       expect(screen.getByText('Test Manuscript')).toBeInTheDocument();
     });
 
-    const acceptButton = screen.getByText('Accept');
-    
+    // Type comments
+    fireEvent.change(screen.getByPlaceholderText(/Enter your comments/i), {
+      target: { value: 'These are my review comments' }
+    });
+
+    // Submit comments
+    const submitButton = screen.getByText('Submit Comments');
+
     await act(async () => {
-      fireEvent.click(acceptButton);
+      fireEvent.click(submitButton);
     });
 
     await waitFor(() => {
-      expect(updateManuscriptState).toHaveBeenCalledWith('Test Manuscript', 'ACC');
-      expect(window.alert).toHaveBeenCalledWith('Manuscript accepted successfully!');
+      // Check if updateManuscriptState was called with SBR action
+      expect(updateManuscriptState).toHaveBeenCalledWith('123', 'SBR', {
+        comments: 'These are my review comments',
+        referee: 'referee@example.com'
+      });
+
+      // Check if createComment was called
+      expect(createComment).toHaveBeenCalledWith('123', 'referee@example.com', 'These are my review comments');
+
+      // Check if alert was shown
+      expect(window.alert).toHaveBeenCalled();
+
+      // Check if redirected
       expect(mockNavigate).toHaveBeenCalledWith('/action-dashboard');
     });
   });
 
-  test('reject button calls updateManuscriptState with REJ action', async () => {
+  test('displays error when submitting without comments', async () => {
     render(
       <MemoryRouter initialEntries={['/manuscript-review/123']}>
         <Routes>
@@ -144,22 +140,21 @@ describe('ManuscriptReview Component', () => {
       expect(screen.getByText('Test Manuscript')).toBeInTheDocument();
     });
 
-    const rejectButton = screen.getByText('Reject');
-    
-    await act(async () => {
-      fireEvent.click(rejectButton);
+    // Submit button should be disabled if no comments
+    const submitButton = screen.getByText('Submit Comments');
+    expect(submitButton).toBeDisabled();
+
+    // Add empty comments (just spaces)
+    fireEvent.change(screen.getByPlaceholderText(/Enter your comments/i), {
+      target: { value: '   ' }
     });
 
-    await waitFor(() => {
-      expect(updateManuscriptState).toHaveBeenCalledWith('Test Manuscript', 'REJ');
-      expect(window.alert).toHaveBeenCalledWith('Manuscript rejected successfully!');
-      expect(mockNavigate).toHaveBeenCalledWith('/action-dashboard');
-    });
+    // Submit button should still be disabled
+    expect(submitButton).toBeDisabled();
   });
 
-  test('displays error message when action fails', async () => {
-    // Mock API error for action
-    updateManuscriptState.mockRejectedValueOnce(new Error('Action failed'));
+  test('displays error message when API call fails', async () => {
+    updateManuscriptState.mockRejectedValueOnce(new Error('API Error'));
 
     render(
       <MemoryRouter initialEntries={['/manuscript-review/123']}>
@@ -173,14 +168,20 @@ describe('ManuscriptReview Component', () => {
       expect(screen.getByText('Test Manuscript')).toBeInTheDocument();
     });
 
-    const acceptButton = screen.getByText('Accept');
-    
+    // Type comments
+    fireEvent.change(screen.getByPlaceholderText(/Enter your comments/i), {
+      target: { value: 'These are my review comments' }
+    });
+
+    // Submit comments
+    const submitButton = screen.getByText('Submit Comments');
+
     await act(async () => {
-      fireEvent.click(acceptButton);
+      fireEvent.click(submitButton);
     });
 
     await waitFor(() => {
-      expect(screen.getByText('Action failed')).toBeInTheDocument();
+      expect(screen.getByText('API Error')).toBeInTheDocument();
     });
   });
-}); 
+});

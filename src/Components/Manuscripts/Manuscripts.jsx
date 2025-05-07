@@ -1576,8 +1576,8 @@ function Manuscripts() {
                           {hasEditorRole && (
                             <button
                               className="accept-button editor-decision-button"
-                              onClick={async () => { 
-                                await updateManuscriptState(manuscript._id, 'DON'); 
+                              onClick={async () => {
+                                await updateManuscriptState(manuscript._id, 'DON');
                                 fetchManuscripts();
                                 alert('Simulated author response successfully!');
                               }}
