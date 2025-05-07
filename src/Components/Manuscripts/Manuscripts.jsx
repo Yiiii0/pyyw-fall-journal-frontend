@@ -88,10 +88,10 @@ class ManuscriptStateHandler {
           return 'DON'; // Done -> Editor Review state
 
         case 'REV': // In Review
-          // Check if there are comments or ACCEPT_WITH_REVISIONS decision
-          if (hasComments || this.getRefereeDecision(manuscript._id, refereeEmail) === 'ACCEPT_WITH_REVISIONS') {
-            console.log("Decision path: Accept reviewer comments -> Author Revision (AWR)");
-            return 'AWR'; // Accept With Revision -> Author Revision state
+          // Check if there are comments
+          if (hasComments) {
+            console.log("Decision path: Accept with comments -> Copy Editing (ACC)");
+            return 'ACC'; // Accept -> Copy Editing state
           } else {
             console.log("Decision path: Accept without comments -> Copy Editing (ACC)");
             return 'ACC'; // Accept -> Copy Editing state
@@ -101,6 +101,12 @@ class ManuscriptStateHandler {
           console.log("Default: Accept -> Copy Editing (ACC)");
           return 'ACC'; // Default to Copy Editing state
       }
+    }
+
+    if (decision === 'ACCEPT_WITH_REVISIONS') {
+      // This is a new decision path for requesting author revisions
+      console.log("Decision path: Accept with Revisions -> Author Revision (AWR)");
+      return 'AWR'; // Accept With Revision -> Author Revision state
     }
 
     // Default case, only submit review
@@ -337,9 +343,13 @@ function Manuscripts() {
   const [isLoading, setIsLoading] = useState(false);
   const [textModalOpen, setTextModalOpen] = useState(null);
   const hasEditorRole = currentUser?.roles?.includes('ED');
+  const [revisionModalOpen, setRevisionModalOpen] = useState(false);
   const [isDecisionLoading, setIsDecisionLoading] = useState(false);
   const [refereeDecisions, setRefereeDecisions] = useState({});
+  const [currentRevisionManuscript, setCurrentRevisionManuscript] = useState(null);
   const [manuscriptComments, setManuscriptComments] = useState({});
+  const [currentRefereeEmail, setCurrentRefereeEmail] = useState('');
+  const [revisionInstructions, setRevisionInstructions] = useState('');
 
   // Load referee decisions from localStorage on component mount
   useEffect(() => {
@@ -941,6 +951,82 @@ function Manuscripts() {
     }
   }, [manuscripts]);
 
+  // Add new function to handle opening the revision modal
+  const openRevisionModal = (manuscriptId, refereeEmail) => {
+    const manuscript = manuscripts.find(m => m._id === manuscriptId);
+    if (manuscript) {
+      setCurrentRevisionManuscript(manuscript);
+      setCurrentRefereeEmail(refereeEmail);
+
+      // Pre-populate with existing referee comments if available
+      const allComments = getAllComments(manuscript);
+      if (allComments.length > 0) {
+        // Create a summary of all comments
+        const commentSummary = allComments.map(comment =>
+          `${comment.author}: ${comment.text}`
+        ).join('\n\n');
+
+        setRevisionInstructions(commentSummary);
+      } else {
+        setRevisionInstructions('');
+      }
+
+      setRevisionModalOpen(true);
+    }
+  };
+
+  // Add function to handle submitting revision instructions
+  const handleSubmitRevisionInstructions = async () => {
+    if (!currentRevisionManuscript || !currentRefereeEmail) return;
+
+    try {
+      setIsDecisionLoading(true);
+
+      // Create a special payload for revision request
+      const payload = {
+        referee: currentRefereeEmail,
+        editor: currentUser?.email || currentUser?.id,
+        comments: revisionInstructions,
+        revisionRequest: true // Flag to identify this as a revision request
+      };
+
+      // Update manuscript state to AWR (Accept With Revisions)
+      await updateManuscriptState(currentRevisionManuscript._id, 'AWR', payload);
+
+      // Update decision record to show ACCEPT_WITH_REVISIONS
+      const newDecisions = {
+        ...refereeDecisions,
+        [currentRevisionManuscript._id]: {
+          ...(refereeDecisions[currentRevisionManuscript._id] || {}),
+          [currentRefereeEmail]: 'ACCEPT_WITH_REVISIONS'
+        }
+      };
+      setRefereeDecisions(newDecisions);
+
+      // Save to localStorage
+      localStorage.setItem('refereeDecisions', JSON.stringify(newDecisions));
+
+      // Fetch updated manuscripts
+      await fetchManuscripts();
+
+      // Close modal and reset
+      setRevisionModalOpen(false);
+      setRevisionInstructions('');
+      setCurrentRevisionManuscript(null);
+      setCurrentRefereeEmail('');
+
+      // Show success message
+      alert('Manuscript has been sent to author for revisions.');
+
+    } catch (err) {
+      console.error("Error requesting revisions:", err);
+      setError(`Failed to request revisions: ${err.message}`);
+      alert(`Error: ${err.message}`);
+    } finally {
+      setIsDecisionLoading(false);
+    }
+  };
+
   return (
     <div className="manuscripts-wrapper">
       <div className="manuscripts-header">
@@ -1137,7 +1223,6 @@ function Manuscripts() {
                           Edit
                         </button>
                       )}
-
                       {hasEditorRole && (
                         <div className="referee-dropdown-container">
                           <button
@@ -1281,66 +1366,6 @@ function Manuscripts() {
                             )}
                           </>
                         )}
-
-                        <div className="manuscript-actions">
-                          {hasEditorRole && (
-                            <button
-                              className="edit-button"
-                              onClick={() => handleEditClick(manuscript)}
-                            >
-                              Edit
-                            </button>
-                          )}
-
-                          {hasEditorRole && manuscript.state !== 'REJ' && (
-                            <div className="referee-dropdown-container">
-                              <button
-                                className="add-referee-button"
-                                onClick={() => toggleDropdown(manuscript._id)}
-                              >
-                                Assign Referee
-                              </button>
-                              {dropdownOpen[manuscript._id] && (
-                                <div className="referee-dropdown">
-                                  <select
-                                    value={selectedReferee[manuscript._id] || ''}
-                                    onChange={(e) => handleRefereeSelect(manuscript._id, e.target.value)}
-                                    className="referee-select"
-                                  >
-                                    <option value="">Select a referee</option>
-                                    {people.map(person => {
-                                      const match = person.match(/(.*) \((.*)\)/);
-                                      if (match) {
-                                        const [, name, email] = match;
-                                        return (
-                                          <option key={email} value={email}>
-                                            {name} ({email})
-                                          </option>
-                                        );
-                                      }
-                                      return null;
-                                    })}
-                                  </select>
-                                  <div className="dropdown-actions">
-                                    <button
-                                      onClick={() => addRefereeToManuscript(manuscript._id)}
-                                      className="confirm-referee-button"
-                                      disabled={isLoading || !selectedReferee[manuscript._id]}
-                                    >
-                                      {isLoading ? 'Assigning...' : 'Confirm'}
-                                    </button>
-                                    <button
-                                      onClick={() => toggleDropdown(manuscript._id)}
-                                      className="cancel-referee-button"
-                                    >
-                                      Cancel
-                                    </button>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
                       </div>
                     </td>
                     <td className="process-cell referee-cell">
@@ -1382,7 +1407,6 @@ function Manuscripts() {
                                     {hasEditorRole && (
                                       <div className="referee-decision-box">
                                         {!hasRefereeDecision(manuscript._id, referee) && ['SBR', 'REV', 'EDR'].includes(manuscript.state) ? (
-                                          // First case: Referee has not submitted decision, show Accept/Reject buttons
                                           <>
                                             <button
                                               className="decision-button accept-button"
@@ -1390,6 +1414,13 @@ function Manuscripts() {
                                               disabled={isDecisionLoading}
                                             >
                                               Accept
+                                            </button>
+                                            <button
+                                              className="decision-button revisions-button"
+                                              onClick={() => openRevisionModal(manuscript._id, referee)}
+                                              disabled={isDecisionLoading}
+                                            >
+                                              Accept with Revisions
                                             </button>
                                             <button
                                               className="decision-button reject-button"
@@ -1400,7 +1431,6 @@ function Manuscripts() {
                                             </button>
                                           </>
                                         ) : getRefereeDecision(manuscript._id, referee) === 'ACCEPT_WITH_REVISIONS' && ['SBR', 'REV', 'EDR'].includes(manuscript.state) ? (
-                                          // Second case: Referee submitted Accept with Revisions, show Accept/Reject buttons
                                           <div className="editor-confirmation-buttons">
                                             <button
                                               className="editor-confirm-button"
@@ -1418,12 +1448,10 @@ function Manuscripts() {
                                             </button>
                                           </div>
                                         ) : (
-                                          // Third case: Final decision made, no buttons to show
                                           <></>
                                         )}
                                       </div>
                                     )}
-
                                     {/* Comments section - Force show comment button, only show after referee has action */}
                                     <div className="comments-container">
                                       {(() => {
@@ -1488,7 +1516,7 @@ function Manuscripts() {
                                   </>
                                 ) : null}
                               </div>
-                            )
+                            );
                           })}
                         </div>
                       ) : (
@@ -1576,11 +1604,7 @@ function Manuscripts() {
                           {hasEditorRole && (
                             <button
                               className="accept-button editor-decision-button"
-                              onClick={async () => {
-                                await updateManuscriptState(manuscript._id, 'DON');
-                                fetchManuscripts();
-                                alert('Simulated author response successfully!');
-                              }}
+                              onClick={async () => { await updateManuscriptState(manuscript._id, 'DON'); fetchManuscripts(); alert('Simulated author response successfully!'); }}
                               disabled={isDecisionLoading}
                             >
                               Simulate Author Response
@@ -1740,6 +1764,58 @@ function Manuscripts() {
             </div>
             <div className="text-modal-body">
               {manuscripts.find(m => m._id === textModalOpen)?.text || 'No text available.'}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add the Revision Instructions Modal */}
+      {revisionModalOpen && (
+        <div className="revision-modal-backdrop" onClick={() => setRevisionModalOpen(false)}>
+          <div className="revision-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="revision-modal-header">
+              <h3>Request Author Revisions</h3>
+              <button
+                className="close-modal-button"
+                onClick={() => setRevisionModalOpen(false)}
+              >
+                &times;
+              </button>
+            </div>
+            <div className="revision-modal-body">
+              <div className="manuscript-info">
+                <p><strong>Manuscript:</strong> {currentRevisionManuscript?.title}</p>
+                <p><strong>Author:</strong> {currentRevisionManuscript?.author}</p>
+              </div>
+
+              <div className="revision-instructions-container">
+                <label htmlFor="revision-instructions">
+                  Enter revision instructions for the author:
+                </label>
+                <textarea
+                  id="revision-instructions"
+                  value={revisionInstructions}
+                  onChange={(e) => setRevisionInstructions(e.target.value)}
+                  placeholder="Provide specific instructions for the author to address in their revisions..."
+                  rows={10}
+                  className="revision-textarea"
+                />
+              </div>
+            </div>
+            <div className="revision-modal-footer">
+              <button
+                className="cancel-button"
+                onClick={() => setRevisionModalOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="submit-button"
+                onClick={handleSubmitRevisionInstructions}
+                disabled={!revisionInstructions.trim() || isDecisionLoading}
+              >
+                {isDecisionLoading ? 'Submitting...' : 'Send to Author'}
+              </button>
             </div>
           </div>
         </div>

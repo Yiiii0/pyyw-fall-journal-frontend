@@ -743,7 +743,8 @@ button:hover {
 }
 
 /* Referee Column Styles */
-.referee-column, .referee-cell {
+.referee-column,
+.referee-cell {
   min-width: 150px;
   width: auto;
   max-width: none;
@@ -776,7 +777,7 @@ button:hover {
   border-radius: 4px;
   padding: 8px;
   margin-bottom: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .referee-decision-box {
@@ -816,11 +817,15 @@ button:hover {
   opacity: 0.9;
 }
 
-.accept-button, .revisions-button, .reject-button {
+.accept-button,
+.revisions-button,
+.reject-button {
   background-color: var(--primary);
 }
 
-.accept-button:hover, .revisions-button:hover, .reject-button:hover {
+.accept-button:hover,
+.revisions-button:hover,
+.reject-button:hover {
   background-color: var(--primary-hover);
 }
 
@@ -1005,7 +1010,8 @@ button:hover {
   line-height: 1.4;
   font-size: 13px;
   color: #333;
-  white-space: pre-line; /* 保留换行符 */
+  white-space: pre-line;
+  /* 保留换行符 */
 }
 
 .no-comments-placeholder {
@@ -1055,7 +1061,7 @@ button:hover {
   max-height: 400px;
   background-color: white;
   border: 1px solid #ccc;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   z-index: 1000;
   border-radius: 4px;
   overflow: hidden;
@@ -1137,7 +1143,7 @@ button:hover {
   border-radius: 4px;
   font-size: 0.8rem;
   font-weight: bold;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .decision-accept {
@@ -1290,4 +1296,140 @@ button:hover {
   color: #666666;
   cursor: not-allowed;
   opacity: 0.7;
+}
+
+/* Revision Modal Styles */
+.revision-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.revision-modal-content {
+  background-color: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 700px;
+  max-height: 90vh;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.revision-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  background-color: #f3f4f6;
+}
+
+.revision-modal-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.revision-modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  max-height: calc(90vh - 130px);
+}
+
+.manuscript-info {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.manuscript-info p {
+  margin: 0.5rem 0;
+}
+
+.revision-instructions-container {
+  margin-bottom: 1rem;
+}
+
+.revision-instructions-container label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.revision-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.95rem;
+  resize: vertical;
+  min-height: 150px;
+}
+
+.revision-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+  gap: 0.75rem;
+}
+
+.revision-modal-footer button {
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.revision-modal-footer .cancel-button {
+  background-color: #f3f4f6;
+  color: #4b5563;
+  border: 1px solid #d1d5db;
+}
+
+.revision-modal-footer .cancel-button:hover {
+  background-color: #e5e7eb;
+}
+
+.revision-modal-footer .submit-button {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+}
+
+.revision-modal-footer .submit-button:hover {
+  background-color: #2563eb;
+}
+
+.revision-modal-footer .submit-button:disabled {
+  background-color: #93c5fd;
+  cursor: not-allowed;
+}
+
+/* Add styles for the revisions button */
+.decision-button.revisions-button {
+  background-color: #f59e0b;
+  color: white;
+}
+
+.decision-button.revisions-button:hover {
+  background-color: #d97706;
+}
+
+.decision-button.revisions-button:disabled {
+  background-color: #fcd34d;
+  cursor: not-allowed;
 }
