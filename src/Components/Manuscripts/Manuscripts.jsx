@@ -408,7 +408,11 @@ function Manuscripts() {
   const fetchManuscripts = async () => {
     try {
       const data = await getManuscript();
-      const manuscriptsArray = Array.isArray(data) ? data : ManuscriptsObjectToArray(data);
+      let manuscriptsArray = Array.isArray(data) ? data : ManuscriptsObjectToArray(data);
+      // only show current user’s own submissions
+      if (!hasEditorRole && currentUser?.email) {
+        manuscriptsArray = manuscriptsArray.filter(m => m.author_email === currentUser.email);
+      }
 
       // Process manuscripts
       const processedManuscripts = formatManuscriptsWithComments(manuscriptsArray);
