@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import propTypes from 'prop-types';
 import { useAuth } from '../../contexts/AuthContext';
-import { getManuscript, getManuscriptsByTitle, updateManuscript, updateManuscriptState } from '../../services/manuscriptsAPI';
+import { getManuscript, updateManuscript, updateManuscriptState } from '../../services/manuscriptsAPI';
 import { getCommentsByManuscript } from '../../services/commentsAPI';
 import { addRefereeToManuscript as assignReferee, removeRefereeFromManuscript } from '../../services/refereeAPI';
 import { getAllPeople, register } from '../../services/peopleAPI';
@@ -312,7 +312,6 @@ function Manuscripts() {
   const { currentUser } = useAuth();
   const [error, setError] = useState('');
   const [manuscripts, setManuscripts] = useState([]);
-  const [searchTitle, setSearchTitle] = useState('');
   const [editingManuscript, setEditingManuscript] = useState(null);
   const [editFormData, setEditFormData] = useState({
     _id: '',
@@ -444,23 +443,6 @@ function Manuscripts() {
       setError(`Failed to fetch people: ${err.message}`);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleSearch = async (e) => {
-    if (e) e.preventDefault();
-    if (!searchTitle.trim()) {
-      fetchManuscripts();
-      return;
-    }
-    try {
-      const data = await getManuscriptsByTitle(searchTitle);
-      const manuscriptsArray = Array.isArray(data) ? data : ManuscriptsObjectToArray(data);
-      const processedManuscripts = formatManuscriptsWithComments(manuscriptsArray);
-      setManuscripts(processedManuscripts);
-      setError('');
-    } catch (err) {
-      setError(`There was a problem retrieving the manuscript with title "${searchTitle}". ${err.message}`);
     }
   };
 
@@ -1020,17 +1002,6 @@ function Manuscripts() {
             </svg>
           )}
         </button>
-      </div>
-
-      <div className="search-container">
-        <input
-          type="text"
-          placeholder="Search by title..."
-          value={searchTitle}
-          onChange={(e) => setSearchTitle(e.target.value)}
-          className="search-input"
-        />
-        <button className="search-button" onClick={handleSearch}>Search</button>
       </div>
 
       {error && <ErrorMessage message={error} />}

@@ -22,7 +22,7 @@ ErrorMessage.propTypes = {
 };
 
 // Component for creating a new manuscript
-function AddManuscriptForm({ visible, cancel, fetchManuscripts, setError, currentUser }) {
+function AddManuscriptForm({ visible, cancel, fetchManuscripts, setError}) {
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
   const [authorEmail, setAuthorEmail] = useState('');
