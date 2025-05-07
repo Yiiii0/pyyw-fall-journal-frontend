@@ -124,7 +124,7 @@ function EditPersonForm({ person, visible, cancel, fetchPeople, setError, roles 
   const handleAddRole = async () => {
     if (!newRole) return;
     try {
-      await addRole(person.email, newRole);
+      await addRole(person.email, newRole, currentUser.email);
       fetchPeople();
       setNewRole('');
     } catch (error) {
@@ -134,7 +134,7 @@ function EditPersonForm({ person, visible, cancel, fetchPeople, setError, roles 
 
   const handleDeleteRole = async (roleToDelete) => {
     try {
-      await deleteRole(person.email, roleToDelete);
+      await deleteRole(person.email, roleToDelete, currentUser.email);
       fetchPeople();
     } catch (error) {
       setError(error.message);

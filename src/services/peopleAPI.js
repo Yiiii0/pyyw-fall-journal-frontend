@@ -82,11 +82,16 @@ export const getRoles = async () => {
   }
 };
 
-export const addRole = async (email, role) => {
+export const addRole = async (email, role, callerEmail) => {
   try {
     const response = await axios.put(PEOPLE_ENDPOINTS.ADD_ROLE, {
       id: email,
       role,
+    }, 
+    {
+      headers: {
+        'X-User-Email': callerEmail
+      }
     });
     return response.data;
   } catch (error) {
@@ -95,10 +100,13 @@ export const addRole = async (email, role) => {
   }
 };
 
-export const deleteRole = async (email, role) => {
+export const deleteRole = async (email, role, callerEmail) => {
   try {
     const response = await axios.delete(PEOPLE_ENDPOINTS.DELETE_ROLE, {
       data: { id: email, role },
+      headers: {
+        'X-User-Email': callerEmail
+      }
     });
     return response.data;
   } catch (error) {
