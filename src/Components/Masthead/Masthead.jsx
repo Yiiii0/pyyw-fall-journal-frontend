@@ -105,10 +105,6 @@ function Masthead() {
               )}
             </div>
           </section>
-
-          <section className="editor-notes">
-            <p>* Executive committee</p>
-          </section>
         </>
       )}
     </div>
