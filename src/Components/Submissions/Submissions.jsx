@@ -30,13 +30,6 @@ function AddManuscriptForm({ visible, cancel, fetchManuscripts, setError, curren
   const [abstract, setAbstract] = useState('');
   const [editorEmail, setEditorEmail] = useState('');
 
-  useEffect(() => {
-    if (currentUser) {
-      const userIdentifier = currentUser.id || currentUser.email;
-      setEditorEmail(userIdentifier);
-    }
-  }, [currentUser]);
-
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError('');
