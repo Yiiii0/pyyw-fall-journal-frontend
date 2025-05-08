@@ -126,3 +126,15 @@
   background-color: var(--primary-hover);
   transform: translateY(-1px);
 }
+
+button.delete-button {
+  background-color: rgb(223, 54, 54);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+}
+
+button.delete-button:hover {
+  background-color: rgb(196, 45, 45);
+  transform: translateY(-1px);
+}

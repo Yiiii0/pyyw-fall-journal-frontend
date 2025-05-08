@@ -3,7 +3,7 @@ import propTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import {
   getPeople,
-  createPerson,
+  register,
   deletePerson,
   updatePerson,
   addRole,
@@ -14,22 +14,35 @@ import { useAuth } from '../../contexts/AuthContext';
 import './People.css';
 
 function AddPersonForm({ visible, cancel, fetchPeople, setError, roles }) {
+  const { currentUser } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [affiliation, setAffiliation] = useState('');
-  const [role, setRole] = useState('ED');
+  const [role, setRole] = useState('AU');
 
   const changeName = (e) => setName(e.target.value);
   const changeEmail = (e) => setEmail(e.target.value);
+  const changePassword = (e) => setPassword(e.target.value);
   const changeAffiliation = (e) => setAffiliation(e.target.value);
   const changeRole = (e) => setRole(e.target.value);
 
   const addPerson = async (e) => {
     e.preventDefault();
     setError('');
-    const newPerson = { name, email, role, affiliation };
+    const newUser = {
+      username: email,
+      password,
+      name,
+      affiliation,
+      bio: ''  // No bio field in this form; can be updated later if needed
+    };
     try {
-      await createPerson(newPerson);
+      await register(newUser);
+      // Remove the default "Author" role ("AU")
+      await deleteRole(newUser.username, 'AU', currentUser.email);
+      // Add the selected role from the form
+      await addRole(newUser.username, role, currentUser.email);
       fetchPeople();
       cancel();
     } catch (error) {
@@ -55,6 +68,15 @@ function AddPersonForm({ visible, cancel, fetchPeople, setError, roles }) {
         id="email"
         value={email}
         onChange={changeEmail}
+        required
+      />
+
+      <label htmlFor="password">Password</label>
+      <input
+        type="password"
+        id="password"
+        value={password}
+        onChange={changePassword}
         required
       />
 

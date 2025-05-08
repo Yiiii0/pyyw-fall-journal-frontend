@@ -299,3 +299,50 @@
 .access-denied h2 {
   margin: 0 0 0.5rem 0;
 }
+
+/* New styles for Add Person Form */
+.add-person-form {
+  background-color: var(--surface);
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  margin: 2rem auto;
+
+}
+
+.add-person-form label {
+  display: block;
+  margin: 0.5rem 0 0.75rem;
+  margin-left: 1.25rem;
+  font-weight: 600;
+}
+
+.add-person-form input,
+.add-person-form select {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background-color: var(--background);
+}
+
+.add-person-form .form-button-group {
+  display: flex;
+  justify-content: space-between;
+}
+
+.add-person-form button {
+  background-color: var(--primary);
+  border: none;
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.add-person-form button:hover {
+  background-color: var(--primary-hover);
+}
