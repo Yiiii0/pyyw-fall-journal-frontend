@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getText, updateText } from '../../services/textAPI';
+import { useAuth } from '../../contexts/AuthContext';
 import './EditorDashboard.css';
 
 const EditorDashboard = () => {
+  const { currentUser } = useAuth();
   const [authorized, setAuthorized] = useState(false);
   const [error, setError] = useState(null);
   const [websiteTitle, setWebsiteTitle] = useState('');
@@ -79,7 +81,7 @@ const EditorDashboard = () => {
         pageNumber: 'title',
         title: 'Journal System',
         text: titleInput
-      });
+      }, currentUser.email);
       setWebsiteTitle(titleInput);
       setEditingTitle(false);
       window.location.reload();
@@ -124,7 +126,7 @@ const EditorDashboard = () => {
         pageNumber: selectedStaticPage,
         title: staticPageTitle,
         text: staticPageText
-      });
+      }, currentUser.email);
       setIsEditingStaticPage(false);
       window.location.reload();
     } catch (err) {

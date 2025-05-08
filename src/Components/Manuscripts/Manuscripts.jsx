@@ -1184,7 +1184,7 @@ function Manuscripts() {
                             ? manuscript.referees.map((referee, index) => (
                               <span key={index} className="referee-item">
                                 {referee}
-                                {hasEditorRole && (
+                                {(hasEditorRole && !notEditable) && (
                                   <button
                                     className="delete-referee-button"
                                     onClick={() => deleteRefereeFromManuscript(manuscript._id, referee)}
@@ -1356,7 +1356,7 @@ function Manuscripts() {
                                   ? manuscript.referees.map((referee, index) => (
                                     <span key={index} className="referee-item">
                                       {referee}
-                                      {hasEditorRole && (
+                                      {(hasEditorRole && !(manuscript?.state === 'WIT' || manuscript?.state === 'PUB')) && (
                                         <button
                                           className="delete-referee-button"
                                           onClick={() => deleteRefereeFromManuscript(manuscript._id, referee)}

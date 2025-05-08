@@ -198,7 +198,7 @@ function Manuscript({ manuscript, fetchManuscripts, setError }) {
   const handleWithdraw = async () => {
     if (window.confirm(`Are you sure you want to withdraw "${manuscript.title}"?`)) {
       try {
-        await updateManuscriptState(manuscript.title, "WIT");
+        await updateManuscriptState(manuscript._id, "WIT");
         fetchManuscripts();
       } catch (error) {
         console.error("Withdraw error:", error);

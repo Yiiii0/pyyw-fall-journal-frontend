@@ -15,13 +15,18 @@ export const getText = async (page_number) => {
     }
 };
 
-export const updateText = async (textData) => {
+export const updateText = async (textData, callerEmail) => {
     try {
         const { pageNumber, title, text } = textData;
         const { data } = await axios.put(`${TEXT_ENDPOINTS.UPDATE}`, {
             pageNumber,
             title,
             text
+        },
+        {
+            headers: {
+                'X-User-Email': callerEmail
+            }
         });
         return data;
     } catch (error) {
