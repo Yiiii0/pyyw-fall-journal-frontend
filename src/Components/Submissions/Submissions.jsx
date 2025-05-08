@@ -9,6 +9,8 @@ import {
   getManuscripts,
   getManuscriptById
 } from '../../services/manuscriptsAPI';
+import { addRole } from '../../services/peopleAPI';
+import { useAuth } from '../../contexts/AuthContext';
 import './Submissions.css';
 
 // Error message component
@@ -21,6 +23,7 @@ ErrorMessage.propTypes = {
 
 // Component for creating a new manuscript
 function AddManuscriptForm({ visible, cancel, fetchManuscripts, setError }) {
+  const { currentUser } = useAuth();
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
   const [authorEmail, setAuthorEmail] = useState('');
@@ -41,6 +44,10 @@ function AddManuscriptForm({ visible, cancel, fetchManuscripts, setError }) {
     };
     try {
       await createManuscript(manuscriptData);
+      const isAuthor = currentUser?.roles?.some(role => role === 'AU');
+      if (!isAuthor) {
+        await addRole(currentUser.email, 'AU');
+      }
       fetchManuscripts();
       cancel();
       setTitle('');

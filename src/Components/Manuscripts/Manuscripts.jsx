@@ -1158,6 +1158,7 @@ function Manuscripts() {
               const hasComments = manuscript.comments &&
                 ((Array.isArray(manuscript.comments) && manuscript.comments.length > 0) ||
                   (typeof manuscript.comments === 'string' && manuscript.comments.trim() !== ''));
+              const notEditable = manuscript?.state === 'WIT' || manuscript?.state === 'PUB';
 
               return (
                 <div key={manuscript._id} className={`manuscript-card ${hasComments ? 'has-comments' : ''}`}>
@@ -1239,7 +1240,7 @@ function Manuscripts() {
                       >
                         {expandedManuscripts.has(manuscript._id) ? 'Show Less' : 'Show More'}
                       </button>
-                      {hasEditorRole && (
+                      {(hasEditorRole && !notEditable) && (
                         <button
                           className="edit-button"
                           onClick={() => handleEditClick(manuscript)}
@@ -1247,7 +1248,7 @@ function Manuscripts() {
                           Edit
                         </button>
                       )}
-                      {hasEditorRole && (
+                      {(hasEditorRole && !notEditable) && (
                         <div className="referee-dropdown-container">
                           <button
                             className="add-referee-button"
