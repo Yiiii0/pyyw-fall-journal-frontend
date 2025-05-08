@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { BACKEND_URL } from '../constants';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_URL = BACKEND_URL;
 
 // 辅助函数：从localStorage获取当前用户
 const getCurrentUser = () => {

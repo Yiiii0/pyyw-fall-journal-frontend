@@ -1,6 +1,5 @@
 import axios from 'axios';
-
-const BACKEND_URL = 'http://127.0.0.1:8000';
+import { BACKEND_URL } from '../constants';
 
 export async function doLogin({ username, password }) {
   try {

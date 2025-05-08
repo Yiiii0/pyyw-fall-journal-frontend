@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getText, updateText } from '../../services/textAPI';
 import { useAuth } from '../../contexts/AuthContext';
+import { BACKEND_URL } from '../../constants';
 import './EditorDashboard.css';
 
 const EditorDashboard = () => {
@@ -28,7 +29,7 @@ const EditorDashboard = () => {
         }
 
         const { email } = JSON.parse(userData);
-        const response = await fetch(`http://127.0.0.1:8000/dev/editor_dashboard?email=${encodeURIComponent(email)}`, {
+        const response = await fetch(`${BACKEND_URL}/dev/editor_dashboard?email=${encodeURIComponent(email)}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
