@@ -630,7 +630,7 @@ function Manuscripts() {
 
       // Use OOP approach to handle state change
       let result;
-      if (decision === 'REJECT') {
+      if (decision === 'REJ') {
         // Special handling for reject
         result = await stateHandler.handleReject(manuscriptId, refereeEmail);
       } else {
@@ -1158,7 +1158,7 @@ function Manuscripts() {
               const hasComments = manuscript.comments &&
                 ((Array.isArray(manuscript.comments) && manuscript.comments.length > 0) ||
                   (typeof manuscript.comments === 'string' && manuscript.comments.trim() !== ''));
-              const notEditable = manuscript?.state === 'WIT' || manuscript?.state === 'PUB';
+              const notEditable = manuscript?.state === 'WIT' || manuscript?.state === 'PUB' || manuscript?.state === 'REJ';
 
               return (
                 <div key={manuscript._id} className={`manuscript-card ${hasComments ? 'has-comments' : ''}`}>
@@ -1246,6 +1246,14 @@ function Manuscripts() {
                           onClick={() => handleEditClick(manuscript)}
                         >
                           Edit
+                        </button>
+                      )}
+                      {(hasEditorRole && !notEditable) && (
+                        <button
+                          className="reject-button"
+                          onClick={async () => { await updateManuscriptState(manuscript._id, 'REJ'); fetchManuscripts(); }}
+                        >
+                          Reject
                         </button>
                       )}
                       {(hasEditorRole && !notEditable) && (
@@ -1429,21 +1437,21 @@ function Manuscripts() {
                                 {/* Only show related functionality if referee has action */}
                                 {hasRefereeAction(manuscript, referee) ? (
                                   <>
-                                    {hasEditorRole && (
+                                    {(hasEditorRole && manuscript.state === 'REV') && (
                                       <div className="referee-decision-box">
                                         {!hasRefereeDecision(manuscript._id, referee) && ['SBR', 'REV', 'EDR'].includes(manuscript.state) ? (
                                           <>
                                             <div className="referee-decision-first-row">
                                               <button
                                                 className="decision-button accept-button"
-                                                onClick={() => handleEditorDecision(manuscript._id, 'ACCEPT', referee)}
+                                                onClick={async () => { await updateManuscriptState(manuscript._id, 'ACC'); fetchManuscripts(); }}
                                                 disabled={isDecisionLoading || hasRefereeDecisionBeenMade(manuscript, referee)}
                                               >
                                                 Accept
                                               </button>
                                               <button
                                                 className="decision-button reject-button"
-                                                onClick={() => handleEditorDecision(manuscript._id, 'REJECT', referee)}
+                                                onClick={async () => { await updateManuscriptState(manuscript._id, 'REJ'); fetchManuscripts(); }}
                                                 disabled={isDecisionLoading || hasRefereeDecisionBeenMade(manuscript, referee)}
                                               >
                                                 Reject
@@ -1461,14 +1469,14 @@ function Manuscripts() {
                                           <div className="editor-confirmation-buttons">
                                             <button
                                               className="editor-confirm-button"
-                                              onClick={() => handleEditorDecision(manuscript._id, 'ACCEPT', referee)}
+                                              onClick={() => handleEditorDecision(manuscript._id, 'ACC', referee)}
                                               disabled={isDecisionLoading || hasRefereeDecisionBeenMade(manuscript, referee)}
                                             >
                                               Accept
                                             </button>
                                             <button
                                               className="editor-reject-button"
-                                              onClick={() => handleEditorDecision(manuscript._id, 'REJECT', referee)}
+                                              onClick={() => handleEditorDecision(manuscript._id, 'REJ', referee)}
                                               disabled={isDecisionLoading || hasRefereeDecisionBeenMade(manuscript, referee)}
                                             >
                                               Reject
@@ -1580,18 +1588,11 @@ function Manuscripts() {
                           {hasEditorRole && (
                             <div className="editor-review-actions">
                               <button
-                                className="accept-button editor-decision-button"
-                                onClick={async () => { await updateManuscriptState(manuscript._id, 'DON'); fetchManuscripts(); }}
+                                className="accept-button editor-decision-button editor-accept"
+                                onClick={async () => { await updateManuscriptState(manuscript._id, 'ACC'); fetchManuscripts(); }}
                                 disabled={isDecisionLoading}
                               >
-                                Done
-                              </button>
-                              <button
-                                className="reject-button editor-decision-button"
-                                onClick={() => handleEditorDecision(manuscript._id, 'REJECT', currentUser?.email || currentUser?.id)}
-                                disabled={isDecisionLoading}
-                              >
-                                Reject
+                                Accept
                               </button>
                             </div>
                           )}
@@ -1612,7 +1613,7 @@ function Manuscripts() {
                           <span className="stage-indicator">In Progress</span>
                           {hasEditorRole && (
                             <button
-                              className="accept-button editor-decision-button"
+                              className="accept-button editor-decision-button editor-accept"
                               onClick={async () => { await updateManuscriptState(manuscript._id, 'DON'); fetchManuscripts(); }}
                               disabled={isDecisionLoading}
                             >
@@ -1634,15 +1635,6 @@ function Manuscripts() {
                       {manuscript.state === 'AUR' ? (
                         <div className="stage-content active-stage">
                           <span className="stage-indicator">Waiting for author action</span>
-                          {hasEditorRole && (
-                            <button
-                              className="accept-button editor-decision-button"
-                              onClick={async () => { await updateManuscriptState(manuscript._id, 'DON'); fetchManuscripts(); alert('Simulated author response successfully!'); }}
-                              disabled={isDecisionLoading}
-                            >
-                              Simulate Author Response
-                            </button>
-                          )}
                         </div>
                       ) : manuscript.history && manuscript.history.includes('AUR') ? (
                         <div className="stage-content completed-stage">
@@ -1660,7 +1652,7 @@ function Manuscripts() {
                           <span className="stage-indicator">In Progress</span>
                           {hasEditorRole && (
                             <button
-                              className="accept-button editor-decision-button"
+                              className="accept-button editor-decision-button editor-accept"
                               onClick={async () => { await updateManuscriptState(manuscript._id, 'DON'); fetchManuscripts(); }}
                               disabled={isDecisionLoading}
                             >

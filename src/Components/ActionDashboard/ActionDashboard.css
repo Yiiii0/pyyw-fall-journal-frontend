@@ -344,6 +344,7 @@
   margin-bottom: 1rem;
 }
 
+.complete-review-button,
 .revision-button {
   background-color: #f0ad4e;
   color: white;
@@ -355,11 +356,13 @@
   transition: all 0.2s ease;
 }
 
+.complete-review-button:hover,
 .revision-button:hover {
   background-color: #ec971f;
   transform: translateY(-1px);
 }
 
+.complete-review-button:disabled,
 .revision-button:disabled {
   background-color: #e0e0e0;
   color: #9e9e9e;

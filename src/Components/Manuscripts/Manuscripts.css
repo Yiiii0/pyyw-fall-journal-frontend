@@ -849,6 +849,10 @@ button:hover {
   justify-content: center;
 }
 
+button.editor-accept {
+  margin-top: 1rem;
+}
+
 /* Adjust the Accept and Reject buttons to fit in first row */
 .decision-button.accept-button,
 .decision-button.reject-button {
@@ -1669,4 +1673,12 @@ button:hover {
   gap: 8px;
   width: 90%;
   min-height: 80px;
+}
+
+.reject-button {
+  background-color: #f44336;
+  color: white;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  align-self: flex-start;
 }

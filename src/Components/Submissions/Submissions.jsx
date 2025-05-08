@@ -209,7 +209,7 @@ function Manuscript({ manuscript, fetchManuscripts, setError }) {
 
   const showEditForm = () => setIsEditing(true);
   const hideEditForm = () => setIsEditing(false);
-
+  const notEditable = manuscript?.state === 'WIT' || manuscript?.state === 'PUB' || manuscript?.state === 'REJ';
   return (
     <div className="manuscript-item">
       <div className={`state-tag state-${manuscript.state}`}>
@@ -236,7 +236,9 @@ function Manuscript({ manuscript, fetchManuscripts, setError }) {
         )}
       </div>
       <div className="manuscript-actions">
-        <button className="edit-button" onClick={showEditForm}>Edit</button>
+        {(!notEditable) && (
+          <button className="edit-button" onClick={showEditForm}>Edit</button>
+        )}
         <button className="withdraw-button" onClick={handleWithdraw}>Withdraw</button>
       </div>
       <EditManuscriptForm

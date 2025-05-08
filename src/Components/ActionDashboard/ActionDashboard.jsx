@@ -343,6 +343,21 @@ function ActionDashboard() {
         }
     };
 
+    // Add a new handler to complete the review:
+    const handleCompleteReview = async (manuscriptId) => {
+        try {
+            setSubmittingAction(true);
+            await updateManuscriptState(manuscriptId, 'DON');
+            alert("Review complete! Your manuscript has been sent to Formatting.");
+            await fetchAuthorManuscripts();
+        } catch (error) {
+            console.error("Error completing review:", error);
+            alert(`Error: ${error.message}`);
+        } finally {
+            setSubmittingAction(false);
+        }
+    };
+
     // Update the renderAuthorActions function to use the new simpler approach
     const renderAuthorActions = (manuscript) => {
         const allComments = getAllComments(manuscript);
@@ -369,6 +384,16 @@ function ActionDashboard() {
                         {submittingAction ? "Submitting..." : hasSpecificInstructions
                             ? "View Editor Instructions & Complete"
                             : "View Revision Instructions & Mark Complete"}
+                    </button>
+                );
+            case 'AUR': // NEW CASE: When manuscript is in Author Review state
+                return (
+                    <button
+                        className="complete-review-button"
+                        onClick={() => handleCompleteReview(manuscript._id)}
+                        disabled={submittingAction}
+                    >
+                        {submittingAction ? "Submitting..." : "Complete Review"}
                     </button>
                 );
             case 'REJ': // Rejected
