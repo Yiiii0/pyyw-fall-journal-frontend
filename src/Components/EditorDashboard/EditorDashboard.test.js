@@ -44,7 +44,7 @@ describe('EditorDashboard Component', () => {
 
   test('renders no permission message when unauthorized', async () => {
     const fakeResponse = {
-      error: "User test@example.com lacks required roles: ['ED', 'ME']"
+      error: "User test@example.com lacks required roles: ['ED', 'ME', 'CE']"
     };
     global.fetch.mockResolvedValueOnce({
       ok: false,

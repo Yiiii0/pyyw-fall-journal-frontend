@@ -33,7 +33,7 @@ function Navbar() {
   };
 
   // Determine if user has specific roles
-  const isEditorOrME = currentUser?.roles?.some(role => role === 'ED' || role === 'ME');
+  const isEditorOrME = currentUser?.roles?.some(role => role === 'ED' || role === 'ME' || role === 'CE');
   const isReferee = currentUser?.roles?.some(role => role === 'RE');
   const isAuthor = currentUser?.roles?.some(role => role === 'AU');
 
