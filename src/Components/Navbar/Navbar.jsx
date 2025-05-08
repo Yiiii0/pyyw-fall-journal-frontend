@@ -100,7 +100,7 @@ function Navbar() {
               )}
 
               {/* Show Manuscripts link if user has neither Editor/ME nor Referee role */}
-              {!isEditorOrME && !isReferee && (
+              {isAuthor && (
                 <li>
                   <Link
                     to="/manuscripts"

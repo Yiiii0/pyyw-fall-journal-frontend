@@ -14,7 +14,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import './People.css';
 
 function AddPersonForm({ visible, cancel, fetchPeople, setError, roles }) {
-  const { currentUser } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -32,17 +31,13 @@ function AddPersonForm({ visible, cancel, fetchPeople, setError, roles }) {
     setError('');
     const newUser = {
       username: email,
-      password,
-      name,
-      affiliation,
-      bio: ''  // No bio field in this form; can be updated later if needed
+      password: password,
+      name: name,
+      affiliation: affiliation,
+      role: role
     };
     try {
       await register(newUser);
-      // Remove the default "Author" role ("AU")
-      await deleteRole(newUser.username, 'AU', currentUser.email);
-      // Add the selected role from the form
-      await addRole(newUser.username, role, currentUser.email);
       fetchPeople();
       cancel();
     } catch (error) {

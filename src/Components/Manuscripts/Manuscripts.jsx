@@ -342,7 +342,7 @@ function Manuscripts() {
   const [selectedReferee, setSelectedReferee] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [textModalOpen, setTextModalOpen] = useState(null);
-  const hasEditorRole = currentUser?.roles?.includes('ED');
+  const hasEditorRole = currentUser?.roles?.some(role => role === 'ED' || role === 'ME' || role === 'CE');
   const [revisionModalOpen, setRevisionModalOpen] = useState(false);
   const [isDecisionLoading, setIsDecisionLoading] = useState(false);
   const [refereeDecisions, setRefereeDecisions] = useState({});
